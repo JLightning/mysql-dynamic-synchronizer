@@ -3,14 +3,15 @@ package com.jhl.mds.controllers.api;
 import com.jhl.mds.dao.entities.MysqlServer;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
 import com.jhl.mds.dto.MysqlFieldDTO;
+import com.jhl.mds.dto.MysqlServerDTO;
+import com.jhl.mds.services.database.MySQLService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.sql.*;
-import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,69 +20,47 @@ import java.util.Optional;
 public class MySQLApiController {
 
     private final MysqlServerRepository mysqlServerRepository;
+    private final MySQLService mySQLService;
 
     @Autowired
-    public MySQLApiController(MysqlServerRepository mysqlServerRepository) {
+    public MySQLApiController(
+            MysqlServerRepository mysqlServerRepository,
+            MySQLService mySQLService
+    ) {
         this.mysqlServerRepository = mysqlServerRepository;
+        this.mySQLService = mySQLService;
     }
 
-    @GetMapping("/database-by-server")
+    @GetMapping("/databases")
     public List<String> getDatabasesForServer(@RequestParam int serverId) throws SQLException {
         Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
         MysqlServer server = opt.get();
 
-        Connection conn = DriverManager.getConnection("jdbc:mysql://" + server.getHost() + ":" + server.getPort(), server.getUsername(), server.getPassword());
-        Statement st = conn.createStatement();
-
-        ResultSet rs = st.executeQuery("SHOW DATABASES;");
-
-        List<String> databaseNames = new ArrayList<>();
-        while (rs.next()) {
-            String tableName = rs.getString(1);
-            databaseNames.add(tableName);
-        }
-        return databaseNames;
+        return mySQLService.getDatabases(genDTO(server));
     }
 
-    @GetMapping("/table-by-server-and-database")
+    @GetMapping("/tables")
     public List<String> getTablesForServerAndDatabase(@RequestParam int serverId, @RequestParam String database) throws SQLException {
         Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
         MysqlServer server = opt.get();
 
-        Connection conn = DriverManager.getConnection("jdbc:mysql://" + server.getHost() + ":" + server.getPort() + "/" + database, server.getUsername(), server.getPassword());
-        Statement st = conn.createStatement();
-
-        ResultSet rs = st.executeQuery("SHOW TABLES;");
-
-        List<String> tableNames = new ArrayList<>();
-        while (rs.next()) {
-            String tableName = rs.getString(1);
-            tableNames.add(tableName);
-        }
-        return tableNames;
+        return mySQLService.getTables(genDTO(server), database);
     }
 
-    @GetMapping("/field-by-server-database-and-table")
+    @GetMapping("/fields")
     public List<MysqlFieldDTO> getFieldForServerDatabaseAndTable(@RequestParam int serverId, @RequestParam String database, @RequestParam String table) throws SQLException {
         Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
         MysqlServer server = opt.get();
 
-        Connection conn = DriverManager.getConnection("jdbc:mysql://" + server.getHost() + ":" + server.getPort() + "/" + database, server.getUsername(), server.getPassword());
-        Statement st = conn.createStatement();
+        return mySQLService.getFields(genDTO(server), database, table);
+    }
 
-        ResultSet rs = st.executeQuery("DESCRIBE " + table + ";");
-
-        List<MysqlFieldDTO> fields = new ArrayList<>();
-        while (rs.next()) {
-            fields.add(MysqlFieldDTO.builder()
-                    .field(rs.getString(1))
-                    .type(rs.getString(2))
-                    .nullable(!rs.getString(3).equals("NO"))
-                    .key(rs.getString(4))
-                    .defaultValue(rs.getString(5))
-                    .extra(rs.getString(6))
-                    .build());
-        }
-        return fields;
+    private MysqlServerDTO genDTO(MysqlServer server) {
+        return MysqlServerDTO.builder()
+                .host(server.getHost())
+                .port(server.getPort())
+                .username(server.getUsername())
+                .password(server.getPassword())
+                .build();
     }
 }
