@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/mysql-server")
@@ -41,17 +42,31 @@ public class MysqlServerController {
         return "mysql-server/add";
     }
 
+    @GetMapping("/edit")
+    public String editAction(@RequestParam int serverId, Model model) {
+        Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
+        if (!opt.isPresent()) {
+            feMessageService.addError("No server with id " + serverId + " found");
+            return "redirect:/mysql-server/list";
+        }
+        model.addAttribute("mysqlServer", opt.get());
+        return "mysql-server/add";
+    }
+
     @PostMapping(value = "/add-post")
     public RedirectView addPostAction(@Valid @ModelAttribute("dto") MysqlServerDTO dto) {
+        String errorRedirectUrl = dto.getServerId() == 0 ? "/mysql-server/add" : "/mysql-server/edit?serverId=" + dto.getServerId();
+
         try {
             // test connection
             DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort(), dto.getUsername(), dto.getPassword());
         } catch (SQLException e) {
             feMessageService.addError("Unable to connect to server");
-            return new RedirectView("/mysql-server/add");
+            return new RedirectView(errorRedirectUrl);
         }
         Date now = new Date();
         MysqlServer mysqlServer = MysqlServer.builder()
+                .serverId(dto.getServerId())
                 .name(dto.getName())
                 .host(dto.getHost())
                 .port(dto.getPort())
@@ -65,6 +80,7 @@ public class MysqlServerController {
             mysqlServerRepository.save(mysqlServer);
         } catch (Exception e) {
             feMessageService.addError("Error when adding new server: " + e.getMessage());
+            return new RedirectView(errorRedirectUrl);
         }
 
         return new RedirectView("/mysql-server/list");

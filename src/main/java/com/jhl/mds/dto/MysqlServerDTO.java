@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class MysqlServerDTO {
+    private int serverId;
     private String name;
     private String host;
     private String port;

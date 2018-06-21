@@ -8,26 +8,26 @@
 <div layout:fragment="content">
     <div class="container mt-3">
         <form method="post" th:action="${@urlService.getUrl('/mysql-server/add-post')}" modelAttribute="dto">
+            <input type="hidden" name="serverId" th:value="${mysqlServer != null ? mysqlServer.getServerId() : 0}"/>
             <div class="form-group">
                 <label for="name">Name</label>
-                <input type="text" class="form-control" id="name" name="name" placeholder="Enter Reminding Name">
-                </small>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Enter Reminding Name" th:value="${mysqlServer != null ? mysqlServer.getName() : ''}">
             </div>
             <div class="form-group">
                 <label for="host">Host</label>
-                <input type="text" class="form-control" id="host" name="host" placeholder="Enter Host">
+                <input type="text" class="form-control" id="host" name="host" placeholder="Enter Host" th:value="${mysqlServer != null ? mysqlServer.getHost() : ''}">
             </div>
             <div class="form-group">
                 <label for="host">Port</label>
-                <input type="text" class="form-control" id="port" name="port" placeholder="Enter Port">
+                <input type="text" class="form-control" id="port" name="port" placeholder="Enter Port" th:value="${mysqlServer != null ? mysqlServer.getPort() : ''}">
             </div>
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" class="form-control" id="username" name="username" placeholder="Enter Username">
+                <input type="text" class="form-control" id="username" name="username" placeholder="Enter Username" th:value="${mysqlServer != null ? mysqlServer.getUsername() : ''}">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter Password" th:value="${mysqlServer != null ? mysqlServer.getPassword() : ''}">
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>

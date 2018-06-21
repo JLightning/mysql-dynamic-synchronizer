@@ -24,7 +24,7 @@
                 <td th:text="${mysqlServer.getHost()}">Otto</td>
                 <td th:text="${mysqlServer.getPort()}">@mdo</td>
                 <td>
-                    <a href="#">Edit</a>
+                    <a th:href="${@urlService.getUrl('/mysql-server/edit?serverId=' + mysqlServer.getServerId())}">Edit</a>
                     <a class="delete-server" href="#" th:data-server-id="${mysqlServer.getServerId()}">Remove</a>
                 </td>
             </tr>
