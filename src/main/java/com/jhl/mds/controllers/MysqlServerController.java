@@ -1,8 +1,8 @@
 package com.jhl.mds.controllers;
 
-import com.jhl.mds.dao.entities.MysqlServer;
+import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
-import com.jhl.mds.dto.MysqlServerDTO;
+import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.services.common.FEMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -46,7 +46,7 @@ public class MysqlServerController {
 
     @GetMapping("/edit")
     public String editAction(@RequestParam int serverId, Model model) {
-        Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
+        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
         if (!opt.isPresent()) {
             feMessageService.addError("No server with id " + serverId + " found");
             return "redirect:/mysql-server/list";
@@ -56,7 +56,7 @@ public class MysqlServerController {
     }
 
     @PostMapping(value = "/add-post")
-    public RedirectView addPostAction(@Valid @ModelAttribute("dto") MysqlServerDTO dto) {
+    public RedirectView addPostAction(@Valid @ModelAttribute("dto") MySQLServerDTO dto) {
         String errorRedirectUrl = dto.getServerId() == 0 ? "/mysql-server/add" : "/mysql-server/edit?serverId=" + dto.getServerId();
 
         try {
@@ -67,7 +67,7 @@ public class MysqlServerController {
             return new RedirectView(errorRedirectUrl);
         }
         Date now = new Date();
-        MysqlServer mysqlServer = MysqlServer.builder()
+        MySQLServer mySQLServer = MySQLServer.builder()
                 .serverId(dto.getServerId())
                 .name(dto.getName())
                 .host(dto.getHost())
@@ -79,7 +79,7 @@ public class MysqlServerController {
                 .build();
 
         try {
-            mysqlServerRepository.save(mysqlServer);
+            mysqlServerRepository.save(mySQLServer);
         } catch (Exception e) {
             feMessageService.addError("Error when adding new server: " + e.getMessage());
             return new RedirectView(errorRedirectUrl);

@@ -16,7 +16,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MysqlServer {
+public class MySQLServer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -1,7 +1,7 @@
 package com.jhl.mds.services.database;
 
-import com.jhl.mds.dto.MysqlFieldDTO;
-import com.jhl.mds.dto.MysqlServerDTO;
+import com.jhl.mds.dto.MySQLFieldDTO;
+import com.jhl.mds.dto.MySQLServerDTO;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 public class MySQLService {
 
-    public List<String> getDatabases(MysqlServerDTO dto) throws SQLException {
+    public List<String> getDatabases(MySQLServerDTO dto) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort(), dto.getUsername(), dto.getPassword());
         Statement st = conn.createStatement();
 
@@ -25,7 +25,7 @@ public class MySQLService {
         return databaseNames;
     }
 
-    public List<String> getTables(MysqlServerDTO dto, String database) throws SQLException {
+    public List<String> getTables(MySQLServerDTO dto, String database) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort() + "/" + database, dto.getUsername(), dto.getPassword());
         Statement st = conn.createStatement();
 
@@ -39,15 +39,15 @@ public class MySQLService {
         return tableNames;
     }
 
-    public List<MysqlFieldDTO> getFields(MysqlServerDTO dto, String database, String table) throws SQLException {
+    public List<MySQLFieldDTO> getFields(MySQLServerDTO dto, String database, String table) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort() + "/" + database, dto.getUsername(), dto.getPassword());
         Statement st = conn.createStatement();
 
         ResultSet rs = st.executeQuery("DESCRIBE " + table + ";");
 
-        List<MysqlFieldDTO> fields = new ArrayList<>();
+        List<MySQLFieldDTO> fields = new ArrayList<>();
         while (rs.next()) {
-            fields.add(MysqlFieldDTO.builder()
+            fields.add(MySQLFieldDTO.builder()
                     .field(rs.getString(1))
                     .type(rs.getString(2))
                     .nullable(!rs.getString(3).equals("NO"))

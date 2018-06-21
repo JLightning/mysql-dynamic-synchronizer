@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class MysqlFieldDTO {
+public class MySQLFieldDTO {
     private String field;
     private String type;
     private boolean nullable;

@@ -1,9 +1,10 @@
 package com.jhl.mds.controllers.api;
 
-import com.jhl.mds.dao.entities.MysqlServer;
+import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
-import com.jhl.mds.dto.MysqlFieldDTO;
-import com.jhl.mds.dto.MysqlServerDTO;
+import com.jhl.mds.dto.ApiResponse;
+import com.jhl.mds.dto.MySQLFieldDTO;
+import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.services.database.MySQLService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,46 +22,61 @@ public class MySQLApiController {
 
     private final MysqlServerRepository mysqlServerRepository;
     private final MySQLService mySQLService;
+    private final MySQLServerDTO.Converter mysqlServerDtoConverter;
 
     @Autowired
     public MySQLApiController(
             MysqlServerRepository mysqlServerRepository,
-            MySQLService mySQLService
+            MySQLService mySQLService,
+            MySQLServerDTO.Converter mysqlServerDtoConverter
     ) {
         this.mysqlServerRepository = mysqlServerRepository;
         this.mySQLService = mySQLService;
+        this.mysqlServerDtoConverter = mysqlServerDtoConverter;
     }
 
     @GetMapping("/databases")
-    public List<String> getDatabasesForServer(@RequestParam int serverId) throws SQLException {
-        Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
-        MysqlServer server = opt.get();
+    public ApiResponse<List<String>> getDatabasesForServer(@RequestParam int serverId) {
+        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
+        if (!opt.isPresent()) {
+            return ApiResponse.error("server not found");
+        }
+        MySQLServer server = opt.get();
 
-        return mySQLService.getDatabases(genDTO(server));
+        try {
+            return ApiResponse.success(mySQLService.getDatabases(mysqlServerDtoConverter.from(server)));
+        } catch (SQLException e) {
+            return ApiResponse.error(e);
+        }
     }
 
     @GetMapping("/tables")
-    public List<String> getTablesForServerAndDatabase(@RequestParam int serverId, @RequestParam String database) throws SQLException {
-        Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
-        MysqlServer server = opt.get();
+    public ApiResponse<List<String>> getTablesForServerAndDatabase(@RequestParam int serverId, @RequestParam String database) {
+        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
+        if (!opt.isPresent()) {
+            return ApiResponse.error("server not found");
+        }
+        MySQLServer server = opt.get();
 
-        return mySQLService.getTables(genDTO(server), database);
+        List<String> result = null;
+        try {
+            return ApiResponse.success(mySQLService.getTables(mysqlServerDtoConverter.from(server), database));
+        } catch (SQLException e) {
+            return ApiResponse.error(e);
+        }
     }
 
     @GetMapping("/fields")
-    public List<MysqlFieldDTO> getFieldForServerDatabaseAndTable(@RequestParam int serverId, @RequestParam String database, @RequestParam String table) throws SQLException {
-        Optional<MysqlServer> opt = mysqlServerRepository.findById(serverId);
-        MysqlServer server = opt.get();
-
-        return mySQLService.getFields(genDTO(server), database, table);
-    }
-
-    private MysqlServerDTO genDTO(MysqlServer server) {
-        return MysqlServerDTO.builder()
-                .host(server.getHost())
-                .port(server.getPort())
-                .username(server.getUsername())
-                .password(server.getPassword())
-                .build();
+    public ApiResponse<List<MySQLFieldDTO>> getFieldForServerDatabaseAndTable(@RequestParam int serverId, @RequestParam String database, @RequestParam String table) {
+        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
+        if (!opt.isPresent()) {
+            return ApiResponse.error("server not found");
+        }
+        MySQLServer server = opt.get();
+        try {
+            return ApiResponse.success(mySQLService.getFields(mysqlServerDtoConverter.from(server), database, table));
+        } catch (SQLException e) {
+            return ApiResponse.error(e);
+        }
     }
 }
