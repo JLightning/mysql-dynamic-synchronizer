@@ -1,0 +1,26 @@
+version: '2'
+services:
+  db:
+    image: mysql:5.7
+    container_name: mds_db
+    environment:
+      - MYSQL_DATABASE=mds
+      - MYSQL_USER=mds
+      - MYSQL_PASSWORD=secret
+      - MYSQL_ROOT_PASSWORD=root
+    expose:
+      - "3306"
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./transfer:/transfer
+      - ./data/mysql:/var/lib/mysql
+    command:
+      - '--user=mysql'
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: mds_phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: "mds_db"
