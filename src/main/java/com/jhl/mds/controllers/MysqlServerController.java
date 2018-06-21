@@ -4,6 +4,7 @@ import com.jhl.mds.dao.entities.MysqlServer;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
 import com.jhl.mds.dto.MysqlServerDTO;
 import com.jhl.mds.services.common.FEMessageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,6 +24,7 @@ public class MysqlServerController {
     private MysqlServerRepository mysqlServerRepository;
     private FEMessageService feMessageService;
 
+    @Autowired
     public MysqlServerController(
             MysqlServerRepository mysqlServerRepository,
             FEMessageService feMessageService
