@@ -7,15 +7,10 @@
 <body>
 <div layout:fragment="content">
     <div class="container mt-3">
-        <form method="post" th:action="${@urlService.getUrl('/database/add-post')}" modelAttribute="databaseDTO">
+        <form method="post" th:action="${@urlService.getUrl('/mysql-server/add-post')}" modelAttribute="dto">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" id="name" name="name" placeholder="Enter Reminding Name">
-                </small>
-            </div>
-            <div class="form-group">
-                <label for="database">Database</label>
-                <input type="text" class="form-control" id="database" name="database" placeholder="Enter Database Name">
                 </small>
             </div>
             <div class="form-group">

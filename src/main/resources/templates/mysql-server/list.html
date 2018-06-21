@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html layout:decorate="~{layouts/main}" xmlns:layout="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>MySQL Dynamic Synchronizer</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-3">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Host</th>
+                <th scope="col">Port</th>
+                <th scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="mysqlServer : ${mysqlServers}">
+                <th scope="row" th:text="${mysqlServer.getServerId()}">d</th>
+                <td th:text="${mysqlServer.getName()}">Mark</td>
+                <td th:text="${mysqlServer.getHost()}">Otto</td>
+                <td th:text="${mysqlServer.getPort()}">@mdo</td>
+                <td>
+                    <a href="#">Edit</a>
+                    <a class="delete-server" href="#" th:data-server-id="${mysqlServer.getServerId()}">Remove</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="deleteConnectionConfirmModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure to delete this server connection?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                    <button type="button" class="btn btn-primary btn-confirm-delete-connection">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var serverId = 0;
+            $('.delete-server').click(function() {
+                serverId = $(this).data('server-id');
+                $('#deleteConnectionConfirmModal').modal('show');
+            });
+
+            $('.btn-confirm-delete-connection').click(function() {
+                if (serverId != 0) {
+                    location.href = "/mysql-server/delete/?serverId=" + serverId;
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>

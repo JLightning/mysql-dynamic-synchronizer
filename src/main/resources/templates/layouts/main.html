@@ -34,11 +34,11 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="databaseDropdown" role="button"
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Databases
+                        MySQL Servers
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" th:href="${@urlService.getUrl('/database/list')}">List</a>
-                        <a class="dropdown-item" th:href="${@urlService.getUrl('/database/add')}">Add Database</a>
+                        <a class="dropdown-item" th:href="${@urlService.getUrl('/mysql-server/list')}">List</a>
+                        <a class="dropdown-item" th:href="${@urlService.getUrl('/mysql-server/add')}">Add Server</a>
                     </div>
                 </li>
             </ul>

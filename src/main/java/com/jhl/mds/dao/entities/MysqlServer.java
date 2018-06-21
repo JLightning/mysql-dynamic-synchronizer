@@ -11,18 +11,17 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.util.Date;
 
-@Entity(name = "db")
+@Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Db {
+public class MysqlServer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int databaseId;
+    private int serverId;
     private String name;
-    private String dbName;
     private String host;
     private String port;
     private String username;
