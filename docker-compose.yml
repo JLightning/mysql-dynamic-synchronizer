@@ -17,6 +17,12 @@ services:
       - ./data/mysql:/var/lib/mysql
     command:
       - '--user=mysql'
+  node:
+    image: node:6.11-slim
+    container_name: mds_node
+    command: tailf /dev/null
+    volumes:
+      - ./src:/code
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: mds_phpmyadmin

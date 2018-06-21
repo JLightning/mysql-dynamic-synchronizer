@@ -1,0 +1,1 @@
+docker exec -ti mds_node bash -c "cd /code/main/resources/static/resources/js/source && npm $*"

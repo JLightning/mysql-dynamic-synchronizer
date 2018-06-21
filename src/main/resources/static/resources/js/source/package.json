@@ -1,0 +1,20 @@
+{
+  "name": "react-basic-commonjs-example",
+  "description": "Basic example of using React with CommonJS",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.5.0",
+    "babelify": "^7.3.0",
+    "browserify": "^13.0.0",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "watchify": "^3.7.0",
+    "minifier": "^0.8.1"
+  },
+  "scripts": {
+    "build": "browserify ./react-app.js -t babelify -o ../react-app.js && minify ../react-app.js",
+    "watch": "watchify ./react-app.js -v -t babelify -o ../react-app.min.js"
+  }
+}
