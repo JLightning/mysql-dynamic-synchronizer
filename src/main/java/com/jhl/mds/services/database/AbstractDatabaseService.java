@@ -1,4 +1,4 @@
-package com.jhl.mds.services.common.databases;
+package com.jhl.mds.services.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

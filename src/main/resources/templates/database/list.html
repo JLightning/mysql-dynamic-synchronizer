@@ -18,7 +18,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr data-th-each="db : ${databases}">
+            <tr th:each="db : ${databases}">
                 <th scope="row" th:text="${db.getDatabaseId()}">d</th>
                 <td th:text="${db.getName()}">Mark</td>
                 <td th:text="${db.getHost()}">Otto</td>

@@ -1,4 +1,4 @@
-package com.jhl.mds.services.common.databases;
+package com.jhl.mds.services.database;
 
 import com.jhl.mds.dto.DatabaseDTO;
 
