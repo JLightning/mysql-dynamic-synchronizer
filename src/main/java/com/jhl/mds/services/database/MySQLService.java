@@ -13,49 +13,62 @@ public class MySQLService {
 
     public List<String> getDatabases(MySQLServerDTO dto) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort(), dto.getUsername(), dto.getPassword());
-        Statement st = conn.createStatement();
+        try {
+            Statement st = conn.createStatement();
 
-        ResultSet rs = st.executeQuery("SHOW DATABASES;");
+            ResultSet rs = st.executeQuery("SHOW DATABASES;");
 
-        List<String> databaseNames = new ArrayList<>();
-        while (rs.next()) {
-            String tableName = rs.getString(1);
-            databaseNames.add(tableName);
+            List<String> databaseNames = new ArrayList<>();
+            while (rs.next()) {
+                String tableName = rs.getString(1);
+                databaseNames.add(tableName);
+            }
+
+            return databaseNames;
+        } finally {
+            conn.close();
         }
-        return databaseNames;
     }
 
     public List<String> getTables(MySQLServerDTO dto, String database) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort() + "/" + database, dto.getUsername(), dto.getPassword());
-        Statement st = conn.createStatement();
+        try {
+            Statement st = conn.createStatement();
 
-        ResultSet rs = st.executeQuery("SHOW TABLES;");
+            ResultSet rs = st.executeQuery("SHOW TABLES;");
 
-        List<String> tableNames = new ArrayList<>();
-        while (rs.next()) {
-            String tableName = rs.getString(1);
-            tableNames.add(tableName);
+            List<String> tableNames = new ArrayList<>();
+            while (rs.next()) {
+                String tableName = rs.getString(1);
+                tableNames.add(tableName);
+            }
+            return tableNames;
+        } finally {
+            conn.close();
         }
-        return tableNames;
     }
 
     public List<MySQLFieldDTO> getFields(MySQLServerDTO dto, String database, String table) throws SQLException {
         Connection conn = DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort() + "/" + database, dto.getUsername(), dto.getPassword());
-        Statement st = conn.createStatement();
+        try {
+            Statement st = conn.createStatement();
 
-        ResultSet rs = st.executeQuery("DESCRIBE " + table + ";");
+            ResultSet rs = st.executeQuery("DESCRIBE " + table + ";");
 
-        List<MySQLFieldDTO> fields = new ArrayList<>();
-        while (rs.next()) {
-            fields.add(MySQLFieldDTO.builder()
-                    .field(rs.getString(1))
-                    .type(rs.getString(2))
-                    .nullable(!rs.getString(3).equals("NO"))
-                    .key(rs.getString(4))
-                    .defaultValue(rs.getString(5))
-                    .extra(rs.getString(6))
-                    .build());
+            List<MySQLFieldDTO> fields = new ArrayList<>();
+            while (rs.next()) {
+                fields.add(MySQLFieldDTO.builder()
+                        .field(rs.getString(1))
+                        .type(rs.getString(2))
+                        .nullable(!rs.getString(3).equals("NO"))
+                        .key(rs.getString(4))
+                        .defaultValue(rs.getString(5))
+                        .extra(rs.getString(6))
+                        .build());
+            }
+            return fields;
+        } finally {
+            conn.close();
         }
-        return fields;
     }
 }
