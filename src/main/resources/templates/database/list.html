@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html layout:decorate="~{layouts/main}" xmlns:layout="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>MySQL Dynamic Synchronizer</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-3">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Host</th>
+                <th scope="col">Port</th>
+                <th scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr data-th-each="db : ${databases}">
+                <th scope="row" th:text="${db.getDatabaseId()}">d</th>
+                <td th:text="${db.getName()}">Mark</td>
+                <td th:text="${db.getHost()}">Otto</td>
+                <td th:text="${db.getPort()}">@mdo</td>
+                <td><a href="#">edit</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

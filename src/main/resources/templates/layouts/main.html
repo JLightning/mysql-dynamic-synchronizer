@@ -37,6 +37,7 @@
                         Databases
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" th:href="${@urlService.getUrl('/database/list')}">List</a>
                         <a class="dropdown-item" th:href="${@urlService.getUrl('/database/add')}">Add Database</a>
                     </div>
                 </li>
