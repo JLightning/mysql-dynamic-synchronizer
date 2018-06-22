@@ -24,6 +24,8 @@ public class MySQLServerDTO {
 
         public MySQLServerDTO from(MySQLServer server) {
             return MySQLServerDTO.builder()
+                    .serverId(server.getServerId())
+                    .name(server.getName())
                     .host(server.getHost())
                     .port(server.getPort())
                     .username(server.getUsername())

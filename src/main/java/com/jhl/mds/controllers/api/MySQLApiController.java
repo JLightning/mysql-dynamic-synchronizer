@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/mysql")
@@ -33,6 +34,11 @@ public class MySQLApiController {
         this.mysqlServerRepository = mysqlServerRepository;
         this.mySQLService = mySQLService;
         this.mysqlServerDtoConverter = mysqlServerDtoConverter;
+    }
+
+    @GetMapping("/servers")
+    public ApiResponse<List<MySQLServerDTO>> getServers() {
+        return ApiResponse.success(mysqlServerRepository.findAll().stream().map(mysqlServerDtoConverter::from).collect(Collectors.toList()));
     }
 
     @GetMapping("/databases")
