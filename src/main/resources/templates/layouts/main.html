@@ -71,7 +71,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <p th:each="errorMessage : ${errorMessages}" th:text="${errorMessage}">Modal body text goes
+                    <p class="modal-error-message" th:each="errorMessage : ${errorMessages}" th:text="${errorMessage}">Modal body text goes
                         here.</p>
                 </div>
                 <div class="modal-footer">
@@ -85,7 +85,12 @@
 <script type="text/javascript">
      $(document).ready(function(){
         $("#errorMessageModal").modal('show');
-    });
+     });
+
+     function showError(message) {
+         $('.modal-error-message').html(message);
+         $("#errorMessageModal").modal('show');
+     }
 </script>
 <script th:src="${@urlService.getUrl('/resources/js/react-app.min.js')}"></script>
 </body>

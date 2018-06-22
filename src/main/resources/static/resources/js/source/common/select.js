@@ -27,7 +27,7 @@ export default class Select extends React.Component {
     render() {
         const className = 'dropdown-menu' + (this.state.show ? ' show' : '');
         return (
-            <div className="col-md-6">
+            <div className="dropdown">
                 <button className="btn btn-secondary dropdown-toggle" type="button"
                         onClick={() => this.setState({show: !this.state.show})}>
                     {this.state.btnTitle || this.props.btnTitle || 'Select'}
