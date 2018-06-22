@@ -3,9 +3,9 @@
 <head>
     <title>MySQL Dynamic Synchronizer</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <link rel="stylesheet" href="/resources/css/bootstrap.min.css">
+    <link rel="stylesheet" th:href="${@urlService.getUrl('/resources/css/bootstrap.min.css')}">
     <script th:src="${@urlService.getUrl('/resources/js/jquery-3.3.1.min.js')}"></script>
-    <script src="/resources/js/bootstrap.min.js"></script>
+    <script th:src="${@urlService.getUrl('/resources/js/bootstrap.min.js')}"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -28,7 +28,7 @@
                         Tasks
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="#">Create task</a>
+                        <a class="dropdown-item" th:href="${@urlService.getUrl('/task/create')}">Create task</a>
                     </div>
                 </li>
                 <li class="nav-item dropdown">
@@ -87,5 +87,6 @@
         $("#errorMessageModal").modal('show');
     });
 </script>
+<script th:src="${@urlService.getUrl('/resources/js/react-app.min.js')}"></script>
 </body>
 </html>
