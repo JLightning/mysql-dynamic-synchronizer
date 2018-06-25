@@ -81,10 +81,10 @@ class TaskCreate extends React.Component {
 
                     <div className="row">
                         <div className="col">
-                            <TableSelector onSelected={o => this.tableSelected(o, true)}/>
+                            <TableSelector title='Source' onSelected={o => this.tableSelected(o, true)}/>
                         </div>
                         <div className="col">
-                            <TableSelector onSelected={o => this.tableSelected(o, false)}/>
+                            <TableSelector title='Target' onSelected={o => this.tableSelected(o, false)}/>
                         </div>
                     </div>
 
@@ -124,14 +124,14 @@ class FieldRow extends React.Component {
             <tr>
                 {
                     field.sourceField == null ? <td></td> :
-                        <td>{field.sourceField.field} ({field.sourceField.type})</td>
+                        <td>{field.sourceField.field} [{field.sourceField.type}]</td>
                 }
                 <td>
                     <input type="checkbox" defaultChecked={field.mappable} onChange={e => this.props.handleMappableChange(e)}/>
                 </td>
                 {
                     field.targetField == null ? <td></td> :
-                        <td>{field.targetField.field} ({field.targetField.type})</td>
+                        <td>{field.targetField.field} [{field.targetField.type}]</td>
                 }
             </tr>
         );
@@ -176,7 +176,7 @@ class TableSelector extends React.Component {
     render() {
         return (
             <div>
-                <p>Source</p>
+                <p>{this.props.title}</p>
                 <Select className='mt-3 fullWidth'
                     options={this.state.servers.map(server => new SelectOption(server.serverId, server.name + ' mysql://' + server.host + ':' + server.port))}
                     btnTitle={'Select Server'}
