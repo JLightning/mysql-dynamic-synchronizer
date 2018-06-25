@@ -2,15 +2,10 @@ package com.jhl.mds.controllers.api;
 
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
-import com.jhl.mds.dto.ApiResponse;
-import com.jhl.mds.dto.MySQLFieldDTO;
-import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.*;
 import com.jhl.mds.services.database.MySQLService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -64,7 +59,6 @@ public class MySQLApiController {
         }
         MySQLServer server = opt.get();
 
-        List<String> result = null;
         try {
             return ApiResponse.success(mySQLService.getTables(mysqlServerDtoConverter.from(server), database));
         } catch (SQLException e) {
@@ -81,6 +75,27 @@ public class MySQLApiController {
         MySQLServer server = opt.get();
         try {
             return ApiResponse.success(mySQLService.getFields(mysqlServerDtoConverter.from(server), database, table));
+        } catch (SQLException e) {
+            return ApiResponse.error(e);
+        }
+    }
+
+    @PostMapping("/fields-mapping")
+    public ApiResponse<List<MySQLFieldWithMappingDTO>> getMappingFor2Table(@RequestBody TableFieldsMappingDTO dto) {
+        Optional<MySQLServer> opt = mysqlServerRepository.findById(dto.getSourceServerId());
+        if (!opt.isPresent()) {
+            return ApiResponse.error("source server not found");
+        }
+        MySQLServer sourceServer = opt.get();
+
+        opt = mysqlServerRepository.findById(dto.getTargetServerId());
+        if (!opt.isPresent()) {
+            return ApiResponse.error("target server not found");
+        }
+        MySQLServer targetServer = opt.get();
+
+        try {
+            return ApiResponse.success(mySQLService.getFieldsMappingFor2Table(mysqlServerDtoConverter.from(sourceServer), mysqlServerDtoConverter.from(targetServer), dto));
         } catch (SQLException e) {
             return ApiResponse.error(e);
         }

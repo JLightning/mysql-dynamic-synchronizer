@@ -9,7 +9,8 @@ class TaskCreate extends React.Component {
         this.state = {fields: []};
     }
 
-    sourceSelected(o) {
+    tableSelected(o, isSource) {
+        const sub = isSource ? 'source' : 'target';
         $.get('/api/mysql/fields', {
             serverId: o.serverId,
             database: o.databaseName,
@@ -19,9 +20,11 @@ class TaskCreate extends React.Component {
                 const fields = this.state.fields;
                 data.data.forEach((field, i) => {
                     if (fields.length > i) {
-                        fields[i].source = field;
+                        fields[i][sub] = field;
                     } else {
-                        fields.push({source: field});
+                        const _o = {};
+                        _o[sub] = field;
+                        fields.push(_o);
                     }
                 });
 
@@ -42,10 +45,10 @@ class TaskCreate extends React.Component {
 
                     <div className="row">
                         <div className="col">
-                            <TableSelector onSelected={o => this.sourceSelected(o)}/>
+                            <TableSelector onSelected={o => this.tableSelected(o, true)}/>
                         </div>
                         <div className="col">
-                            <TableSelector/>
+                            <TableSelector onSelected={o => this.tableSelected(o, true)}/>
                         </div>
                     </div>
 

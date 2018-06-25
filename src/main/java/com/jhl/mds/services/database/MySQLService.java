@@ -1,11 +1,14 @@
 package com.jhl.mds.services.database;
 
 import com.jhl.mds.dto.MySQLFieldDTO;
+import com.jhl.mds.dto.MySQLFieldWithMappingDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.TableFieldsMappingDTO;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -70,5 +73,41 @@ public class MySQLService {
         } finally {
             conn.close();
         }
+    }
+
+    public List<MySQLFieldWithMappingDTO> getFieldsMappingFor2Table(MySQLServerDTO sourceServer, MySQLServerDTO targetServer, TableFieldsMappingDTO dto) throws SQLException {
+        List<MySQLFieldDTO> sourceFields = getFields(sourceServer, dto.getSourceDatabase(), dto.getSourceTable());
+        List<MySQLFieldDTO> targetFields = getFields(targetServer, dto.getTargetDatabase(), dto.getTargetTable());
+        HashMap<MySQLFieldDTO, Boolean> mapAlready = new HashMap<>();
+
+        List<MySQLFieldWithMappingDTO> result = new ArrayList<>();
+
+        outer_loop:
+        for (MySQLFieldDTO sourceField : sourceFields) {
+            for (MySQLFieldDTO targetField : targetFields) {
+                if (sourceField.getField().equals(targetField.getField()) && !mapAlready.containsKey(targetField)) {
+                    result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField).targetField(targetField).mappable(true).build());
+                    mapAlready.put(targetField, true);
+                    continue outer_loop;
+                }
+            }
+
+            result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField).build());
+        }
+
+        targetFields.removeAll(mapAlready.keySet());
+
+        for (MySQLFieldWithMappingDTO _result : result) {
+            if (targetFields.size() == 0) break;
+            if (!_result.isMappable()) {
+                _result.setTargetField(targetFields.get(0));
+                targetFields.remove(0);
+            }
+        }
+
+        for (MySQLFieldDTO targetField : targetFields) {
+            result.add(MySQLFieldWithMappingDTO.builder().targetField(targetField).build());
+        }
+        return result;
     }
 }
