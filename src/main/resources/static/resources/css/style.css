@@ -1,0 +1,13 @@
+.dropdown.fullWidth .dropdown-toggle {
+    width: 100%;
+}
+
+.dropdown.fullWidth .dropdown-toggle:after {
+    right: .5em;
+    top: .95em;
+    position: absolute;
+}
+
+.dropdown.fullWidth .dropdown-menu {
+    width: 100%;
+}

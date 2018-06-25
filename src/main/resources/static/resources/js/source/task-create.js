@@ -107,7 +107,7 @@ class TaskCreate extends React.Component {
                             </table> : ''
                     }
 
-                    <button type="button" className="btn btn-primary float-right"
+                    <button type="button" className="btn btn-primary float-right mt-3"
                             disabled={!this.state.readyForSubmit}>Submit
                     </button>
                 </form>
@@ -176,20 +176,18 @@ class TableSelector extends React.Component {
     render() {
         return (
             <div>
-                <p>Source Server</p>
-                <Select
+                <p>Source</p>
+                <Select className='mt-3 fullWidth'
                     options={this.state.servers.map(server => new SelectOption(server.serverId, server.name + ' mysql://' + server.host + ':' + server.port))}
                     btnTitle={'Select Server'}
                     onItemClick={option => this.serverSelected(option.id)}/>
 
-                <p className="mt-3">Source Database</p>
-                <Select
+                <Select className='mt-3 fullWidth'
                     options={this.state.databases.map((db, idx) => new SelectOption(idx, db))}
                     btnTitle={'Select Database'}
                     onItemClick={option => this.databaseSelected(option.value)}/>
 
-                <p className="mt-3">Source Table</p>
-                <Select
+                <Select className='mt-3 fullWidth'
                     options={this.state.tables.map((db, idx) => new SelectOption(idx, db))}
                     btnTitle={'Select Database'}
                     onItemClick={option => {
