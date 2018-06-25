@@ -6,12 +6,13 @@ class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fields: [], table: {}};
+        this.state = {fields: [], table: {}, readyForSubmit: false};
     }
 
     tableSelected(o, isSource) {
         const sub = isSource ? 'sourceField' : 'targetField';
         const sub2 = isSource ? 'source' : 'target';
+
         let params = {
             serverId: o.serverId,
             database: o.databaseName,
@@ -21,9 +22,9 @@ class TaskCreate extends React.Component {
         table[sub2] = params;
         this.setState({table: table});
 
-        if (table.source !== undefined && table.target !== undefined) {
-            const sourceParam = table.source;
-            const targetParam = table.target;
+        if (this.state.table.source != null && this.state.table.target != null) {
+            const sourceParam = this.state.table.source;
+            const targetParam = this.state.table.target;
             const postParam = {
                 sourceServerId: sourceParam.serverId,
                 sourceDatabase: sourceParam.database,
@@ -39,7 +40,7 @@ class TaskCreate extends React.Component {
             }).done((data) => {
                 if (data.success) {
                     const fields = data.data;
-                    this.setState({fields: fields});
+                    this.setState({fields: fields, readyForSubmit: true});
                 }
             });
         } else {
@@ -62,6 +63,12 @@ class TaskCreate extends React.Component {
         }
     }
 
+    handleMappableChange(e, idx) {
+        const fields = this.state.fields;
+        fields[idx].mappable = e.target.checked;
+        this.setState({fields: fields});
+    }
+
     render() {
         return (
             <div className="container mt-3">
@@ -81,37 +88,52 @@ class TaskCreate extends React.Component {
                         </div>
                     </div>
 
-                    <table className="table mt-3">
-                        <thead>
-                        <tr>
-                            <th scope="col">Source Fields</th>
-                            <th scope="col">Sync?</th>
-                            <th scope="col">Target Fields</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {
-                            this.state.fields.map((field, idx) => {
-                                return (
-                                    <tr key={idx}>
-                                        {
-                                            field.sourceField == null ? <td></td> :
-                                                <td>{field.sourceField.field} ({field.sourceField.type})</td>
-                                        }
-                                        <td><input type="checkbox" checked={field.mappable}/></td>
-                                        {
-                                            field.targetField == null ? <td></td> :
-                                                <td>{field.targetField.field} ({field.targetField.type})</td>
-                                        }
-                                    </tr>
-                                );
-                            })
-                        }
-                        </tbody>
-                    </table>
+                    {
+                        this.state.fields.length > 0 ?
+                            <table className="table mt-3">
+                                <thead>
+                                <tr>
+                                    <th scope="col">Source Fields</th>
+                                    <th scope="col">Sync?</th>
+                                    <th scope="col">Target Fields</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {
+                                    this.state.fields.map((field, idx) => <FieldRow key={idx} field={field}
+                                                                                    handleMappableChange={e => this.handleMappableChange(e, idx)}/>)
+                                }
+                                </tbody>
+                            </table> : ''
+                    }
+
+                    <button type="button" className="btn btn-primary float-right"
+                            disabled={!this.state.readyForSubmit}>Submit
+                    </button>
                 </form>
             </div>
         )
+    }
+}
+
+class FieldRow extends React.Component {
+
+    render() {
+        const field = this.props.field;
+        return (
+            <tr>
+                {
+                    field.sourceField == null ? <td></td> :
+                        <td>{field.sourceField.field} ({field.sourceField.type})</td>
+                }
+                <td><input type="checkbox" defaultChecked={field.mappable}
+                           onChange={e => this.props.handleMappableChange(e)}/></td>
+                {
+                    field.targetField == null ? <td></td> :
+                        <td>{field.targetField.field} ({field.targetField.type})</td>
+                }
+            </tr>
+        );
     }
 }
 
