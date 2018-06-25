@@ -126,8 +126,9 @@ class FieldRow extends React.Component {
                     field.sourceField == null ? <td></td> :
                         <td>{field.sourceField.field} ({field.sourceField.type})</td>
                 }
-                <td><input type="checkbox" defaultChecked={field.mappable}
-                           onChange={e => this.props.handleMappableChange(e)}/></td>
+                <td>
+                    <input type="checkbox" defaultChecked={field.mappable} onChange={e => this.props.handleMappableChange(e)}/>
+                </td>
                 {
                     field.targetField == null ? <td></td> :
                         <td>{field.targetField.field} ({field.targetField.type})</td>
