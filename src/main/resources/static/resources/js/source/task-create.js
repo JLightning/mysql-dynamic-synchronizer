@@ -6,7 +6,12 @@ class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fields: [], table: {}, readyForSubmit: false};
+        this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false};
+    }
+
+    recalculateReadyForSubmit() {
+        const readyForSubmit = this.state.fields.length > 0 && this.state.taskName !== '';
+        this.setState({readyForSubmit: readyForSubmit});
     }
 
     tableSelected(o, isSource) {
@@ -40,7 +45,8 @@ class TaskCreate extends React.Component {
             }).done((data) => {
                 if (data.success) {
                     const fields = data.data;
-                    this.setState({fields: fields, readyForSubmit: true});
+                    this.setState({fields: fields});
+                    this.recalculateReadyForSubmit();
                 }
             });
         } else {
@@ -69,6 +75,23 @@ class TaskCreate extends React.Component {
         this.setState({fields: fields});
     }
 
+    submit() {
+        const mapping = [];
+        this.state.fields.filter(field => field.mappable).forEach(field => mapping.push({sourceField: field.sourceField.field, targetField: field.targetField.field}));
+        const postParams = {
+            taskName: this.state.taskName,
+            mapping: mapping,
+            source: this.state.table.source,
+            target: this.state.table.target
+        };
+
+        $.ajax('/api/task/create', {
+            data: JSON.stringify(postParams),
+            contentType: 'application/json',
+            type: 'POST'
+        });
+    }
+
     render() {
         return (
             <div className="container mt-3">
@@ -76,7 +99,10 @@ class TaskCreate extends React.Component {
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
                         <input type="text" className="form-control" id="name" name="name"
-                               placeholder="Enter Task Name"/>
+                               defaultValue={this.state.taskName} onChange={e => {
+                            this.setState({taskName: e.target.value});
+                            this.recalculateReadyForSubmit();
+                        }} placeholder="Enter Task Name"/>
                     </div>
 
                     <div className="row">
@@ -108,7 +134,9 @@ class TaskCreate extends React.Component {
                     }
 
                     <button type="button" className="btn btn-primary float-right mt-3"
-                            disabled={!this.state.readyForSubmit}>Submit
+                            disabled={!this.state.readyForSubmit}
+                            onClick={() => this.submit()}>
+                        Submit
                     </button>
                 </form>
             </div>
@@ -127,7 +155,8 @@ class FieldRow extends React.Component {
                         <td>{field.sourceField.field} [{field.sourceField.type}]</td>
                 }
                 <td>
-                    <input type="checkbox" defaultChecked={field.mappable} onChange={e => this.props.handleMappableChange(e)}/>
+                    <input type="checkbox" defaultChecked={field.mappable}
+                           onChange={e => this.props.handleMappableChange(e)}/>
                 </td>
                 {
                     field.targetField == null ? <td></td> :
@@ -178,28 +207,28 @@ class TableSelector extends React.Component {
             <div>
                 <p>{this.props.title}</p>
                 <Select className='mt-3 fullWidth'
-                    options={this.state.servers.map(server => new SelectOption(server.serverId, server.name + ' mysql://' + server.host + ':' + server.port))}
-                    btnTitle={'Select Server'}
-                    onItemClick={option => this.serverSelected(option.id)}/>
+                        options={this.state.servers.map(server => new SelectOption(server.serverId, server.name + ' mysql://' + server.host + ':' + server.port))}
+                        btnTitle={'Select Server'}
+                        onItemClick={option => this.serverSelected(option.id)}/>
 
                 <Select className='mt-3 fullWidth'
-                    options={this.state.databases.map((db, idx) => new SelectOption(idx, db))}
-                    btnTitle={'Select Database'}
-                    onItemClick={option => this.databaseSelected(option.value)}/>
+                        options={this.state.databases.map((db, idx) => new SelectOption(idx, db))}
+                        btnTitle={'Select Database'}
+                        onItemClick={option => this.databaseSelected(option.value)}/>
 
                 <Select className='mt-3 fullWidth'
-                    options={this.state.tables.map((db, idx) => new SelectOption(idx, db))}
-                    btnTitle={'Select Database'}
-                    onItemClick={option => {
-                        this.setState({tableName: option.value});
-                        if (this.props.onSelected !== undefined) {
-                            this.props.onSelected({
-                                serverId: this.state.serverId,
-                                databaseName: this.state.databaseName,
-                                tableName: option.value
-                            })
-                        }
-                    }}/>
+                        options={this.state.tables.map((db, idx) => new SelectOption(idx, db))}
+                        btnTitle={'Select Database'}
+                        onItemClick={option => {
+                            this.setState({tableName: option.value});
+                            if (this.props.onSelected !== undefined) {
+                                this.props.onSelected({
+                                    serverId: this.state.serverId,
+                                    databaseName: this.state.databaseName,
+                                    tableName: option.value
+                                })
+                            }
+                        }}/>
             </div>
         );
     }

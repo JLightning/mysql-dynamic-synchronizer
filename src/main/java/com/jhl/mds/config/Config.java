@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
-import javax.validation.Valid;
 
 @Configuration
 public class Config {
@@ -22,9 +21,9 @@ public class Config {
 
     @Bean
     public DataSource dataSource() {
-        DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
-        dataSourceBuilder.driverClassName("org.sqlite.JDBC");
-        dataSourceBuilder.url(sqliteDatabaseFile);
+        DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create()
+                .driverClassName("org.sqlite.JDBC")
+                .url(sqliteDatabaseFile);
         return dataSourceBuilder.build();
     }
 }

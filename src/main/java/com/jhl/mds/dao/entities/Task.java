@@ -1,27 +1,28 @@
 package com.jhl.mds.dao.entities;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import java.time.LocalDateTime;
+import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int taskId;
     private String taskName;
-    private String taskCode;
-    private int fkSourceDatabase;
+    private int fkSourceServer;
+    private String sourceDatabse;
     private String sourceTable;
-    private int fkTargetDatabase;
+    private int fkTargetServer;
+    private String targetDatabase;
     private String targetTable;
     private Date createdAt;
     private Date updatedAt;
