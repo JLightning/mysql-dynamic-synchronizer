@@ -6,31 +6,60 @@ class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fields: []};
+        this.state = {fields: [], table: {}};
     }
 
     tableSelected(o, isSource) {
-        const sub = isSource ? 'source' : 'target';
-        $.get('/api/mysql/fields', {
+        const sub = isSource ? 'sourceField' : 'targetField';
+        const sub2 = isSource ? 'source' : 'target';
+        let params = {
             serverId: o.serverId,
             database: o.databaseName,
             table: o.tableName
-        }).done((data) => {
-            if (data.success) {
-                const fields = this.state.fields;
-                data.data.forEach((field, i) => {
-                    if (fields.length > i) {
-                        fields[i][sub] = field;
-                    } else {
-                        const _o = {};
-                        _o[sub] = field;
-                        fields.push(_o);
-                    }
-                });
+        };
+        const table = this.state.table;
+        table[sub2] = params;
+        this.setState({table: table});
 
-                this.setState({fields: fields});
-            }
-        });
+        if (table.source !== undefined && table.target !== undefined) {
+            const sourceParam = table.source;
+            const targetParam = table.target;
+            const postParam = {
+                sourceServerId: sourceParam.serverId,
+                sourceDatabase: sourceParam.database,
+                sourceTable: sourceParam.table,
+                targetServerId: targetParam.serverId,
+                targetDatabase: targetParam.database,
+                targetTable: targetParam.table
+            };
+            $.ajax('/api/mysql/fields-mapping', {
+                data: JSON.stringify(postParam),
+                contentType: 'application/json',
+                type: 'POST'
+            }).done((data) => {
+                if (data.success) {
+                    const fields = data.data;
+                    this.setState({fields: fields});
+                }
+            });
+        } else {
+            $.get('/api/mysql/fields', params).done((data) => {
+                if (data.success) {
+                    const fields = this.state.fields;
+                    data.data.forEach((field, i) => {
+                        if (fields.length > i) {
+                            fields[i][sub] = field;
+                        } else {
+                            const _o = {};
+                            _o[sub] = field;
+                            fields.push(_o);
+                        }
+                    });
+
+                    this.setState({fields: fields});
+                }
+            });
+        }
     }
 
     render() {
@@ -48,7 +77,7 @@ class TaskCreate extends React.Component {
                             <TableSelector onSelected={o => this.tableSelected(o, true)}/>
                         </div>
                         <div className="col">
-                            <TableSelector onSelected={o => this.tableSelected(o, true)}/>
+                            <TableSelector onSelected={o => this.tableSelected(o, false)}/>
                         </div>
                     </div>
 
@@ -62,12 +91,18 @@ class TaskCreate extends React.Component {
                         </thead>
                         <tbody>
                         {
-                            this.state.fields.map(field => {
+                            this.state.fields.map((field, idx) => {
                                 return (
-                                    <tr>
-                                        <td>{field.source.field} ({field.source.type})</td>
-                                        <td><input type="checkbox"/></td>
-                                        <td>please choose target table</td>
+                                    <tr key={idx}>
+                                        {
+                                            field.sourceField == null ? <td></td> :
+                                                <td>{field.sourceField.field} ({field.sourceField.type})</td>
+                                        }
+                                        <td><input type="checkbox" checked={field.mappable}/></td>
+                                        {
+                                            field.targetField == null ? <td></td> :
+                                                <td>{field.targetField.field} ({field.targetField.type})</td>
+                                        }
                                     </tr>
                                 );
                             })
