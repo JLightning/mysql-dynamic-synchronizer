@@ -3,7 +3,7 @@ package com.jhl.mds.controllers.api;
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
 import com.jhl.mds.dto.*;
-import com.jhl.mds.services.database.MySQLService;
+import com.jhl.mds.services.mysql.MySQLService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

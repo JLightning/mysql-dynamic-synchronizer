@@ -1,16 +1,14 @@
 package com.jhl.mds.dto;
 
 import com.jhl.mds.dao.entities.MySQLServer;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.stereotype.Component;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class MySQLServerDTO {
     private int serverId;
     private String name;
