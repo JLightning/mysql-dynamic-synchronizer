@@ -7,7 +7,7 @@ class TaskCreate extends React.Component {
     constructor(props) {
         super(props);
         this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false};
-        if (taskDTO != null) {
+        if (typeof taskDTO != 'undefined') {
             this.state.taskName = taskDTO.taskName;
             this.state.table.source = taskDTO.source;
             this.state.table.target = taskDTO.target;
@@ -194,6 +194,11 @@ class TableSelector extends React.Component {
         this.state = {servers: [], databases: [], tables: [], serverId: 0, databaseName: '', tableName: ''};
         if (this.props.table != null) {
             this.state.serverId = this.props.table.serverId;
+            this.state.databaseName = this.props.table.database;
+            this.state.tableName = this.props.table.table;
+
+            this.serverSelected(this.state.serverId);
+            this.databaseSelected(this.state.databaseName);
         }
     }
 
@@ -236,13 +241,15 @@ class TableSelector extends React.Component {
                         onItemClick={option => this.serverSelected(option.id)}/>
 
                 <Select className='mt-3 fullWidth'
-                        options={this.state.databases.map((db, idx) => new SelectOption(idx, db))}
+                        options={this.state.databases.map(db => new SelectOption(db, db))}
                         btnTitle={'Select Database'}
+                        value={this.state.databaseName}
                         onItemClick={option => this.databaseSelected(option.value)}/>
 
                 <Select className='mt-3 fullWidth'
-                        options={this.state.tables.map((db, idx) => new SelectOption(idx, db))}
-                        btnTitle={'Select Database'}
+                        options={this.state.tables.map(table => new SelectOption(table, table))}
+                        btnTitle={'Select Table'}
+                        value={this.state.tableName}
                         onItemClick={option => {
                             this.setState({tableName: option.value});
                             if (this.props.onSelected !== undefined) {

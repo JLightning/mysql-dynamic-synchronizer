@@ -17,6 +17,16 @@ export default class Select extends React.Component {
         return result;
     }
 
+    componentDidUpdate(prevProps) {
+        if (this.props.options !== prevProps.options || this.props.value !== prevProps.value) {
+            this.props.options.forEach((o) => {
+                if (o.id === this.props.value) {
+                    this.setState({btnTitle: o.value});
+                }
+            });
+        }
+    }
+
     onItemClick(option) {
         this.setState({show: false, btnTitle: option.value});
         if (this.props.onItemClick !== undefined) {
