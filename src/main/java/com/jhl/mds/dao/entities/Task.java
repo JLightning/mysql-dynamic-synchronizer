@@ -19,7 +19,7 @@ public class Task {
     private int taskId;
     private String name;
     private int fkSourceServer;
-    private String sourceDatabse;
+    private String sourceDatabase;
     private String sourceTable;
     private int fkTargetServer;
     private String targetDatabase;

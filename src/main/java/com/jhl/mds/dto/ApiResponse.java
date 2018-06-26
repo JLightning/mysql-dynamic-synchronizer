@@ -22,14 +22,14 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> error(Exception e) {
         ApiResponse<T> response = new ApiResponse<>();
-        response.success = true;
+        response.success = false;
         response.errorMessage = e.getMessage();
         return response;
     }
 
     public static <T> ApiResponse<T> error(String errorMessage) {
         ApiResponse<T> response = new ApiResponse<>();
-        response.success = true;
+        response.success = false;
         response.errorMessage = errorMessage;
         return response;
     }
