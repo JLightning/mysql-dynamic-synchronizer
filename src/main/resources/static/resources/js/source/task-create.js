@@ -38,7 +38,7 @@ class TaskCreate extends React.Component {
                 targetDatabase: targetParam.database,
                 targetTable: targetParam.table
             };
-            $.ajax('/api/mysql/fields-mapping', {
+            $.ajax(DOMAIN + '/api/mysql/fields-mapping', {
                 data: JSON.stringify(postParam),
                 contentType: 'application/json',
                 type: 'POST'
@@ -50,7 +50,7 @@ class TaskCreate extends React.Component {
                 }
             });
         } else {
-            $.get('/api/mysql/fields', params).done((data) => {
+            $.get(DOMAIN + '/api/mysql/fields', params).done((data) => {
                 if (data.success) {
                     const fields = this.state.fields;
                     data.data.forEach((field, i) => {
@@ -88,7 +88,7 @@ class TaskCreate extends React.Component {
             target: this.state.table.target
         };
 
-        $.ajax('/api/task/create', {
+        $.ajax(DOMAIN + '/api/task/create', {
             data: JSON.stringify(postParams),
             contentType: 'application/json',
             type: 'POST'
@@ -96,7 +96,7 @@ class TaskCreate extends React.Component {
             if (!data.success) {
                 showError(data.errorMessage);
             } else {
-
+                location.href = DOMAIN + '/task/list';
             }
         });
     }
@@ -188,7 +188,7 @@ class TableSelector extends React.Component {
     }
 
     getServers() {
-        $.get('/api/mysql/servers').done((data) => {
+        $.get(DOMAIN + '/api/mysql/servers').done((data) => {
             if (data.success) {
                 this.setState({servers: data.data});
             }
@@ -196,7 +196,7 @@ class TableSelector extends React.Component {
     }
 
     serverSelected(serverId) {
-        $.get('/api/mysql/databases', {serverId}).done((data) => {
+        $.get(DOMAIN + '/api/mysql/databases', {serverId}).done((data) => {
             if (data.success) {
                 this.setState({databases: data.data, serverId: serverId});
             }
@@ -204,7 +204,7 @@ class TableSelector extends React.Component {
     }
 
     databaseSelected(databaseName) {
-        $.get('/api/mysql/tables', {serverId: this.state.serverId, database: databaseName}).done((data) => {
+        $.get(DOMAIN + '/api/mysql/tables', {serverId: this.state.serverId, database: databaseName}).done((data) => {
             if (data.success) {
                 this.setState({tables: data.data, databaseName: databaseName});
             }

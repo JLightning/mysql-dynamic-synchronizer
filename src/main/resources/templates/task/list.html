@@ -56,7 +56,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
-                    <button type="button" class="btn btn-primary btn-confirm-delete-connection">Yes</button>
+                    <button type="button" class="btn btn-primary btn-confirm-delete-task">Yes</button>
                 </div>
             </div>
         </div>
@@ -69,9 +69,9 @@
                 $('#deleteTaskConfirmationModal').modal('show');
             });
 
-            $('.btn-confirm-delete-connection').click(function() {
-                if (serverId != 0) {
-                    location.href = "/task/delete/?serverId=" + taskId;
+            $('.btn-confirm-delete-task').click(function() {
+                if (taskId != 0) {
+                    location.href = "/task/delete/?taskId=" + taskId;
                 }
             });
         });
