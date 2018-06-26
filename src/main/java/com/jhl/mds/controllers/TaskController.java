@@ -17,12 +17,6 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,7 +49,7 @@ public class TaskController {
         tasks.forEach(task -> {
             List<TaskFieldMapping> mappings = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
 
-            String mappingString = mappings.stream().map(mapping -> mapping.getSourceField() + " -> "+mapping.getTargetField()).collect(Collectors.joining(", "));
+            String mappingString = mappings.stream().map(mapping -> mapping.getSourceField() + " -> " + mapping.getTargetField()).collect(Collectors.joining(", "));
 
             mappingStringMap.put(task.getTaskId(), mappingString);
         });
