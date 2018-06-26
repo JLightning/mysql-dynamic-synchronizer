@@ -2,54 +2,17 @@ package com.jhl.mds.dbmigration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.io.*;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-@Service
-public class DatabaseMigration {
+public class DatabaseMigration100 extends AbstractDatabaseMigration {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private static final String FILENAME = "./db_migration.txt";
-    private final DataSource dataSource;
 
-    @Autowired
-    public DatabaseMigration(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    private String getCurrentVersion() {
-        String version = "0.0.0";
-        try (BufferedReader br = new BufferedReader(new FileReader(FILENAME))) {
-            version = br.readLine().trim();
-        } finally {
-            return version;
-        }
-    }
-
-    private void writeVersion(String version) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILENAME))) {
-            bw.write(version);
-        } catch (IOException e) {
-
-        }
-    }
-
-    @PostConstruct
-    private void postConstruct() throws SQLException {
-        runMigration();
-    }
-
-    private void runMigration() throws SQLException {
-        logger.info("Running Database Migration...");
-
-        Connection conn = dataSource.getConnection();
+    void run(Connection conn) throws SQLException {
         Statement st = conn.createStatement();
         if (getCurrentVersion().compareTo("1.0.0") < 0) {
             logger.info("Database Migration Version: 1.0.0");
@@ -96,7 +59,5 @@ public class DatabaseMigration {
 
             writeVersion("1.0.0");
         }
-
-        conn.close();
     }
 }

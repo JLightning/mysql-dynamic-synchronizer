@@ -1,6 +1,6 @@
 package com.jhl.mds.config;
 
-import com.jhl.mds.dbmigration.DatabaseMigration;
+import com.jhl.mds.dbmigration.DatabaseMigrationRunner;
 import nz.net.ultraq.thymeleaf.LayoutDialect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import;
 import javax.sql.DataSource;
 
 @Configuration
-@Import(DatabaseMigration.class)
+@Import(DatabaseMigrationRunner.class)
 public class Config {
 
     @Value("${spring.datasource.url:jdbc:sqlite:mds.db}")

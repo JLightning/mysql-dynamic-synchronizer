@@ -1,11 +1,14 @@
 package com.jhl.mds.services.common;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Scope(value = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class FEMessageService {
 
     private List<String> errorMessages = new ArrayList<>();
