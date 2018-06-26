@@ -15,9 +15,9 @@ import java.util.Date;
 @AllArgsConstructor
 public class Task {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int taskId;
-    private String taskName;
+    private String name;
     private int fkSourceServer;
     private String sourceDatabse;
     private String sourceTable;

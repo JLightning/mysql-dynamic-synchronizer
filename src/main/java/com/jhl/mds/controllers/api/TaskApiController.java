@@ -23,7 +23,7 @@ public class TaskApiController {
 
     @PostMapping("/create")
     public ApiResponse<Boolean> createTaskAction(@RequestBody TaskDTO dto) {
-        Task task = Task.builder().taskName(dto.getTaskName())
+        Task task = Task.builder().name(dto.getTaskName())
                 .fkSourceServer(dto.getSource().getServerId())
                 .sourceDatabse(dto.getSource().getDatabase())
                 .sourceTable(dto.getSource().getTable())

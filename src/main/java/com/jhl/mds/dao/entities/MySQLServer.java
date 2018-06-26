@@ -11,7 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.util.Date;
 
-@Entity
+@Entity(name = "mysql_server")
 @Getter
 @Builder
 @NoArgsConstructor
@@ -19,7 +19,7 @@ import java.util.Date;
 public class MySQLServer {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int serverId;
     private String name;
     private String host;
