@@ -7,6 +7,9 @@
 <body>
 <div layout:fragment="content">
     <div id="taskCreateWrapper"></div>
+    <script type="text/javascript" th:if="${taskDTO} != null" th:inline="javascript">
+        var taskDTO = /*[[${taskDTO}]]*/'';
+    </script>
 </div>
 </body>
 </html>

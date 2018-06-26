@@ -6,6 +6,8 @@ import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
+import com.jhl.mds.dto.TaskDTO;
+import com.jhl.mds.services.common.FEMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +19,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,16 +30,42 @@ public class TaskController {
     private TaskRepository taskRepository;
     private TaskFieldMappingRepository taskFieldMappingRepository;
     private MysqlServerRepository mysqlServerRepository;
+    private TaskDTO.Converter taskDTOConverter;
+    private FEMessageService feMessageService;
 
     @Autowired
-    public TaskController(TaskRepository taskRepository, TaskFieldMappingRepository taskFieldMappingRepository, MysqlServerRepository mysqlServerRepository) {
+    public TaskController(
+            TaskRepository taskRepository,
+            TaskFieldMappingRepository taskFieldMappingRepository,
+            MysqlServerRepository mysqlServerRepository,
+            TaskDTO.Converter taskDTOConverter,
+            FEMessageService feMessageService
+    ) {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
         this.mysqlServerRepository = mysqlServerRepository;
+        this.taskDTOConverter = taskDTOConverter;
+        this.feMessageService = feMessageService;
     }
 
     @GetMapping("/create")
     public String createAction() {
+        return "task/create";
+    }
+
+    @GetMapping("/edit")
+    public String editAction(@RequestParam int taskId, Model model) {
+        Optional<Task> opt = taskRepository.findById(taskId);
+        if (!opt.isPresent()) {
+            feMessageService.addError("No task with id " + taskId + " found");
+            return "redirect:/task/list";
+        }
+        Task task = opt.get();
+        List<TaskFieldMapping> taskFieldMappings = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
+
+        TaskDTO taskDTO = taskDTOConverter.from(task, taskFieldMappings);
+        model.addAttribute("taskDTO", taskDTO);
+
         return "task/create";
     }
 

@@ -7,6 +7,13 @@ class TaskCreate extends React.Component {
     constructor(props) {
         super(props);
         this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false};
+        if (taskDTO != null) {
+            this.state.taskName = taskDTO.taskName;
+            this.state.table.source = taskDTO.source;
+            this.state.table.target = taskDTO.target;
+
+            this.getMapping();
+        }
     }
 
     recalculateReadyForSubmit() {
@@ -28,27 +35,7 @@ class TaskCreate extends React.Component {
         this.setState({table: table});
 
         if (this.state.table.source != null && this.state.table.target != null) {
-            const sourceParam = this.state.table.source;
-            const targetParam = this.state.table.target;
-            const postParam = {
-                sourceServerId: sourceParam.serverId,
-                sourceDatabase: sourceParam.database,
-                sourceTable: sourceParam.table,
-                targetServerId: targetParam.serverId,
-                targetDatabase: targetParam.database,
-                targetTable: targetParam.table
-            };
-            $.ajax(DOMAIN + '/api/mysql/fields-mapping', {
-                data: JSON.stringify(postParam),
-                contentType: 'application/json',
-                type: 'POST'
-            }).done((data) => {
-                if (data.success) {
-                    const fields = data.data;
-                    this.setState({fields: fields});
-                    this.recalculateReadyForSubmit();
-                }
-            });
+            this.getMapping();
         } else {
             $.get(DOMAIN + '/api/mysql/fields', params).done((data) => {
                 if (data.success) {
@@ -67,6 +54,30 @@ class TaskCreate extends React.Component {
                 }
             });
         }
+    }
+
+    getMapping() {
+        const sourceParam = this.state.table.source;
+        const targetParam = this.state.table.target;
+        const postParam = {
+            sourceServerId: sourceParam.serverId,
+            sourceDatabase: sourceParam.database,
+            sourceTable: sourceParam.table,
+            targetServerId: targetParam.serverId,
+            targetDatabase: targetParam.database,
+            targetTable: targetParam.table
+        };
+        $.ajax(DOMAIN + '/api/mysql/fields-mapping', {
+            data: JSON.stringify(postParam),
+            contentType: 'application/json',
+            type: 'POST'
+        }).done((data) => {
+            if (data.success) {
+                const fields = data.data;
+                this.setState({fields: fields});
+                this.recalculateReadyForSubmit();
+            }
+        });
     }
 
     handleMappableChange(e, idx) {
@@ -116,10 +127,10 @@ class TaskCreate extends React.Component {
 
                     <div className="row">
                         <div className="col">
-                            <TableSelector title='Source' onSelected={o => this.tableSelected(o, true)}/>
+                            <TableSelector table={this.state.table.source} title='Source' onSelected={o => this.tableSelected(o, true)}/>
                         </div>
                         <div className="col">
-                            <TableSelector title='Target' onSelected={o => this.tableSelected(o, false)}/>
+                            <TableSelector table={this.state.table.target} title='Target' onSelected={o => this.tableSelected(o, false)}/>
                         </div>
                     </div>
 
@@ -180,7 +191,10 @@ class TableSelector extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {servers: [], databases: [], tables: []};
+        this.state = {servers: [], databases: [], tables: [], serverId: 0, databaseName: '', tableName: ''};
+        if (this.props.table != null) {
+            this.state.serverId = this.props.table.serverId;
+        }
     }
 
     componentDidMount() {
@@ -218,6 +232,7 @@ class TableSelector extends React.Component {
                 <Select className='mt-3 fullWidth'
                         options={this.state.servers.map(server => new SelectOption(server.serverId, server.name + ' mysql://' + server.host + ':' + server.port))}
                         btnTitle={'Select Server'}
+                        value={this.state.serverId}
                         onItemClick={option => this.serverSelected(option.id)}/>
 
                 <Select className='mt-3 fullWidth'
