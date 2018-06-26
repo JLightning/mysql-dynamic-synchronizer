@@ -1,0 +1,81 @@
+<!DOCTYPE HTML>
+<html layout:decorate="~{layouts/main}" xmlns:layout="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>MySQL Dynamic Synchronizer</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid mt-3">
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Source Server</th>
+                <th scope="col">Source Database</th>
+                <th scope="col">Source Table</th>
+                <th scope="col">Target Server</th>
+                <th scope="col">Target Database</th>
+                <th scope="col">Target Table</th>
+                <th scope="col">Mapping</th>
+                <th scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="task : ${tasks}" th:with="sourceServer = ${serverMap.get(task.getFkSourceServer())}, targetServer = ${serverMap.get(task.getFkTargetServer())}">
+                <th scope="row" th:text="${task.getTaskId()}">d</th>
+                <td th:text="${task.getName()}">Mark</td>
+                <td th:text="${sourceServer.getName() + ' (' + sourceServer.getHost() + ':' + sourceServer.getPort() + ')'}">Otto</td>
+                <td th:text="${task.getSourceDatabase()}">@mdo</td>
+                <td th:text="${task.getSourceTable()}">@mdo</td>
+                <td th:text="${targetServer.getName() + ' (' + targetServer.getHost() + ':' + targetServer.getPort() + ')'}">@mdo</td>
+                <td th:text="${task.getTargetDatabase()}">@mdo</td>
+                <td th:text="${task.getTargetTable()}">@mdo</td>
+                <td th:text="${mappingStringMap.get(task.getTaskId())}">@mdo</td>
+                <td>
+                    <a th:href="${@urlService.getUrl('/mysql-server/edit?serverId=' + task.getTaskId())}">Edit</a>
+                    <a class="delete-task" href="#" th:data-task-id="${task.getTaskId()}">Remove</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="deleteTaskConfirmationModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure to delete this table connection?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                    <button type="button" class="btn btn-primary btn-confirm-delete-connection">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var taskId = 0;
+            $('.delete-task').click(function() {
+                taskId = $(this).data('task-id');
+                $('#deleteTaskConfirmationModal').modal('show');
+            });
+
+            $('.btn-confirm-delete-connection').click(function() {
+                if (serverId != 0) {
+                    location.href = "/task/delete/?serverId=" + taskId;
+                }
+            });
+        });
+    </script>
+</div>
+</body>
+</html>
