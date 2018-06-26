@@ -29,11 +29,8 @@ public class DatabaseMigrationRunner {
     private void runMigration() throws SQLException {
         logger.info("Running Database Migration...");
 
-        Connection conn = dataSource.getConnection();
-        try {
+        try (Connection conn = dataSource.getConnection()) {
             new DatabaseMigration100().run(conn);
-        } finally {
-            conn.close();
         }
     }
 }
