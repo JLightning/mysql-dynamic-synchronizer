@@ -62,7 +62,7 @@
     </div>
 </div>
 <div th:with="errorMessages = ${@FEMessageService.getErrorMessages()}">
-    <div class="modal" tabindex="-1" id="errorMessageModal" role="dialog" th:if="${errorMessages.size() > 0}">
+    <div class="modal" tabindex="-1" id="errorMessageModal" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -71,9 +71,9 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <div class="modal-body">
-                    <p class="modal-error-message" th:each="errorMessage : ${errorMessages}" th:text="${errorMessage}">Modal body text goes
-                        here.</p>
+                <div class="modal-body modal-error-message">
+                    <p th:each="errorMessage : ${errorMessages}"
+                       th:text="${errorMessage}"></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -82,16 +82,17 @@
         </div>
     </div>
 </div>
-</div>
 <script type="text/javascript">
-     $(document).ready(function(){
-        $("#errorMessageModal").modal('show');
-     });
+    $(document).ready(function () {
+        if ($('#errorMessageModal .modal-body').children().length > 0) {
+            $("#errorMessageModal").modal('show');
+        }
+    });
 
-     function showError(message) {
-         $('.modal-error-message').html(message);
-         $("#errorMessageModal").modal('show');
-     }
+    function showError(message) {
+        $('.modal-error-message').html($('<li>', {html: message}));
+        $("#errorMessageModal").modal('show');
+    }
 </script>
 <script th:src="${@urlService.getUrl('/resources/js/react-app.min.js')}"></script>
 </body>

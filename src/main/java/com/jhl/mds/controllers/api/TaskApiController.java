@@ -7,6 +7,7 @@ import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.ApiResponse;
 import com.jhl.mds.dto.TaskDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,6 +59,8 @@ public class TaskApiController {
 
             dto.setTaskId(task.getTaskId());
             return ApiResponse.success(dto);
+        } catch (JpaSystemException e) {
+            return ApiResponse.error(e.getRootCause().getMessage());
         } catch (Exception e) {
             return ApiResponse.error(e);
         }

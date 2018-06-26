@@ -77,7 +77,10 @@ class TaskCreate extends React.Component {
 
     submit() {
         const mapping = [];
-        this.state.fields.filter(field => field.mappable).forEach(field => mapping.push({sourceField: field.sourceField.field, targetField: field.targetField.field}));
+        this.state.fields.filter(field => field.mappable).forEach(field => mapping.push({
+            sourceField: field.sourceField.field,
+            targetField: field.targetField.field
+        }));
         const postParams = {
             taskName: this.state.taskName,
             mapping: mapping,
@@ -89,6 +92,12 @@ class TaskCreate extends React.Component {
             data: JSON.stringify(postParams),
             contentType: 'application/json',
             type: 'POST'
+        }).done(function (data) {
+            if (!data.success) {
+                showError(data.errorMessage);
+            } else {
+
+            }
         });
     }
 
