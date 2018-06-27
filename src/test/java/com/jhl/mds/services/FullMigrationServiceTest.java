@@ -39,12 +39,12 @@ public class FullMigrationServiceTest {
         Statement st = conn.createStatement();
         st.execute("TRUNCATE mds.tablea;");
         st.execute("TRUNCATE mds.tableb;");
-        String values = "";
-        for (int i = 1; i <= 10000; i++) {
-            if (!values.equals("")) values += ", ";
-            values += String.format("(%d, %d)", i, System.currentTimeMillis() % 100000);
+        StringBuilder values = new StringBuilder();
+        for (int i = 1; i <= 100000; i++) {
+            if (values.length() != 0) values.append(", ");
+            values.append(String.format("(%d, %d)", i, System.currentTimeMillis() % 100000));
         }
-        final String finalValues = values;
+        final String finalValues = values.toString();
         checkTime(() -> {
             try {
                 st.execute(String.format("INSERT INTO mds.tablea(`id`, `random_number`) VALUES %s;", finalValues));

@@ -51,7 +51,7 @@ public class FullMigrationService {
         String sql = String.format("SELECT %s FROM %s;", sourceColumnsStr, taskDTO.getSource().getDatabase() + "." + taskDTO.getSource().getTable());
         ResultSet result = sourceSt.executeQuery(sql);
 
-        String insertDataStr = "";
+        StringBuilder insertDataStr = new StringBuilder();
         while (result.next()) {
             Map<String, Object> data = new HashMap<>();
             for (int i = 0; i < sourceColumns.size(); i++) {
@@ -65,11 +65,11 @@ public class FullMigrationService {
                 insertData.put(targetColumn, data.get(targetToSourceColumnMatch.get(targetColumn)));
             }
 
-            if (!insertDataStr.equals("")) insertDataStr += ", ";
-            insertDataStr += "(" + insertData.values().stream().map(o -> "'" + o.toString() + "'").collect(Collectors.joining(", ")) + ")";
+            if (insertDataStr.length() != 0) insertDataStr.append(", ");
+            insertDataStr.append("(" + insertData.values().stream().map(o -> "'" + o.toString() + "'").collect(Collectors.joining(", ")) + ")");
         }
 
-        sql = String.format("INSERT INTO %s(%s) VALUES %s;", taskDTO.getTarget().getDatabase() + "." + taskDTO.getTarget().getTable(), targetColumnsStr, insertDataStr);
+        sql = String.format("INSERT INTO %s(%s) VALUES %s;", taskDTO.getTarget().getDatabase() + "." + taskDTO.getTarget().getTable(), targetColumnsStr, insertDataStr.toString());
         logger.info("Run query: " + sql);
 
         try {
