@@ -61,7 +61,7 @@ public class MySQLFieldDefaultValueService {
 
     public String getDefaultValue(MySQLFieldDTO fieldDTO) {
         String type = fieldDTO.getType().split("\\(")[0].toUpperCase();
-        if (fieldDTO.isNullable() || !fieldDTO.getDefaultValue().equals(NULL)) {
+        if (fieldDTO.isNullable() || fieldDTO.getDefaultValue() != null) {
             return NULL;
         }
         switch (type) {
@@ -90,6 +90,10 @@ public class MySQLFieldDefaultValueService {
             case "CHAR":
                 return "1";
             case "VARCHAR":
+            case "TINYTEXT":
+            case "TEXT":
+            case "MEDIUMTEXT":
+            case "LONGTEXT":
                 return "''";
             default:
                 return NULL;

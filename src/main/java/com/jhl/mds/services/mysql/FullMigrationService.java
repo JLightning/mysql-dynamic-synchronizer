@@ -1,6 +1,7 @@
 package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TaskDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +25,13 @@ public class FullMigrationService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private static ExecutorService executor = Executors.newFixedThreadPool(4);
     private MySQLConnectionPool mySQLConnectionPool;
+    private MySQLService mySQLService;
+    private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
 
-    public FullMigrationService(MySQLConnectionPool mySQLConnectionPool) {
+    public FullMigrationService(MySQLConnectionPool mySQLConnectionPool, MySQLService mySQLService, MySQLFieldDefaultValueService mySQLFieldDefaultValueService) {
         this.mySQLConnectionPool = mySQLConnectionPool;
+        this.mySQLService = mySQLService;
+        this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
     }
 
     public Future<Boolean> queue(FullMigrationDTO dto) {
@@ -40,7 +45,10 @@ public class FullMigrationService {
         TaskDTO taskDTO = dto.getTaskDTO();
         List<TaskDTO.Mapping> mapping = taskDTO.getMapping();
 
-        List<String> targetColumns = mapping.stream().map(TaskDTO.Mapping::getTargetField).collect(Collectors.toList());
+        List<MySQLFieldDTO> targetFields = mySQLService.getFields(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable());
+        Map<String, MySQLFieldDTO> targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
+
+        List<String> targetColumns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
         String targetColumnsStr = targetColumns.stream().map(o -> "`" + o + "`").collect(Collectors.joining(", "));
 
         List<String> sourceColumns = mapping.stream().map(TaskDTO.Mapping::getSourceField).collect(Collectors.toList());
@@ -62,7 +70,11 @@ public class FullMigrationService {
             Map<String, Object> insertData = new LinkedHashMap<>();
 
             for (String targetColumn : targetColumns) {
-                insertData.put(targetColumn, data.get(targetToSourceColumnMatch.get(targetColumn)));
+                if (targetToSourceColumnMatch.containsKey(targetColumn)) {
+                    insertData.put(targetColumn, data.get(targetToSourceColumnMatch.get(targetColumn)));
+                } else {
+                    insertData.put(targetColumn, mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn)));
+                }
             }
 
             if (insertDataStr.length() != 0) insertDataStr.append(", ");
