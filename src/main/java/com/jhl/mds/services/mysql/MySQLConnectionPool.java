@@ -14,7 +14,7 @@ import java.util.*;
 @Service
 public class MySQLConnectionPool {
 
-    private static final int MAX_POOL_SIZE = 8;
+    private static final int MAX_POOL_SIZE = Runtime.getRuntime().availableProcessors();
     private final Random rand = new Random();
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private Map<MySQLServerDTO, List<Connection>> connections = new HashMap<>();

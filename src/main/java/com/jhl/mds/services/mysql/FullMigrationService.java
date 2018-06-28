@@ -3,6 +3,8 @@ package com.jhl.mds.services.mysql;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TaskDTO;
+import com.jhl.mds.util.ColumnUtil;
+import com.jhl.mds.util.FutureUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +49,6 @@ public class FullMigrationService {
 
     public boolean run(FullMigrationDTO dto) throws SQLException {
         Statement sourceSt = mySQLConnectionPool.getConnection(dto.getSource()).createStatement();
-        Statement targetSt = mySQLConnectionPool.getConnection(dto.getTarget()).createStatement();
 
         TaskDTO taskDTO = dto.getTaskDTO();
         List<TaskDTO.Mapping> mapping = taskDTO.getMapping();
@@ -56,14 +57,11 @@ public class FullMigrationService {
         Map<String, MySQLFieldDTO> targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
 
         List<String> targetColumns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
-        String targetColumnsStr = columnListToString(targetColumns);
-
         List<String> sourceColumns = mapping.stream().map(TaskDTO.Mapping::getSourceField).collect(Collectors.toList());
-        String sourceColumnsStr = columnListToString(sourceColumns);
 
         Map<String, String> targetToSourceColumnMatch = mapping.stream().collect(Collectors.toMap(TaskDTO.Mapping::getTargetField, TaskDTO.Mapping::getSourceField));
 
-        String sql = String.format("SELECT %s FROM %s;", sourceColumnsStr, taskDTO.getSource().getDatabase() + "." + taskDTO.getSource().getTable());
+        String sql = String.format("SELECT %s FROM %s;", ColumnUtil.columnListToString(sourceColumns), taskDTO.getSource().getDatabase() + "." + taskDTO.getSource().getTable());
         ResultSet result = sourceSt.executeQuery(sql);
 
         List<String> insertDataList = new ArrayList<>();
@@ -89,7 +87,7 @@ public class FullMigrationService {
 
             if (insertDataList.size() == INSERT_CHUNK_SIZE) {
                 String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-                futures.add(mySQLWriteService.queue(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), targetColumnsStr, insertDataStr));
+                futures.add(mySQLWriteService.queue(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), targetColumns, insertDataStr));
 
                 insertDataList.clear();
             }
@@ -97,23 +95,13 @@ public class FullMigrationService {
 
         if (insertDataList.size() > 0) {
             String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-            mySQLWriteService.queue(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), targetColumnsStr, insertDataStr);
+            mySQLWriteService.queue(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), targetColumns, insertDataStr);
 
             insertDataList.clear();
         }
 
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        FutureUtil.allOf(futures);
 
         return true;
-    }
-
-    private String columnListToString(Iterable<?> columns) {
-        return "`" + StringUtils.join(columns, "`, `") + "`";
     }
 }
