@@ -7,20 +7,26 @@ import com.jhl.mds.services.mysql.FullMigrationService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Random;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class FullMigrationServiceTest {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private FullMigrationService fullMigrationService;
@@ -29,35 +35,54 @@ public class FullMigrationServiceTest {
     private MySQLConnectionPool mySQLConnectionPool;
 
     public void prepareData() throws SQLException {
-        Connection conn = mySQLConnectionPool.getConnection(MySQLServerDTO.builder()
+        MySQLServerDTO serverDTO = MySQLServerDTO.builder()
                 .host("localhost")
                 .port("3307")
                 .username("root")
                 .password("root")
-                .build());
+                .build();
+
+        Connection conn = mySQLConnectionPool.getConnection(serverDTO);
 
         Statement st = conn.createStatement();
+
         st.execute("TRUNCATE mds.tablea;");
         st.execute("TRUNCATE mds.tableb;");
-        StringBuilder values = new StringBuilder();
-        for (int i = 1; i <= 100000; i++) {
-            if (values.length() != 0) values.append(", ");
-            values.append(String.format("(%d, %d)", i, System.currentTimeMillis() % 100000));
-        }
-        final String finalValues = values.toString();
-        checkTime(() -> {
-            try {
-                st.execute(String.format("INSERT INTO mds.tablea(`id`, `random_number`) VALUES %s;", finalValues));
-            } catch (SQLException e) {
-                e.printStackTrace();
+
+        Random rand = new Random();
+
+        checkTime("all_test_insert", () -> {
+            for (int j = 1; j <= 10000; j++) {
+                try {
+                    StringBuilder values = new StringBuilder();
+                    for (int i = 1; i <= 100; i++) {
+                        if (values.length() != 0) values.append(", ");
+                        int id = (j - 1) * 10000 + i;
+
+                        values.append(String.format("(%d, %d)", id, rand.nextInt(10)));
+                    }
+                    final String finalValues = values.toString();
+                    checkTime("test_insert_" + j, () -> {
+                        try {
+                            st.execute(String.format("INSERT INTO mds.tablea(`id`, `random_number`) VALUES %s;", finalValues));
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (Exception e) {
+
+                }
             }
         });
+
+        ResultSet result = st.executeQuery("SHOW ERRORS;");
+        System.out.println("result = " + result);
     }
 
-    private void checkTime(Runnable r) {
+    private void checkTime(String task, Runnable r) {
         Instant start = Instant.now();
         r.run();
-        System.out.println("elapsed time = " + Duration.between(start, Instant.now()));
+        System.out.println("elapsed time for `" + task + "` = " + Duration.between(start, Instant.now()));
     }
 
     @Test
@@ -72,24 +97,12 @@ public class FullMigrationServiceTest {
                 .build();
 
         TaskDTO taskDTO = TaskDTO.builder()
-                .mapping(Arrays.asList(TaskDTO.Mapping.builder()
-                                .sourceField("id")
-                                .targetField("id")
-                                .build(),
-                        TaskDTO.Mapping.builder()
-                                .sourceField("random_number")
-                                .targetField("random_number")
-                                .build()
+                .mapping(Arrays.asList(
+                        new TaskDTO.Mapping("id", "id"),
+                        new TaskDTO.Mapping("random_number", "random_number")
                 ))
-                .source(TaskDTO.Table.builder()
-                        .database("mds")
-                        .table("tablea")
-                        .build()
-                )
-                .target(TaskDTO.Table.builder()
-                        .database("mds")
-                        .table("tableb")
-                        .build())
+                .source(new TaskDTO.Table(0, "mds", "tablea"))
+                .target(new TaskDTO.Table(0, "mds", "tableb"))
                 .build();
 
         FullMigrationDTO dto = FullMigrationDTO.builder()
@@ -98,7 +111,7 @@ public class FullMigrationServiceTest {
                 .taskDTO(taskDTO)
                 .build();
 
-        checkTime(() -> {
+        checkTime("full_migration", () -> {
             try {
                 fullMigrationService.run(dto);
             } catch (SQLException e) {
