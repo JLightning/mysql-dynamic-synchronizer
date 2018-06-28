@@ -94,7 +94,7 @@ public class MySQLFieldDefaultValueService {
             case "TEXT":
             case "MEDIUMTEXT":
             case "LONGTEXT":
-                return "''";
+                return "";
             default:
                 return NULL;
         }
