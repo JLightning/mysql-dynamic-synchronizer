@@ -29,13 +29,12 @@ public class MySQL2MySQLMigrationMapperService {
             MySQLDescribeService mySQLDescribeService,
             MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
             MySQLServerDTO serverDTO,
-            String database,
-            String table,
+            TaskDTO.Table tableInfo,
             List<TaskDTO.Mapping> mapping
     ) throws SQLException {
         this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         this.mapping = mapping;
-        targetFields = mySQLDescribeService.getFields(serverDTO, database, table);
+        targetFields = mySQLDescribeService.getFields(serverDTO, tableInfo.getDatabase(), tableInfo.getTable());
         targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
         columns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
     }
@@ -72,8 +71,8 @@ public class MySQL2MySQLMigrationMapperService {
             this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         }
 
-        public MySQL2MySQLMigrationMapperService create(MySQLServerDTO serverDTO, String database, String table, List<TaskDTO.Mapping> mapping) throws SQLException {
-            return new MySQL2MySQLMigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, serverDTO, database, table, mapping);
+        public MySQL2MySQLMigrationMapperService create(MySQLServerDTO serverDTO, TaskDTO.Table tableInfo, List<TaskDTO.Mapping> mapping) throws SQLException {
+            return new MySQL2MySQLMigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, serverDTO, tableInfo, mapping);
         }
     }
 }
