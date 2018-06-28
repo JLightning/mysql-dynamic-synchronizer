@@ -1,4 +1,4 @@
-package com.jhl.mds.services.migration;
+package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class MySQL2MySQLMigrationMapperService {
+public class MigrationMapperService {
 
     private final List<MySQLFieldDTO> targetFields;
     private final Map<String, MySQLFieldDTO> targetFieldMap;
@@ -25,7 +25,7 @@ public class MySQL2MySQLMigrationMapperService {
     private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
     private List<TaskDTO.Mapping> mapping;
 
-    public MySQL2MySQLMigrationMapperService(
+    public MigrationMapperService(
             MySQLDescribeService mySQLDescribeService,
             MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
             MySQLServerDTO serverDTO,
@@ -71,8 +71,8 @@ public class MySQL2MySQLMigrationMapperService {
             this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         }
 
-        public MySQL2MySQLMigrationMapperService create(MySQLServerDTO serverDTO, TaskDTO.Table tableInfo, List<TaskDTO.Mapping> mapping) throws SQLException {
-            return new MySQL2MySQLMigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, serverDTO, tableInfo, mapping);
+        public MigrationMapperService create(MySQLServerDTO serverDTO, TaskDTO.Table tableInfo, List<TaskDTO.Mapping> mapping) throws SQLException {
+            return new MigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, serverDTO, tableInfo, mapping);
         }
     }
 }

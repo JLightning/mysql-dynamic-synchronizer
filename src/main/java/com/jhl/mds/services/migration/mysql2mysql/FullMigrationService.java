@@ -1,4 +1,4 @@
-package com.jhl.mds.services.migration;
+package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.TaskDTO;
@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -18,7 +17,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
-public class MySQL2MySQLFullMigrationService {
+public class FullMigrationService {
 
     private static final int INSERT_CHUNK_SIZE = 1000;
 
@@ -26,12 +25,12 @@ public class MySQL2MySQLFullMigrationService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLReadService mySQLReadService;
     private MySQLWriteService mySQLWriteService;
-    private MySQL2MySQLMigrationMapperService.Factory migrationMapperServiceFactory;
+    private MigrationMapperService.Factory migrationMapperServiceFactory;
 
-    public MySQL2MySQLFullMigrationService(
+    public FullMigrationService(
             MySQLReadService mySQLReadService,
             MySQLWriteService mySQLWriteService,
-            MySQL2MySQLMigrationMapperService.Factory migrationMapperServiceFactory
+            MigrationMapperService.Factory migrationMapperServiceFactory
     ) {
         this.mySQLReadService = mySQLReadService;
         this.mySQLWriteService = mySQLWriteService;
@@ -42,19 +41,19 @@ public class MySQL2MySQLFullMigrationService {
         return executor.submit(() -> run(dto));
     }
 
-    public boolean run(FullMigrationDTO dto) throws SQLException {
+    public boolean run(FullMigrationDTO dto) throws Exception {
         TaskDTO taskDTO = dto.getTaskDTO();
         List<TaskDTO.Mapping> mapping = taskDTO.getMapping();
 
         List<String> sourceColumns = mapping.stream().map(TaskDTO.Mapping::getSourceField).collect(Collectors.toList());
 
-        MySQL2MySQLMigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), taskDTO.getTarget(), taskDTO.getMapping());
+        MigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), taskDTO.getTarget(), taskDTO.getMapping());
         List<String> targetColumns = mapperService.getColumns();
 
         List<String> insertDataList = new ArrayList<>();
         List<Future<?>> futures = new ArrayList<>();
 
-        Future<?> readFuture = mySQLReadService.async(dto.getSource(), taskDTO.getSource(), sourceColumns, item -> {
+        mySQLReadService.async(dto.getSource(), taskDTO.getSource(), sourceColumns, item -> {
             insertDataList.add(mapperService.mapToString(item));
 
             if (insertDataList.size() == INSERT_CHUNK_SIZE) {
@@ -63,12 +62,7 @@ public class MySQL2MySQLFullMigrationService {
 
                 insertDataList.clear();
             }
-        });
-
-        try {
-            readFuture.get();
-        } catch (Exception e) {
-        }
+        }).get();
 
         if (insertDataList.size() > 0) {
             String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
