@@ -1,7 +1,7 @@
 package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.util.ColumnUtil;
+import com.jhl.mds.util.MySQLStringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +41,7 @@ public class MySQLReadService {
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
         Statement st = conn.createStatement();
 
-        String sql = String.format("SELECT %s FROM %s;", ColumnUtil.columnListToString(columns), database + "." + table);
+        String sql = String.format("SELECT %s FROM %s;", MySQLStringUtil.columnListToString(columns), database + "." + table);
         ResultSet result = st.executeQuery(sql);
 
         while (result.next()) {

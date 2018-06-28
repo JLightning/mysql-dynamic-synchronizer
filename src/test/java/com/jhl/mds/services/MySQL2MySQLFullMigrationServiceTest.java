@@ -3,7 +3,7 @@ package com.jhl.mds.services;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TaskDTO;
-import com.jhl.mds.services.mysql.FullMigrationService;
+import com.jhl.mds.services.migration.MySQL2MySQLFullMigrationService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,12 +24,12 @@ import java.util.Random;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class FullMigrationServiceTest {
+public class MySQL2MySQLFullMigrationServiceTest {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private FullMigrationService fullMigrationService;
+    private MySQL2MySQLFullMigrationService mySQL2MySQLFullMigrationService;
 
     @Autowired
     private MySQLConnectionPool mySQLConnectionPool;
@@ -113,7 +113,7 @@ public class FullMigrationServiceTest {
 
         checkTime("full_migration", () -> {
             try {
-                fullMigrationService.run(dto);
+                mySQL2MySQLFullMigrationService.run(dto);
             } catch (SQLException e) {
                 e.printStackTrace();
             }

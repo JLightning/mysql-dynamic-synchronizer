@@ -1,7 +1,7 @@
 package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.util.ColumnUtil;
+import com.jhl.mds.util.MySQLStringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class MySQLWriteService {
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
         Statement st = conn.createStatement();
 
-        String sql = String.format("INSERT INTO %s(%s) VALUES %s;", database + "." + table, ColumnUtil.columnListToString(columns), insertDatas);
+        String sql = String.format("INSERT INTO %s(%s) VALUES %s;", database + "." + table, MySQLStringUtil.columnListToString(columns), insertDatas);
         logger.info("Run query: " + sql);
 
         st.execute(sql);

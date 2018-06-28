@@ -1,49 +1,41 @@
-package com.jhl.mds.services.mysql;
+package com.jhl.mds.services.migration;
 
 import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TaskDTO;
-import com.jhl.mds.util.ColumnUtil;
+import com.jhl.mds.services.mysql.MySQLReadService;
+import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.FutureUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-import java.util.concurrent.ExecutionException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Service
-public class FullMigrationService {
+public class MySQL2MySQLFullMigrationService {
 
     private static final int INSERT_CHUNK_SIZE = 1000;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(4);
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private MySQLConnectionPool mySQLConnectionPool;
-    private MySQLDescribeService mySQLDescribeService;
-    private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
     private MySQLReadService mySQLReadService;
     private MySQLWriteService mySQLWriteService;
+    private MySQL2MySQLMigrationMapperService.Factory migrationMapperServiceFactory;
 
-    public FullMigrationService(
-            MySQLConnectionPool mySQLConnectionPool,
-            MySQLDescribeService mySQLDescribeService,
-            MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
+    public MySQL2MySQLFullMigrationService(
             MySQLReadService mySQLReadService,
-            MySQLWriteService mySQLWriteService
+            MySQLWriteService mySQLWriteService,
+            MySQL2MySQLMigrationMapperService.Factory migrationMapperServiceFactory
     ) {
-        this.mySQLConnectionPool = mySQLConnectionPool;
-        this.mySQLDescribeService = mySQLDescribeService;
-        this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         this.mySQLReadService = mySQLReadService;
         this.mySQLWriteService = mySQLWriteService;
+        this.migrationMapperServiceFactory = migrationMapperServiceFactory;
     }
 
     public Future<Boolean> queue(FullMigrationDTO dto) {
@@ -54,29 +46,16 @@ public class FullMigrationService {
         TaskDTO taskDTO = dto.getTaskDTO();
         List<TaskDTO.Mapping> mapping = taskDTO.getMapping();
 
-        List<MySQLFieldDTO> targetFields = mySQLDescribeService.getFields(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable());
-        Map<String, MySQLFieldDTO> targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
-
         List<String> sourceColumns = mapping.stream().map(TaskDTO.Mapping::getSourceField).collect(Collectors.toList());
-        List<String> targetColumns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
 
-        Map<String, String> targetToSourceColumnMatch = mapping.stream().collect(Collectors.toMap(TaskDTO.Mapping::getTargetField, TaskDTO.Mapping::getSourceField));
+        MySQL2MySQLMigrationMapperService mySQL2MySQLMigrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), taskDTO.getMapping());
+        List<String> targetColumns = mySQL2MySQLMigrationMapperService.getColumns();
 
         List<String> insertDataList = new ArrayList<>();
         List<Future<?>> futures = new ArrayList<>();
 
         Future<?> readFuture = mySQLReadService.async(dto.getSource(), taskDTO.getSource().getDatabase(), taskDTO.getSource().getTable(), sourceColumns, item -> {
-            Map<String, Object> insertData = new LinkedHashMap<>();
-
-            for (String targetColumn : targetColumns) {
-                if (targetToSourceColumnMatch.containsKey(targetColumn)) {
-                    insertData.put(targetColumn, item.get(targetToSourceColumnMatch.get(targetColumn)));
-                } else {
-                    insertData.put(targetColumn, mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn)));
-                }
-            }
-
-            insertDataList.add("(" + insertData.values().stream().map(o -> "'" + o.toString() + "'").collect(Collectors.joining(", ")) + ")");
+            insertDataList.add(mySQL2MySQLMigrationMapperService.mapToString(item));
 
             if (insertDataList.size() == INSERT_CHUNK_SIZE) {
                 String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
