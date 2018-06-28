@@ -5,7 +5,6 @@ import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TaskDTO;
 import com.jhl.mds.util.ColumnUtil;
 import com.jhl.mds.util.FutureUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -14,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -27,19 +27,22 @@ public class FullMigrationService {
     private static ExecutorService executor = Executors.newFixedThreadPool(4);
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
-    private MySQLService mySQLService;
+    private MySQLDescribeService mySQLDescribeService;
     private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
+    private MySQLReadService mySQLReadService;
     private MySQLWriteService mySQLWriteService;
 
     public FullMigrationService(
             MySQLConnectionPool mySQLConnectionPool,
-            MySQLService mySQLService,
+            MySQLDescribeService mySQLDescribeService,
             MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
+            MySQLReadService mySQLReadService,
             MySQLWriteService mySQLWriteService
     ) {
         this.mySQLConnectionPool = mySQLConnectionPool;
-        this.mySQLService = mySQLService;
+        this.mySQLDescribeService = mySQLDescribeService;
         this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
+        this.mySQLReadService = mySQLReadService;
         this.mySQLWriteService = mySQLWriteService;
     }
 
@@ -48,36 +51,26 @@ public class FullMigrationService {
     }
 
     public boolean run(FullMigrationDTO dto) throws SQLException {
-        Statement sourceSt = mySQLConnectionPool.getConnection(dto.getSource()).createStatement();
-
         TaskDTO taskDTO = dto.getTaskDTO();
         List<TaskDTO.Mapping> mapping = taskDTO.getMapping();
 
-        List<MySQLFieldDTO> targetFields = mySQLService.getFields(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable());
+        List<MySQLFieldDTO> targetFields = mySQLDescribeService.getFields(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable());
         Map<String, MySQLFieldDTO> targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
 
-        List<String> targetColumns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
         List<String> sourceColumns = mapping.stream().map(TaskDTO.Mapping::getSourceField).collect(Collectors.toList());
+        List<String> targetColumns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
 
         Map<String, String> targetToSourceColumnMatch = mapping.stream().collect(Collectors.toMap(TaskDTO.Mapping::getTargetField, TaskDTO.Mapping::getSourceField));
 
-        String sql = String.format("SELECT %s FROM %s;", ColumnUtil.columnListToString(sourceColumns), taskDTO.getSource().getDatabase() + "." + taskDTO.getSource().getTable());
-        ResultSet result = sourceSt.executeQuery(sql);
-
         List<String> insertDataList = new ArrayList<>();
         List<Future<?>> futures = new ArrayList<>();
-        while (result.next()) {
-            Map<String, Object> data = new HashMap<>();
-            for (int i = 0; i < sourceColumns.size(); i++) {
-                String sourceColumn = sourceColumns.get(i);
-                data.put(sourceColumn, result.getObject(i + 1));
-            }
 
+        Future<?> readFuture = mySQLReadService.async(dto.getSource(), taskDTO.getSource().getDatabase(), taskDTO.getSource().getTable(), sourceColumns, item -> {
             Map<String, Object> insertData = new LinkedHashMap<>();
 
             for (String targetColumn : targetColumns) {
                 if (targetToSourceColumnMatch.containsKey(targetColumn)) {
-                    insertData.put(targetColumn, data.get(targetToSourceColumnMatch.get(targetColumn)));
+                    insertData.put(targetColumn, item.get(targetToSourceColumnMatch.get(targetColumn)));
                 } else {
                     insertData.put(targetColumn, mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn)));
                 }
@@ -91,6 +84,11 @@ public class FullMigrationService {
 
                 insertDataList.clear();
             }
+        });
+
+        try {
+            readFuture.get();
+        } catch (Exception e) {
         }
 
         if (insertDataList.size() > 0) {

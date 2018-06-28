@@ -3,7 +3,7 @@ package com.jhl.mds.controllers.api;
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MysqlServerRepository;
 import com.jhl.mds.dto.*;
-import com.jhl.mds.services.mysql.MySQLService;
+import com.jhl.mds.services.mysql.MySQLDescribeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,17 +17,17 @@ import java.util.stream.Collectors;
 public class MySQLApiController {
 
     private final MysqlServerRepository mysqlServerRepository;
-    private final MySQLService mySQLService;
+    private final MySQLDescribeService mySQLDescribeService;
     private final MySQLServerDTO.Converter mysqlServerDtoConverter;
 
     @Autowired
     public MySQLApiController(
             MysqlServerRepository mysqlServerRepository,
-            MySQLService mySQLService,
+            MySQLDescribeService mySQLDescribeService,
             MySQLServerDTO.Converter mysqlServerDtoConverter
     ) {
         this.mysqlServerRepository = mysqlServerRepository;
-        this.mySQLService = mySQLService;
+        this.mySQLDescribeService = mySQLDescribeService;
         this.mysqlServerDtoConverter = mysqlServerDtoConverter;
     }
 
@@ -45,7 +45,7 @@ public class MySQLApiController {
         MySQLServer server = opt.get();
 
         try {
-            return ApiResponse.success(mySQLService.getDatabases(mysqlServerDtoConverter.from(server)));
+            return ApiResponse.success(mySQLDescribeService.getDatabases(mysqlServerDtoConverter.from(server)));
         } catch (SQLException e) {
             return ApiResponse.error(e);
         }
@@ -60,7 +60,7 @@ public class MySQLApiController {
         MySQLServer server = opt.get();
 
         try {
-            return ApiResponse.success(mySQLService.getTables(mysqlServerDtoConverter.from(server), database));
+            return ApiResponse.success(mySQLDescribeService.getTables(mysqlServerDtoConverter.from(server), database));
         } catch (SQLException e) {
             return ApiResponse.error(e);
         }
@@ -74,7 +74,7 @@ public class MySQLApiController {
         }
         MySQLServer server = opt.get();
         try {
-            return ApiResponse.success(mySQLService.getFields(mysqlServerDtoConverter.from(server), database, table));
+            return ApiResponse.success(mySQLDescribeService.getFields(mysqlServerDtoConverter.from(server), database, table));
         } catch (SQLException e) {
             return ApiResponse.error(e);
         }
@@ -95,7 +95,7 @@ public class MySQLApiController {
         MySQLServer targetServer = opt.get();
 
         try {
-            return ApiResponse.success(mySQLService.getFieldsMappingFor2Table(mysqlServerDtoConverter.from(sourceServer), mysqlServerDtoConverter.from(targetServer), dto));
+            return ApiResponse.success(mySQLDescribeService.getFieldsMappingFor2Table(mysqlServerDtoConverter.from(sourceServer), mysqlServerDtoConverter.from(targetServer), dto));
         } catch (SQLException e) {
             return ApiResponse.error(e);
         }

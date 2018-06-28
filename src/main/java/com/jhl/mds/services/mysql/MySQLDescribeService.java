@@ -15,11 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
-public class MySQLService {
+public class MySQLDescribeService {
 
     private MySQLConnectionPool mySQLConnectionPool;
 
-    public MySQLService(MySQLConnectionPool mySQLConnectionPool) {
+    public MySQLDescribeService(MySQLConnectionPool mySQLConnectionPool) {
         this.mySQLConnectionPool = mySQLConnectionPool;
     }
 
