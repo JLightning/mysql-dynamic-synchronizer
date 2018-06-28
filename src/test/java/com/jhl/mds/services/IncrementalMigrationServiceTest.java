@@ -3,33 +3,25 @@ package com.jhl.mds.services;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TaskDTO;
-import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
+import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Arrays;
-import java.util.Random;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class FullMigrationServiceTest {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class IncrementalMigrationServiceTest {
 
     @Autowired
-    private FullMigrationService fullMigrationService;
+    private IncrementalMigrationService incrementalMigrationService;
 
     @Autowired
     private MySQLConnectionPool mySQLConnectionPool;
@@ -48,41 +40,6 @@ public class FullMigrationServiceTest {
 
         st.execute("TRUNCATE mds.tablea;");
         st.execute("TRUNCATE mds.tableb;");
-
-        Random rand = new Random();
-
-        checkTime("all_test_insert", () -> {
-            for (int j = 1; j <= 10000; j++) {
-                try {
-                    StringBuilder values = new StringBuilder();
-                    for (int i = 1; i <= 100; i++) {
-                        if (values.length() != 0) values.append(", ");
-                        int id = (j - 1) * 10000 + i;
-
-                        values.append(String.format("(%d, %d)", id, rand.nextInt(10)));
-                    }
-                    final String finalValues = values.toString();
-                    checkTime("test_insert_" + j, () -> {
-                        try {
-                            st.execute(String.format("INSERT INTO mds.tablea(`id`, `random_number`) VALUES %s;", finalValues));
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                } catch (Exception e) {
-
-                }
-            }
-        });
-
-        ResultSet result = st.executeQuery("SHOW ERRORS;");
-        System.out.println("result = " + result);
-    }
-
-    private void checkTime(String task, Runnable r) {
-        Instant start = Instant.now();
-        r.run();
-        System.out.println("elapsed time for `" + task + "` = " + Duration.between(start, Instant.now()));
     }
 
     @Test
@@ -111,12 +68,15 @@ public class FullMigrationServiceTest {
                 .taskDTO(taskDTO)
                 .build();
 
-        checkTime("full_migration", () -> {
-            try {
-                fullMigrationService.run(dto);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        incrementalMigrationService.async(dto);
+
+        Thread.sleep(1000);
+
+        Connection conn = mySQLConnectionPool.getConnection(serverDTO);
+
+        Statement st = conn.createStatement();
+        st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
+
+        Thread.sleep(1000 * 1000);
     }
 }

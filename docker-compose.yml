@@ -15,6 +15,7 @@ services:
     volumes:
       - ./transfer:/transfer
       - ./data/mysql:/var/lib/mysql
+      - ./etc/mysql/my.cnf:/etc/mysql/my.cnf
     command:
       - '--user=mysql'
   node:
