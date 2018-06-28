@@ -48,14 +48,14 @@ public class MySQL2MySQLFullMigrationService {
 
         List<String> sourceColumns = mapping.stream().map(TaskDTO.Mapping::getSourceField).collect(Collectors.toList());
 
-        MySQL2MySQLMigrationMapperService mySQL2MySQLMigrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), taskDTO.getTarget(), taskDTO.getMapping());
-        List<String> targetColumns = mySQL2MySQLMigrationMapperService.getColumns();
+        MySQL2MySQLMigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), taskDTO.getTarget(), taskDTO.getMapping());
+        List<String> targetColumns = mapperService.getColumns();
 
         List<String> insertDataList = new ArrayList<>();
         List<Future<?>> futures = new ArrayList<>();
 
         Future<?> readFuture = mySQLReadService.async(dto.getSource(), taskDTO.getSource(), sourceColumns, item -> {
-            insertDataList.add(mySQL2MySQLMigrationMapperService.mapToString(item));
+            insertDataList.add(mapperService.mapToString(item));
 
             if (insertDataList.size() == INSERT_CHUNK_SIZE) {
                 String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
