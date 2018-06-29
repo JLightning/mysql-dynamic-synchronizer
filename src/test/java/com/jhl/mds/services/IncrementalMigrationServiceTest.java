@@ -1,8 +1,6 @@
 package com.jhl.mds.services;
 
-import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.TaskDTO;
+import com.jhl.mds.dto.*;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Test;
@@ -53,19 +51,13 @@ public class IncrementalMigrationServiceTest {
                 .password("root")
                 .build();
 
-        TaskDTO taskDTO = TaskDTO.builder()
-                .mapping(Arrays.asList(
-                        new TaskDTO.Mapping("id", "id"),
-                        new TaskDTO.Mapping("random_number", "random_number")
-                ))
-                .source(new TaskDTO.Table(0, "mds", "tablea"))
-                .target(new TaskDTO.Table(0, "mds", "tableb"))
-                .build();
-
         FullMigrationDTO dto = FullMigrationDTO.builder()
-                .source(serverDTO)
-                .target(serverDTO)
-                .taskDTO(taskDTO)
+                .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
+                .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
+                .mapping(Arrays.asList(
+                        new SimpleFieldMappingDTO("id", "id"),
+                        new SimpleFieldMappingDTO("random_number", "random_number")
+                ))
                 .build();
 
         incrementalMigrationService.async(dto);

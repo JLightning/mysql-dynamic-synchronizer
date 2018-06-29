@@ -5,13 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FullMigrationDTO {
 
-    private MySQLServerDTO source;
-    private MySQLServerDTO target;
-    private TaskDTO taskDTO;
+    private TableInfoDTO source;
+    private TableInfoDTO target;
+    private List<SimpleFieldMappingDTO> mapping;
 }

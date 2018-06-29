@@ -1,7 +1,6 @@
 package com.jhl.mds.services.mysql;
 
-import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.TaskDTO;
+import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,18 +27,18 @@ public class MySQLReadService {
         this.mySQLConnectionPool = mySQLConnectionPool;
     }
 
-    public Future<?> async(MySQLServerDTO serverDTO, TaskDTO.Table tableInfo, List<String> columns, ResultCallback resultCallback) {
+    public Future<?> async(TableInfoDTO tableInfo, List<String> columns, ResultCallback resultCallback) {
         return executor.submit(() -> {
             try {
-                run(serverDTO, tableInfo, columns, resultCallback);
+                run(tableInfo, columns, resultCallback);
             } catch (Exception e) {
 
             }
         });
     }
 
-    public void run(MySQLServerDTO serverDTO, TaskDTO.Table tableInfo, List<String> columns, ResultCallback resultCallback) throws SQLException {
-        Connection conn = mySQLConnectionPool.getConnection(serverDTO);
+    public void run(TableInfoDTO tableInfo, List<String> columns, ResultCallback resultCallback) throws SQLException {
+        Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
         Statement st = conn.createStatement();
 
         String sql = String.format("SELECT %s FROM %s;", MySQLStringUtil.columnListToString(columns), tableInfo.getDatabase() + "." + tableInfo.getTable());

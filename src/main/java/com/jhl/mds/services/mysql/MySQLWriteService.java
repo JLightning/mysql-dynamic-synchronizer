@@ -1,6 +1,7 @@
 package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,21 +28,21 @@ public class MySQLWriteService {
         this.mySQLConnectionPool = mySQLConnectionPool;
     }
 
-    public Future<?> queue(MySQLServerDTO serverDTO, String database, String table, List<String> columns, String insertDatas) {
+    public Future<?> queue(TableInfoDTO tableInfo, List<String> columns, String insertDatas) {
         return executor.submit(() -> {
             try {
-                run(serverDTO, database, table, columns, insertDatas);
+                run(tableInfo, columns, insertDatas);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public void run(MySQLServerDTO serverDTO, String database, String table, List<String> columns, String insertDatas) throws SQLException {
-        Connection conn = mySQLConnectionPool.getConnection(serverDTO);
+    public void run(TableInfoDTO tableInfo, List<String> columns, String insertDatas) throws SQLException {
+        Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
         Statement st = conn.createStatement();
 
-        String sql = String.format("INSERT INTO %s(%s) VALUES %s;", database + "." + table, MySQLStringUtil.columnListToString(columns), insertDatas);
+        String sql = String.format("INSERT INTO %s(%s) VALUES %s;", tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDatas);
         logger.info("Run query: " + sql);
 
         st.execute(sql);

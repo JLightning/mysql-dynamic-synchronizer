@@ -3,6 +3,7 @@ package com.jhl.mds.services.mysql;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.TaskDTO;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,8 @@ public class MySQLBinLogService {
         this.mySQLDescribeService = mySQLDescribeService;
     }
 
-    public List<Map<String, Object>> mapDataToField(MySQLServerDTO serverDTO, TaskDTO.Table tableInfo, WriteRowsEventData eventData) throws SQLException {
-        List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(serverDTO, tableInfo.getDatabase(), tableInfo.getTable());
+    public List<Map<String, Object>> mapDataToField(TableInfoDTO tableInfo, WriteRowsEventData eventData) throws SQLException {
+        List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
 
         List<Map<String, Object>> result = new ArrayList<>();
 

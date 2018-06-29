@@ -1,8 +1,6 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
-import com.jhl.mds.dto.MySQLFieldDTO;
-import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.TaskDTO;
+import com.jhl.mds.dto.*;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.services.mysql.MySQLFieldDefaultValueService;
 import com.jhl.mds.util.MySQLStringUtil;
@@ -23,24 +21,23 @@ public class MigrationMapperService {
     @Getter
     private final List<String> columns;
     private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
-    private List<TaskDTO.Mapping> mapping;
+    private List<SimpleFieldMappingDTO> mapping;
 
     public MigrationMapperService(
             MySQLDescribeService mySQLDescribeService,
             MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
-            MySQLServerDTO serverDTO,
-            TaskDTO.Table tableInfo,
-            List<TaskDTO.Mapping> mapping
+            TableInfoDTO tableInfo,
+            List<SimpleFieldMappingDTO> mapping
     ) throws SQLException {
         this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         this.mapping = mapping;
-        targetFields = mySQLDescribeService.getFields(serverDTO, tableInfo.getDatabase(), tableInfo.getTable());
+        targetFields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
         targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
         columns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
     }
 
     public Map<String, Object> map(Map<String, Object> data) {
-        Map<String, String> targetToSourceColumnMatch = mapping.stream().collect(Collectors.toMap(TaskDTO.Mapping::getTargetField, TaskDTO.Mapping::getSourceField));
+        Map<String, String> targetToSourceColumnMatch = mapping.stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getTargetField, SimpleFieldMappingDTO::getSourceField));
 
         Map<String, Object> mappedData = new LinkedHashMap<>();
 
@@ -71,8 +68,8 @@ public class MigrationMapperService {
             this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         }
 
-        public MigrationMapperService create(MySQLServerDTO serverDTO, TaskDTO.Table tableInfo, List<TaskDTO.Mapping> mapping) throws SQLException {
-            return new MigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, serverDTO, tableInfo, mapping);
+        public MigrationMapperService create(TableInfoDTO tableInfo, List<SimpleFieldMappingDTO> mapping) throws SQLException {
+            return new MigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, tableInfo, mapping);
         }
     }
 }

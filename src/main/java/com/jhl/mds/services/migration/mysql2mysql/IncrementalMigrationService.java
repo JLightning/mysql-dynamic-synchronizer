@@ -46,13 +46,13 @@ public class IncrementalMigrationService {
     }
 
     public void run(FullMigrationDTO dto) throws Exception {
-        MySQLServerDTO source = dto.getSource();
-        BinaryLogClient client = new BinaryLogClient(source.getHost(), Integer.valueOf(source.getPort()), source.getUsername(), source.getPassword());
+        MySQLServerDTO sourceServer = dto.getSource().getServer();
+        BinaryLogClient client = new BinaryLogClient(sourceServer.getHost(), Integer.valueOf(sourceServer.getPort()), sourceServer.getUsername(), sourceServer.getPassword());
         client.registerEventListener(event -> {
             System.out.println("event = " + event);
             switch (event.getHeader().getEventType()) {
                 case TABLE_MAP:
-                    putTableMap(dto.getSource(), event.getData());
+                    putTableMap(dto.getSource().getServer(), event.getData());
                     break;
                 case EXT_WRITE_ROWS:
                     write(dto, event.getData());
@@ -62,18 +62,17 @@ public class IncrementalMigrationService {
     }
 
     private void write(FullMigrationDTO dto, WriteRowsEventData eventData) {
-        TaskDTO.Table tableInfo = tableMap.get(dto.getSource()).get(eventData.getTableId());
-        TaskDTO taskDTO = dto.getTaskDTO();
-        if (!tableInfo.getDatabase().equals(taskDTO.getSource().getDatabase()) || !tableInfo.getTable().equals(taskDTO.getSource().getTable())) {
+        TaskDTO.Table tableInfo = tableMap.get(dto.getSource().getServer()).get(eventData.getTableId());
+        if (!tableInfo.getDatabase().equals(dto.getSource().getDatabase()) || !tableInfo.getTable().equals(dto.getSource().getTable())) {
             return;
         }
 
         try {
-            List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), tableInfo, eventData);
-            MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), taskDTO.getTarget(), taskDTO.getMapping());
+            List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
+            MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             String insertDataList = data.stream().map(migrationMapperService::mapToString).collect(Collectors.joining(", "));
 
-            mySQLWriteService.queue(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), migrationMapperService.getColumns(), insertDataList);
+            mySQLWriteService.queue(dto.getTarget(), migrationMapperService.getColumns(), insertDataList);
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -1,7 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.dto.TaskDTO;
+import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.FutureUtil;
@@ -42,23 +42,20 @@ public class FullMigrationService {
     }
 
     public boolean run(FullMigrationDTO dto) throws Exception {
-        TaskDTO taskDTO = dto.getTaskDTO();
-        List<TaskDTO.Mapping> mapping = taskDTO.getMapping();
+        List<String> sourceColumns = dto.getMapping().stream().map(SimpleFieldMappingDTO::getSourceField).collect(Collectors.toList());
 
-        List<String> sourceColumns = mapping.stream().map(TaskDTO.Mapping::getSourceField).collect(Collectors.toList());
-
-        MigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), taskDTO.getTarget(), taskDTO.getMapping());
+        MigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
         List<String> targetColumns = mapperService.getColumns();
 
         List<String> insertDataList = new ArrayList<>();
         List<Future<?>> futures = new ArrayList<>();
 
-        mySQLReadService.async(dto.getSource(), taskDTO.getSource(), sourceColumns, item -> {
+        mySQLReadService.async(dto.getSource(), sourceColumns, item -> {
             insertDataList.add(mapperService.mapToString(item));
 
             if (insertDataList.size() == INSERT_CHUNK_SIZE) {
                 String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-                futures.add(mySQLWriteService.queue(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), targetColumns, insertDataStr));
+                futures.add(mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr));
 
                 insertDataList.clear();
             }
@@ -66,7 +63,7 @@ public class FullMigrationService {
 
         if (insertDataList.size() > 0) {
             String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-            mySQLWriteService.queue(dto.getTarget(), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable(), targetColumns, insertDataStr);
+            mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr);
 
             insertDataList.clear();
         }

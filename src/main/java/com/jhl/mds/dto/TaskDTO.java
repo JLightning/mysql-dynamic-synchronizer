@@ -18,18 +18,9 @@ import java.util.stream.Collectors;
 public class TaskDTO {
     private int taskId;
     private String taskName;
-    private List<Mapping> mapping;
+    private List<SimpleFieldMappingDTO> mapping;
     private Table source;
     private Table target;
-
-    @Data
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class Mapping {
-        private String sourceField;
-        private String targetField;
-    }
 
     @Data
     @Builder
@@ -45,12 +36,8 @@ public class TaskDTO {
     public static class Converter {
 
         public TaskDTO from(Task task, List<TaskFieldMapping> taskFieldMappings) {
-            List<Mapping> mapping = taskFieldMappings.stream()
-                    .map(o -> Mapping.builder()
-                            .sourceField(o.getSourceField())
-                            .targetField(o.getTargetField())
-                            .build()
-                    ).collect(Collectors.toList());
+            List<SimpleFieldMappingDTO> mapping = taskFieldMappings.stream()
+                    .map(o -> new SimpleFieldMappingDTO(o.getSourceField(), o.getTargetField())).collect(Collectors.toList());
             return TaskDTO.builder()
                     .taskId(task.getTaskId())
                     .taskName(task.getName())

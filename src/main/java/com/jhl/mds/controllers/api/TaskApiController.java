@@ -5,6 +5,7 @@ import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.ApiResponse;
+import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TaskDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -45,7 +46,7 @@ public class TaskApiController {
 
             taskRepository.save(task);
 
-            for (TaskDTO.Mapping mapping : dto.getMapping()) {
+            for (SimpleFieldMappingDTO mapping : dto.getMapping()) {
                 TaskFieldMapping fieldMapping = TaskFieldMapping.builder()
                         .fkTaskId(task.getTaskId())
                         .sourceField(mapping.getSourceField())
