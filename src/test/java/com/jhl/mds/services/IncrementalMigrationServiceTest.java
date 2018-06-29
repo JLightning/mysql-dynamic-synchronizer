@@ -76,6 +76,7 @@ public class IncrementalMigrationServiceTest {
 
         Statement st = conn.createStatement();
         st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
+        st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (2)");
 
         Thread.sleep(1000 * 1000);
     }
