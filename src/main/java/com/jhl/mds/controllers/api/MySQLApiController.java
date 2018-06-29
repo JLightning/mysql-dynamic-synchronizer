@@ -1,7 +1,7 @@
 package com.jhl.mds.controllers.api;
 
 import com.jhl.mds.dao.entities.MySQLServer;
-import com.jhl.mds.dao.repositories.MysqlServerRepository;
+import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,29 +16,29 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/mysql")
 public class MySQLApiController {
 
-    private final MysqlServerRepository mysqlServerRepository;
+    private final MySQLServerRepository mySQLServerRepository;
     private final MySQLDescribeService mySQLDescribeService;
     private final MySQLServerDTO.Converter mysqlServerDtoConverter;
 
     @Autowired
     public MySQLApiController(
-            MysqlServerRepository mysqlServerRepository,
+            MySQLServerRepository mySQLServerRepository,
             MySQLDescribeService mySQLDescribeService,
             MySQLServerDTO.Converter mysqlServerDtoConverter
     ) {
-        this.mysqlServerRepository = mysqlServerRepository;
+        this.mySQLServerRepository = mySQLServerRepository;
         this.mySQLDescribeService = mySQLDescribeService;
         this.mysqlServerDtoConverter = mysqlServerDtoConverter;
     }
 
     @GetMapping("/servers")
     public ApiResponse<List<MySQLServerDTO>> getServers() {
-        return ApiResponse.success(mysqlServerRepository.findAll().stream().map(mysqlServerDtoConverter::from).collect(Collectors.toList()));
+        return ApiResponse.success(mySQLServerRepository.findAll().stream().map(mysqlServerDtoConverter::from).collect(Collectors.toList()));
     }
 
     @GetMapping("/databases")
     public ApiResponse<List<String>> getDatabasesForServer(@RequestParam int serverId) {
-        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
+        Optional<MySQLServer> opt = mySQLServerRepository.findById(serverId);
         if (!opt.isPresent()) {
             return ApiResponse.error("server not found");
         }
@@ -53,7 +53,7 @@ public class MySQLApiController {
 
     @GetMapping("/tables")
     public ApiResponse<List<String>> getTablesForServerAndDatabase(@RequestParam int serverId, @RequestParam String database) {
-        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
+        Optional<MySQLServer> opt = mySQLServerRepository.findById(serverId);
         if (!opt.isPresent()) {
             return ApiResponse.error("server not found");
         }
@@ -68,7 +68,7 @@ public class MySQLApiController {
 
     @GetMapping("/fields")
     public ApiResponse<List<MySQLFieldDTO>> getFieldForServerDatabaseAndTable(@RequestParam int serverId, @RequestParam String database, @RequestParam String table) {
-        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
+        Optional<MySQLServer> opt = mySQLServerRepository.findById(serverId);
         if (!opt.isPresent()) {
             return ApiResponse.error("server not found");
         }
@@ -82,13 +82,13 @@ public class MySQLApiController {
 
     @PostMapping("/fields-mapping")
     public ApiResponse<List<MySQLFieldWithMappingDTO>> getMappingFor2Table(@RequestBody TableFieldsMappingDTO dto) {
-        Optional<MySQLServer> opt = mysqlServerRepository.findById(dto.getSourceServerId());
+        Optional<MySQLServer> opt = mySQLServerRepository.findById(dto.getSourceServerId());
         if (!opt.isPresent()) {
             return ApiResponse.error("source server not found");
         }
         MySQLServer sourceServer = opt.get();
 
-        opt = mysqlServerRepository.findById(dto.getTargetServerId());
+        opt = mySQLServerRepository.findById(dto.getTargetServerId());
         if (!opt.isPresent()) {
             return ApiResponse.error("target server not found");
         }

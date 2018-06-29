@@ -2,9 +2,7 @@ package com.jhl.mds.services.mysql;
 
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dto.MySQLFieldDTO;
-import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.dto.TaskDTO;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;

@@ -53,14 +53,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 ))
                 .build();
 
-        LifecycleListener connected = new LifecycleListener();
-        incrementalMigrationService.async(dto, connected);
-
-        synchronized (connected) {
-            while (!connected.get()) {
-                connected.wait();
-            }
-        }
+        incrementalMigrationService.run(dto);
 
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
 
@@ -74,28 +67,5 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
         Assert.assertEquals(10, result.getInt(1));
-    }
-
-    private class LifecycleListener extends AtomicBoolean implements BinaryLogClient.LifecycleListener {
-        @Override
-        public synchronized void onConnect(BinaryLogClient client) {
-            set(true);
-            notify();
-        }
-
-        @Override
-        public void onCommunicationFailure(BinaryLogClient client, Exception ex) {
-
-        }
-
-        @Override
-        public void onEventDeserializationFailure(BinaryLogClient client, Exception ex) {
-
-        }
-
-        @Override
-        public void onDisconnect(BinaryLogClient client) {
-
-        }
     }
 }

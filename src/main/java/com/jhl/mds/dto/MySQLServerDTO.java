@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"serverId", "name"})
 public class MySQLServerDTO {
     private int serverId;
     private String name;

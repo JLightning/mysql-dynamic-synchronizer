@@ -3,7 +3,7 @@ package com.jhl.mds.controllers;
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
-import com.jhl.mds.dao.repositories.MysqlServerRepository;
+import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.TaskDTO;
@@ -29,7 +29,7 @@ public class TaskController {
 
     private TaskRepository taskRepository;
     private TaskFieldMappingRepository taskFieldMappingRepository;
-    private MysqlServerRepository mysqlServerRepository;
+    private MySQLServerRepository mySQLServerRepository;
     private TaskDTO.Converter taskDTOConverter;
     private FEMessageService feMessageService;
 
@@ -37,13 +37,13 @@ public class TaskController {
     public TaskController(
             TaskRepository taskRepository,
             TaskFieldMappingRepository taskFieldMappingRepository,
-            MysqlServerRepository mysqlServerRepository,
+            MySQLServerRepository mySQLServerRepository,
             TaskDTO.Converter taskDTOConverter,
             FEMessageService feMessageService
     ) {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
-        this.mysqlServerRepository = mysqlServerRepository;
+        this.mySQLServerRepository = mySQLServerRepository;
         this.taskDTOConverter = taskDTOConverter;
         this.feMessageService = feMessageService;
     }
@@ -86,7 +86,7 @@ public class TaskController {
         model.addAttribute("mappingStringMap", mappingStringMap);
 
         List<Integer> serverIds = tasks.stream().flatMap(task -> Stream.of(task.getFkSourceServer(), task.getFkTargetServer())).distinct().collect(Collectors.toList());
-        Map<Integer, MySQLServer> serverMap = mysqlServerRepository.findByServerId(serverIds).stream()
+        Map<Integer, MySQLServer> serverMap = mySQLServerRepository.findByServerId(serverIds).stream()
                 .collect(Collectors.toMap(o -> (Integer) o.getServerId(), o -> o, (o1, o2) -> o1));
 
         model.addAttribute("serverMap", serverMap);

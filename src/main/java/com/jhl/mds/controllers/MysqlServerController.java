@@ -1,7 +1,7 @@
 package com.jhl.mds.controllers;
 
 import com.jhl.mds.dao.entities.MySQLServer;
-import com.jhl.mds.dao.repositories.MysqlServerRepository;
+import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.services.common.FEMessageService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
@@ -21,24 +21,24 @@ import java.util.Optional;
 @RequestMapping("/mysql-server")
 public class MysqlServerController {
 
-    private MysqlServerRepository mysqlServerRepository;
+    private MySQLServerRepository mySQLServerRepository;
     private FEMessageService feMessageService;
     private MySQLConnectionPool mySQLConnectionPool;
 
     @Autowired
     public MysqlServerController(
-            MysqlServerRepository mysqlServerRepository,
+            MySQLServerRepository mySQLServerRepository,
             FEMessageService feMessageService,
             MySQLConnectionPool mySQLConnectionPool
     ) {
-        this.mysqlServerRepository = mysqlServerRepository;
+        this.mySQLServerRepository = mySQLServerRepository;
         this.feMessageService = feMessageService;
         this.mySQLConnectionPool = mySQLConnectionPool;
     }
 
     @GetMapping("/list")
     public String listAction(Model model) {
-        model.addAttribute("mysqlServers", mysqlServerRepository.findAll(Sort.by(Sort.Direction.DESC, "serverId")));
+        model.addAttribute("mysqlServers", mySQLServerRepository.findAll(Sort.by(Sort.Direction.DESC, "serverId")));
         return "mysql-server/list";
     }
 
@@ -49,7 +49,7 @@ public class MysqlServerController {
 
     @GetMapping("/edit")
     public String editAction(@RequestParam int serverId, Model model) {
-        Optional<MySQLServer> opt = mysqlServerRepository.findById(serverId);
+        Optional<MySQLServer> opt = mySQLServerRepository.findById(serverId);
         if (!opt.isPresent()) {
             feMessageService.addError("No server with id " + serverId + " found");
             return "redirect:/mysql-server/list";
@@ -82,7 +82,7 @@ public class MysqlServerController {
                 .build();
 
         try {
-            mysqlServerRepository.save(mySQLServer);
+            mySQLServerRepository.save(mySQLServer);
         } catch (Exception e) {
             feMessageService.addError("Error when adding new server: " + e.getMessage());
             return new RedirectView(errorRedirectUrl);
@@ -94,7 +94,7 @@ public class MysqlServerController {
     @GetMapping("/delete")
     public RedirectView deleteAction(@RequestParam int serverId) {
         try {
-            mysqlServerRepository.deleteById(serverId);
+            mySQLServerRepository.deleteById(serverId);
         } catch (Exception e) {
             feMessageService.addError("Error when deleting server: " + e.getMessage());
         }
