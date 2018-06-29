@@ -28,12 +28,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
     private MySQLConnectionPool mySQLConnectionPool;
 
     public void prepareData() throws SQLException {
-        MySQLServerDTO serverDTO = MySQLServerDTO.builder()
-                .host("localhost")
-                .port("3307")
-                .username("root")
-                .password("root")
-                .build();
+        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
 
@@ -44,15 +39,10 @@ public class IncrementalMigrationServiceTest extends BaseTest {
     }
 
     @Test
-    public void runTest() throws Exception {
+    public void insertTest() throws Exception {
         prepareData();
 
-        MySQLServerDTO serverDTO = MySQLServerDTO.builder()
-                .host("localhost")
-                .port("3307")
-                .username("root")
-                .password("root")
-                .build();
+        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
         FullMigrationDTO dto = FullMigrationDTO.builder()
                 .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
@@ -63,32 +53,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 ))
                 .build();
 
-        AtomicBoolean connected = new AtomicBoolean(false);
-
-        incrementalMigrationService.async(dto, new BinaryLogClient.LifecycleListener() {
-            @Override
-            public void onConnect(BinaryLogClient client) {
-                synchronized (connected) {
-                    connected.set(true);
-                    connected.notify();
-                }
-            }
-
-            @Override
-            public void onCommunicationFailure(BinaryLogClient client, Exception ex) {
-
-            }
-
-            @Override
-            public void onEventDeserializationFailure(BinaryLogClient client, Exception ex) {
-
-            }
-
-            @Override
-            public void onDisconnect(BinaryLogClient client) {
-
-            }
-        });
+        LifecycleListener connected = new LifecycleListener();
+        incrementalMigrationService.async(dto, connected);
 
         synchronized (connected) {
             while (!connected.get()) {
@@ -99,13 +65,37 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
 
         Statement st = conn.createStatement();
-        st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
-        st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (2)");
+        for (int i = 0; i < 10; i++) {
+            st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
+        }
 
         Thread.sleep(500);
 
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
-        Assert.assertEquals(2, result.getInt(1));
+        Assert.assertEquals(10, result.getInt(1));
+    }
+
+    private class LifecycleListener extends AtomicBoolean implements BinaryLogClient.LifecycleListener {
+        @Override
+        public synchronized void onConnect(BinaryLogClient client) {z
+            set(true);
+            notify();
+        }
+
+        @Override
+        public void onCommunicationFailure(BinaryLogClient client, Exception ex) {
+
+        }
+
+        @Override
+        public void onEventDeserializationFailure(BinaryLogClient client, Exception ex) {
+
+        }
+
+        @Override
+        public void onDisconnect(BinaryLogClient client) {
+
+        }
     }
 }
