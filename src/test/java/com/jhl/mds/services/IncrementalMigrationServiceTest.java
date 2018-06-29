@@ -78,7 +78,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
     private class LifecycleListener extends AtomicBoolean implements BinaryLogClient.LifecycleListener {
         @Override
-        public synchronized void onConnect(BinaryLogClient client) {z
+        public synchronized void onConnect(BinaryLogClient client) {
             set(true);
             notify();
         }
