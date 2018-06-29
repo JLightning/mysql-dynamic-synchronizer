@@ -1,5 +1,6 @@
 package com.jhl.mds.services;
 
+import com.jhl.mds.BaseTest;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
@@ -14,9 +15,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class IncrementalMigrationServiceTest {
+public class IncrementalMigrationServiceTest extends BaseTest {
 
     @Autowired
     private IncrementalMigrationService incrementalMigrationService;

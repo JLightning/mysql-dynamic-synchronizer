@@ -63,7 +63,7 @@ public class FullMigrationService {
 
         if (insertDataList.size() > 0) {
             String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-            mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr);
+            futures.add(mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr));
 
             insertDataList.clear();
         }
