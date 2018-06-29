@@ -59,9 +59,6 @@ public class FullMigrationServiceTest extends BaseTest {
                 }
             }
         });
-
-        ResultSet result = st.executeQuery("SHOW ERRORS;");
-        System.out.println("result = " + result);
     }
 
     @Test

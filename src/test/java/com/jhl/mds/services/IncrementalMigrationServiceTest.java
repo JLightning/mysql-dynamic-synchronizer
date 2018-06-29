@@ -1,6 +1,5 @@
 package com.jhl.mds.services;
 
-import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
@@ -17,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IncrementalMigrationServiceTest extends BaseTest {
 
