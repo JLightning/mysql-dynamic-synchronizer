@@ -31,13 +31,6 @@ public class FullMigrationServiceTest extends BaseTest {
     private MySQLConnectionPool mySQLConnectionPool;
 
     public void prepareData(Connection conn, Statement st) throws SQLException {
-        MySQLServerDTO serverDTO = MySQLServerDTO.builder()
-                .host("localhost")
-                .port("3307")
-                .username("root")
-                .password("root")
-                .build();
-
         st.execute("TRUNCATE mds.tablea;");
         st.execute("TRUNCATE mds.tableb;");
 
@@ -73,12 +66,7 @@ public class FullMigrationServiceTest extends BaseTest {
 
     @Test
     public void runTest() throws Exception {
-        MySQLServerDTO serverDTO = MySQLServerDTO.builder()
-                .host("localhost")
-                .port("3307")
-                .username("root")
-                .password("root")
-                .build();
+        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
         Statement st = conn.createStatement();
