@@ -1,5 +1,6 @@
 package com.jhl.mds.services;
 
+import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
@@ -60,8 +61,6 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .build();
 
         incrementalMigrationService.async(dto);
-
-        Thread.sleep(1000);
 
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
 
