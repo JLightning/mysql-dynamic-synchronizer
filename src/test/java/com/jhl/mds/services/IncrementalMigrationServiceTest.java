@@ -2,19 +2,22 @@ package com.jhl.mds.services;
 
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.jhl.mds.BaseTest;
-import com.jhl.mds.dto.*;
+import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.SimpleFieldMappingDTO;
+import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
+import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class IncrementalMigrationServiceTest extends BaseTest {
 
@@ -60,7 +63,38 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 ))
                 .build();
 
-        incrementalMigrationService.async(dto);
+        AtomicBoolean connected = new AtomicBoolean(false);
+
+        incrementalMigrationService.async(dto, new BinaryLogClient.LifecycleListener() {
+            @Override
+            public void onConnect(BinaryLogClient client) {
+                synchronized (connected) {
+                    connected.set(true);
+                    connected.notify();
+                }
+            }
+
+            @Override
+            public void onCommunicationFailure(BinaryLogClient client, Exception ex) {
+
+            }
+
+            @Override
+            public void onEventDeserializationFailure(BinaryLogClient client, Exception ex) {
+
+            }
+
+            @Override
+            public void onDisconnect(BinaryLogClient client) {
+
+            }
+        });
+
+        synchronized (connected) {
+            while (!connected.get()) {
+                connected.wait();
+            }
+        }
 
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
 
@@ -68,6 +102,10 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
         st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (2)");
 
-        Thread.sleep(1000 * 1000);
+        Thread.sleep(500);
+
+        ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
+        result.next();
+        Assert.assertEquals(2, result.getInt(1));
     }
 }

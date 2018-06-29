@@ -104,6 +104,6 @@ public class FullMigrationServiceTest extends BaseTest {
 
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
-        Assert.assertEquals(result.getInt(1), 1000000);
+        Assert.assertEquals(1000000, result.getInt(1));
     }
 }

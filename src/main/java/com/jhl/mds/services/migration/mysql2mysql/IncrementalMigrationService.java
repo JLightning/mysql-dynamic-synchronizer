@@ -36,17 +36,17 @@ public class IncrementalMigrationService {
         this.mySQLWriteService = mySQLWriteService;
     }
 
-    public void async(FullMigrationDTO dto) {
+    public void async(FullMigrationDTO dto, BinaryLogClient.LifecycleListener lifecycleListener) {
         executor.submit(() -> {
             try {
-                run(dto);
+                run(dto, lifecycleListener);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public void run(FullMigrationDTO dto) throws Exception {
+    public void run(FullMigrationDTO dto, BinaryLogClient.LifecycleListener lifecycleListener) throws Exception {
         MySQLServerDTO sourceServer = dto.getSource().getServer();
         BinaryLogClient client = new BinaryLogClient(sourceServer.getHost(), Integer.valueOf(sourceServer.getPort()), sourceServer.getUsername(), sourceServer.getPassword());
         client.registerEventListener(event -> {
@@ -59,6 +59,7 @@ public class IncrementalMigrationService {
                     write(dto, event.getData());
             }
         });
+        client.registerLifecycleListener(lifecycleListener);
         client.connect();
     }
 
