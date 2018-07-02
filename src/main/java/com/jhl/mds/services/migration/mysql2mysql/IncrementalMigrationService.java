@@ -2,9 +2,10 @@ package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.services.mysql.MySQLBinLogPool;
-import com.jhl.mds.services.mysql.MySQLBinLogService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
+import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
+import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
+import com.jhl.mds.services.mysql.binlog.MySQLBinLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,9 +31,9 @@ public class IncrementalMigrationService {
     }
 
     public void run(FullMigrationDTO dto) {
-        mySQLBinLogPool.addListener(dto.getSource(), new MySQLBinLogPool.Listener() {
+        mySQLBinLogPool.addListener(dto.getSource(), new MySQLBinLogListener() {
             @Override
-            public void write(WriteRowsEventData eventData) {
+            public void insert(WriteRowsEventData eventData) {
                 IncrementalMigrationService.this.write(dto, eventData);
             }
         });
