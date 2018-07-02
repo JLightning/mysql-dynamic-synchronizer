@@ -37,3 +37,4 @@ data/*
 mds.db
 db_migration.txt
 binlog_*
+mysql-dynamic-synchronizer.iml

@@ -30,10 +30,14 @@ public class MySQLBinLogPool {
 
     @PostConstruct
     private void init() {
-        List<MySQLServer> servers = mySQLServerRepository.findAll();
-        for (MySQLServer server : servers) {
-            MySQLServerDTO serverDTO = mySQLServerDTOConverter.from(server);
-            connectionMap.put(serverDTO, new MySQLBinLogConnection(serverDTO));
+        try {
+            List<MySQLServer> servers = mySQLServerRepository.findAll();
+            for (MySQLServer server : servers) {
+                MySQLServerDTO serverDTO = mySQLServerDTOConverter.from(server);
+                connectionMap.put(serverDTO, new MySQLBinLogConnection(serverDTO));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

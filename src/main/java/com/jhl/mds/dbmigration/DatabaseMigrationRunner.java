@@ -17,12 +17,12 @@ public class DatabaseMigrationRunner {
     private final DataSource dataSource;
 
     @Autowired
-    public DatabaseMigrationRunner(DataSource dataSource) {
+    public DatabaseMigrationRunner(DataSource dataSource) throws SQLException {
         this.dataSource = dataSource;
     }
 
     @PostConstruct
-    private void postConstruct() throws SQLException {
+    private void init() throws SQLException {
         runMigration();
     }
 
