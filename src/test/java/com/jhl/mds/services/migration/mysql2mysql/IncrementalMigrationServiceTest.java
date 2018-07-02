@@ -1,4 +1,4 @@
-package com.jhl.mds.services;
+package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.dto.FullMigrationDTO;
