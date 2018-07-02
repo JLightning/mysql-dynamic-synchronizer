@@ -32,7 +32,7 @@ public class MySQLReadService {
             try {
                 run(tableInfo, columns, resultCallback);
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
         });
     }

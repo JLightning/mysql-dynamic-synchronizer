@@ -21,7 +21,6 @@ public class MySQLBinLogConnection {
     public MySQLBinLogConnection(MySQLServerDTO server) {
         binlogClient = new BinaryLogClient(server.getHost(), Integer.valueOf(server.getPort()), server.getUsername(), server.getPassword());
         binlogClient.registerEventListener(event -> {
-            System.out.println("event = " + event);
             switch (event.getHeader().getEventType()) {
                 case TABLE_MAP:
                     putTableMap(server, event.getData());
