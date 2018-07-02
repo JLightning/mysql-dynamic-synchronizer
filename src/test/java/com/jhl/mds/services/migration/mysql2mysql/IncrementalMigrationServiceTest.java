@@ -47,7 +47,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
-                        new SimpleFieldMappingDTO("random_number", "random_number")
+                        new SimpleFieldMappingDTO("random_number * 2", "random_number")
                 ))
                 .build();
 
