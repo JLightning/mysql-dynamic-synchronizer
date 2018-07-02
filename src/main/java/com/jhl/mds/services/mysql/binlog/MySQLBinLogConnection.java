@@ -7,9 +7,7 @@ import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.Md5;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,6 +42,14 @@ public class MySQLBinLogConnection {
                     break;
             }
         });
+
+        String binlogPosition = readBinlogPosition();
+        if (!binlogPosition.equals("")) {
+            String[] arr = binlogPosition.split("\\|");
+            binlogClient.setBinlogFilename(arr[0]);
+            binlogClient.setBinlogPosition(Long.parseLong(arr[1]));
+        }
+
         new Thread(() -> {
             try {
                 binlogClient.connect();
@@ -54,7 +60,7 @@ public class MySQLBinLogConnection {
     }
 
     private String getBinlogPositionFilename(MySQLServerDTO server) {
-        return "binlog_" + server.getHost().replaceAll("\\.","") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
+        return "binlog_" + server.getHost().replaceAll("\\.", "") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
     }
 
     private void putTableMap(MySQLServerDTO server, TableMapEventData data) {
@@ -72,7 +78,16 @@ public class MySQLBinLogConnection {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(BINLOG_POSITION_FILENAME))) {
             bw.write(binlogFilename + "|" + String.valueOf(position));
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    private String readBinlogPosition() {
+        String result = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(BINLOG_POSITION_FILENAME))) {
+            result = br.readLine().trim();
+        } finally {
+            return result;
         }
     }
 }
