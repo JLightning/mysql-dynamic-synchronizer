@@ -5,7 +5,6 @@ import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,6 +21,7 @@ import java.util.Random;
 
 public class FullMigrationServiceTest extends BaseTest {
 
+    private static final int LIMIT = 100000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -37,7 +37,7 @@ public class FullMigrationServiceTest extends BaseTest {
         Random rand = new Random();
 
         checkTime("all_test_insert", () -> {
-            for (int j = 1; j <= 1000; j++) {
+            for (int j = 1; j <= LIMIT / 1000; j++) {
                 try {
                     StringBuilder values = new StringBuilder();
                     for (int i = 1; i <= 1000; i++) {
@@ -89,6 +89,6 @@ public class FullMigrationServiceTest extends BaseTest {
 
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
-        Assert.assertEquals(1000000, result.getInt(1));
+        Assert.assertEquals(LIMIT, result.getInt(1));
     }
 }

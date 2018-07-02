@@ -24,7 +24,7 @@ public class CustomMapping {
             bindings.put(e.getKey(), e.getValue());
         }
 
-        logger.info("Try to evaluation " + input);
+//        logger.info("Try to evaluation " + input);
         Object result = engine.eval(input, bindings);
         return String.valueOf(result);
     }

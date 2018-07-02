@@ -1,5 +1,6 @@
 package com.jhl.mds.services.mysql;
 
+import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,16 +16,19 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @Service
 public class MySQLReadService {
 
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private MySQLConnectionPool mySQLConnectionPool;
+    private MySQLDescribeService mySQLDescribeService;
 
     @Autowired
-    public MySQLReadService(MySQLConnectionPool mySQLConnectionPool) {
+    public MySQLReadService(MySQLConnectionPool mySQLConnectionPool, MySQLDescribeService mySQLDescribeService) {
         this.mySQLConnectionPool = mySQLConnectionPool;
+        this.mySQLDescribeService = mySQLDescribeService;
     }
 
     public Future<?> async(TableInfoDTO tableInfo, List<String> columns, ResultCallback resultCallback) {
@@ -38,6 +42,9 @@ public class MySQLReadService {
     }
 
     public void run(TableInfoDTO tableInfo, List<String> columns, ResultCallback resultCallback) throws SQLException {
+        List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
+        columns = fields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
+
         Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
         Statement st = conn.createStatement();
 
