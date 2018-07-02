@@ -1,11 +1,15 @@
 package com.jhl.mds.services.mysql.binlog;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.Md5;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -43,11 +47,10 @@ public class MySQLBinLogConnection {
             }
         });
 
-        String binlogPosition = readBinlogPosition();
-        if (!binlogPosition.equals("")) {
-            String[] arr = binlogPosition.split("\\|");
-            binlogClient.setBinlogFilename(arr[0]);
-            binlogClient.setBinlogPosition(Long.parseLong(arr[1]));
+        BinlogPosition binlogPosition = readBinlogPosition();
+        if (binlogPosition != null) {
+            binlogClient.setBinlogFilename(binlogPosition.getFilename());
+            binlogClient.setBinlogPosition(binlogPosition.getPosition());
         }
 
         new Thread(() -> {
@@ -75,19 +78,32 @@ public class MySQLBinLogConnection {
     }
 
     private void writeBinlogPosition(String binlogFilename, long position) {
+        ObjectMapper objectMapper = new ObjectMapper();
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(BINLOG_POSITION_FILENAME))) {
-            bw.write(binlogFilename + "|" + String.valueOf(position));
+            bw.write(objectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private String readBinlogPosition() {
-        String result = "";
+    private BinlogPosition readBinlogPosition() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        BinlogPosition binlogPosition = null;
         try (BufferedReader br = new BufferedReader(new FileReader(BINLOG_POSITION_FILENAME))) {
-            result = br.readLine().trim();
+            String value = br.readLine().trim();
+            binlogPosition = objectMapper.readValue(value, BinlogPosition.class);
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
-            return result;
+            return binlogPosition;
         }
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class BinlogPosition {
+        private String filename;
+        private long position;
     }
 }
