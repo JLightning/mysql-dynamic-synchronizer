@@ -5,7 +5,10 @@ import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
+import com.jhl.mds.util.Md5;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,13 +17,17 @@ import java.util.Map;
 
 public class MySQLBinLogConnection {
 
+    private final String BINLOG_POSITION_FILENAME;
     private final BinaryLogClient binlogClient;
     private Map<Long, TableInfoDTO> tableMap = new HashMap<>();
     private Map<TableInfoDTO, List<MySQLBinLogListener>> listenerMap = new HashMap<>();
 
     public MySQLBinLogConnection(MySQLServerDTO server) {
+        BINLOG_POSITION_FILENAME = getBinlogPositionFilename(server);
+
         binlogClient = new BinaryLogClient(server.getHost(), Integer.valueOf(server.getPort()), server.getUsername(), server.getPassword());
         binlogClient.registerEventListener(event -> {
+            writeBinlogPosition(binlogClient.getBinlogFilename(), binlogClient.getBinlogPosition());
             switch (event.getHeader().getEventType()) {
                 case TABLE_MAP:
                     putTableMap(server, event.getData());
@@ -37,7 +44,6 @@ public class MySQLBinLogConnection {
                     break;
             }
         });
-
         new Thread(() -> {
             try {
                 binlogClient.connect();
@@ -45,6 +51,10 @@ public class MySQLBinLogConnection {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    private String getBinlogPositionFilename(MySQLServerDTO server) {
+        return "binlog_" + server.getHost().replaceAll("\\.","") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
     }
 
     private void putTableMap(MySQLServerDTO server, TableMapEventData data) {
@@ -56,5 +66,13 @@ public class MySQLBinLogConnection {
         if (list == null) list = new ArrayList<>();
         list.add(listener);
         listenerMap.put(tableInfoDTO, list);
+    }
+
+    private void writeBinlogPosition(String binlogFilename, long position) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(BINLOG_POSITION_FILENAME))) {
+            bw.write(binlogFilename + "|" + String.valueOf(position));
+        } catch (IOException e) {
+
+        }
     }
 }

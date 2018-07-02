@@ -36,3 +36,4 @@ data/*
 .idea
 mds.db
 db_migration.txt
+binlog_*
