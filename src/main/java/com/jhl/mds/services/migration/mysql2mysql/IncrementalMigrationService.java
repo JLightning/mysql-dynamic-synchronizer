@@ -34,12 +34,12 @@ public class IncrementalMigrationService {
         mySQLBinLogPool.addListener(dto.getSource(), new MySQLBinLogListener() {
             @Override
             public void insert(WriteRowsEventData eventData) {
-                IncrementalMigrationService.this.write(dto, eventData);
+                IncrementalMigrationService.this.insert(dto, eventData);
             }
         });
     }
 
-    private void write(FullMigrationDTO dto, WriteRowsEventData eventData) {
+    private void insert(FullMigrationDTO dto, WriteRowsEventData eventData) {
         try {
             List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
