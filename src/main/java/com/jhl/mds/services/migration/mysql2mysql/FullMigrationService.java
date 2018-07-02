@@ -42,15 +42,13 @@ public class FullMigrationService {
     }
 
     public boolean run(FullMigrationDTO dto) throws Exception {
-        List<String> sourceColumns = dto.getMapping().stream().map(SimpleFieldMappingDTO::getSourceField).collect(Collectors.toList());
-
         MigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
         List<String> targetColumns = mapperService.getColumns();
 
         List<String> insertDataList = new ArrayList<>();
         List<Future<?>> futures = new ArrayList<>();
 
-        mySQLReadService.async(dto.getSource(), sourceColumns, item -> {
+        mySQLReadService.async(dto.getSource(), item -> {
             insertDataList.add(mapperService.mapToString(item));
 
             if (insertDataList.size() == INSERT_CHUNK_SIZE) {

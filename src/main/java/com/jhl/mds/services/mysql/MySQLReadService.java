@@ -31,19 +31,19 @@ public class MySQLReadService {
         this.mySQLDescribeService = mySQLDescribeService;
     }
 
-    public Future<?> async(TableInfoDTO tableInfo, List<String> columns, ResultCallback resultCallback) {
+    public Future<?> async(TableInfoDTO tableInfo, ResultCallback resultCallback) {
         return executor.submit(() -> {
             try {
-                run(tableInfo, columns, resultCallback);
+                run(tableInfo, resultCallback);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public void run(TableInfoDTO tableInfo, List<String> columns, ResultCallback resultCallback) throws SQLException {
+    public void run(TableInfoDTO tableInfo, ResultCallback resultCallback) throws SQLException {
         List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
-        columns = fields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
+        List<String> columns = fields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
 
         Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
         Statement st = conn.createStatement();
