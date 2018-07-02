@@ -5,6 +5,7 @@ import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.services.common.FEMessageService;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
+import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
@@ -22,16 +23,19 @@ import java.util.Optional;
 public class MysqlServerController {
 
     private MySQLServerRepository mySQLServerRepository;
+    private MySQLBinLogPool mySQLBinLogPool;
     private FEMessageService feMessageService;
     private MySQLConnectionPool mySQLConnectionPool;
 
     @Autowired
     public MysqlServerController(
             MySQLServerRepository mySQLServerRepository,
+            MySQLBinLogPool mySQLBinLogPool,
             FEMessageService feMessageService,
             MySQLConnectionPool mySQLConnectionPool
     ) {
         this.mySQLServerRepository = mySQLServerRepository;
+        this.mySQLBinLogPool = mySQLBinLogPool;
         this.feMessageService = feMessageService;
         this.mySQLConnectionPool = mySQLConnectionPool;
     }
@@ -65,6 +69,7 @@ public class MysqlServerController {
         try {
             // test connection
             mySQLConnectionPool.getConnection(dto);
+            mySQLBinLogPool.openNewConnection(dto);
         } catch (SQLException e) {
             feMessageService.addError("Unable to connect to server");
             return new RedirectView(errorRedirectUrl);

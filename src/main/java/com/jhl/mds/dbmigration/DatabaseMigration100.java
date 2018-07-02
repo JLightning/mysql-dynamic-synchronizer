@@ -42,8 +42,8 @@ public class DatabaseMigration100 extends AbstractDatabaseMigration {
                     "target_table VARCHAR(255)," +
                     "created_at TIMESTAMP," +
                     "updated_at TIMESTAMP," +
-                    "FOREIGN KEY(fk_source_server) REFERENCES mysql_server(server_id) ON UPDATE CASCADE," +
-                    "FOREIGN KEY(fk_target_server) REFERENCES mysql_server(server_id) ON UPDATE CASCADE" +
+                    "FOREIGN KEY(fk_source_server) REFERENCES mysql_server(server_id) ON DELETE CASCADE," +
+                    "FOREIGN KEY(fk_target_server) REFERENCES mysql_server(server_id) ON DELETE CASCADE" +
                     ");");
 
             st.execute("DROP TABLE IF EXISTS task_field_mapping;");
@@ -54,7 +54,7 @@ public class DatabaseMigration100 extends AbstractDatabaseMigration {
                     "target_field VARCHAR(255)," +
                     "created_at TIMESTAMP," +
                     "updated_at TIMESTAMP," +
-                    "FOREIGN KEY(fk_task_id) REFERENCES task(task_id) ON UPDATE CASCADE" +
+                    "FOREIGN KEY(fk_task_id) REFERENCES task(task_id) ON DELETE CASCADE" +
                     ");");
 
             writeVersion("1.0.0");

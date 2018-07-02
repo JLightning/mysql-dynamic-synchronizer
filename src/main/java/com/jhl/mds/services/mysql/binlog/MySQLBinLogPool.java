@@ -37,6 +37,12 @@ public class MySQLBinLogPool {
         }
     }
 
+    public void openNewConnection(MySQLServerDTO serverDTO) {
+        if (!connectionMap.containsKey(serverDTO)) {
+            connectionMap.put(serverDTO, new MySQLBinLogConnection(serverDTO));
+        }
+    }
+
     public void addListener(TableInfoDTO source, MySQLBinLogListener listener) {
         MySQLBinLogConnection connection = connectionMap.get(source.getServer());
         if (connection != null) {

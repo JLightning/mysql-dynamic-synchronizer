@@ -10,6 +10,8 @@ import com.jhl.mds.util.Md5;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -20,6 +22,8 @@ import java.util.Map;
 public class MySQLBinLogConnection {
 
     private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String BINLOG_POSITION_FILENAME;
     private final BinaryLogClient binlogClient;
     private Map<Long, TableInfoDTO> tableMap = new HashMap<>();
@@ -56,6 +60,7 @@ public class MySQLBinLogConnection {
 
         new Thread(() -> {
             try {
+                logger.info("Open new binlog connection to: " + server);
                 binlogClient.connect();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -64,7 +69,7 @@ public class MySQLBinLogConnection {
     }
 
     private String getBinlogPositionFilename(MySQLServerDTO server) {
-        return "binlog_" + server.getHost().replaceAll("\\.", "") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
+        return "binlog_" + server.getHost().replaceAll("\\.", "_") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
     }
 
     private void putTableMap(MySQLServerDTO server, TableMapEventData data) {
