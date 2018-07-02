@@ -12,7 +12,6 @@ public interface MySQLBinLogListener {
     default void update(UpdateRowsEventData eventData) {
     }
 
-    default void delete(DeleteRowsEventData deleteRowsEventData) {
-
+    default void delete(DeleteRowsEventData eventData) {
     }
 }
