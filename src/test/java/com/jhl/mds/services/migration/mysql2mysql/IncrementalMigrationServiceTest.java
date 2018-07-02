@@ -46,7 +46,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
                 .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
                 .mapping(Arrays.asList(
-                        new SimpleFieldMappingDTO("id", "id"),
+                        new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number", "random_number")
                 ))
                 .build();
@@ -60,7 +60,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
             st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
         }
 
-        Thread.sleep(500);
+        Thread.sleep(1000);
 
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
