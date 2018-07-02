@@ -19,6 +19,7 @@ import java.util.Map;
 
 public class MySQLBinLogConnection {
 
+    private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
     private final String BINLOG_POSITION_FILENAME;
     private final BinaryLogClient binlogClient;
     private Map<Long, TableInfoDTO> tableMap = new HashMap<>();
@@ -78,20 +79,18 @@ public class MySQLBinLogConnection {
     }
 
     private void writeBinlogPosition(String binlogFilename, long position) {
-        ObjectMapper objectMapper = new ObjectMapper();
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(BINLOG_POSITION_FILENAME))) {
-            bw.write(objectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)));
+            bw.write(jacksonObjectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private BinlogPosition readBinlogPosition() {
-        ObjectMapper objectMapper = new ObjectMapper();
         BinlogPosition binlogPosition = null;
         try (BufferedReader br = new BufferedReader(new FileReader(BINLOG_POSITION_FILENAME))) {
             String value = br.readLine().trim();
-            binlogPosition = objectMapper.readValue(value, BinlogPosition.class);
+            binlogPosition = jacksonObjectMapper.readValue(value, BinlogPosition.class);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
