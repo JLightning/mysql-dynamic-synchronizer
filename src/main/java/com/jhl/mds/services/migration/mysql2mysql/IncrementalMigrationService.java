@@ -23,7 +23,12 @@ public class IncrementalMigrationService {
     private MySQLWriteService mySQLWriteService;
 
     @Autowired
-    public IncrementalMigrationService(MySQLBinLogPool mySQLBinLogPool, MySQLBinLogService mySQLBinLogService, MigrationMapperService.Factory migrationMapperServiceFactory, MySQLWriteService mySQLWriteService) {
+    public IncrementalMigrationService(
+            MySQLBinLogPool mySQLBinLogPool,
+            MySQLBinLogService mySQLBinLogService,
+            MigrationMapperService.Factory migrationMapperServiceFactory,
+            MySQLWriteService mySQLWriteService
+    ) {
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.mySQLBinLogService = mySQLBinLogService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
