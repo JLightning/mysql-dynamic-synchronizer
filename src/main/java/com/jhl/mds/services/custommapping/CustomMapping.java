@@ -14,13 +14,14 @@ import java.util.Map;
 @Service
 public class CustomMapping {
 
+    private static final String MARKER_PREFIX = "\\$\\$\\$MARKER_";
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public String resolve(String input, Map<String, Object> data) throws ScriptException {
         // replace string with marker
         List<String> list = Regex.findAllStringMatches(input, "'[^']+'");
         for (int i = 0; i < list.size(); i++) {
-            input = input.replaceAll(list.get(i), "\\$" + i);
+            input = input.replaceAll(list.get(i), MARKER_PREFIX + i);
         }
         for (Map.Entry<String, Object> e : data.entrySet()) {
             Object value = e.getValue();
@@ -30,13 +31,14 @@ public class CustomMapping {
                 input = input.replaceAll(e.getKey(), "'" + String.valueOf(e.getValue()) + "'");
             }
         }
+        // replace marker with string
         for (int i = 0; i < list.size(); i++) {
-            input = input.replaceAll("\\$" + i, list.get(i));
+            input = input.replaceAll(MARKER_PREFIX + i, list.get(i));
         }
         ScriptEngineManager manager = new ScriptEngineManager();
         ScriptEngine engine = manager.getEngineByName("js");
 
-        logger.info("try to evaluation " + input);
+        logger.info("Try to evaluation " + input);
         Object result = engine.eval(input);
         return String.valueOf(result);
     }
