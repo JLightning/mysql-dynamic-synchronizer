@@ -12,11 +12,14 @@ import org.springframework.stereotype.Service;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @Service
 public class IncrementalMigrationService {
 
+    private static ExecutorService executor = Executors.newFixedThreadPool(4);
     private MySQLBinLogPool mySQLBinLogPool;
     private MySQLBinLogService mySQLBinLogService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
@@ -39,7 +42,7 @@ public class IncrementalMigrationService {
         mySQLBinLogPool.addListener(dto.getSource(), new MySQLBinLogListener() {
             @Override
             public void insert(WriteRowsEventData eventData) {
-                IncrementalMigrationService.this.insert(dto, eventData);
+                executor.submit(() -> IncrementalMigrationService.this.insert(dto, eventData));
             }
         });
     }
