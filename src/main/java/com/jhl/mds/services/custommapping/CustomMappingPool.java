@@ -16,7 +16,7 @@ public class CustomMappingPool {
 
     private static final int POOL_SIZE = 4;
     private final Random rand = new Random();
-    private ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);
+    private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private List<CustomMapping> customMappingList = new ArrayList<>();
 
     @PostConstruct

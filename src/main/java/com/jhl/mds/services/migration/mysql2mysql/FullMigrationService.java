@@ -21,7 +21,8 @@ public class FullMigrationService {
 
     private static final int INSERT_CHUNK_SIZE = 1000;
 
-    private static ExecutorService executor = Executors.newFixedThreadPool(4);
+    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private static ExecutorService mappingExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLReadService mySQLReadService;
     private MySQLWriteService mySQLWriteService;
@@ -49,7 +50,7 @@ public class FullMigrationService {
         List<Future<?>> futures = new ArrayList<>();
 
         mySQLReadService.async(dto.getSource(), item -> {
-            futures.add(executor.submit(() -> {
+            futures.add(mappingExecutor.submit(() -> {
                 String mappedData = mapperService.mapToString(item);
                 synchronized (insertDataList) {
                     insertDataList.add(mappedData);
