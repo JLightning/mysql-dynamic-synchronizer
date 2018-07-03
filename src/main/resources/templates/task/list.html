@@ -34,8 +34,8 @@
                 <td th:text="${task.getTargetTable()}">@mdo</td>
                 <td th:text="${mappingStringMap.get(task.getTaskId())}">@mdo</td>
                 <td>
-                    <a th:href="${@urlService.getUrl('/task/edit?taskId=' + task.getTaskId())}">Edit</a>
-                    <a class="delete-task" href="#" th:data-task-id="${task.getTaskId()}">Remove</a>
+                    <a class="btn btn-primary btn-sm" th:href="${@urlService.getUrl('/task/edit?taskId=' + task.getTaskId())}">Edit</a>
+                    <a class="btn btn-danger btn-sm delete-task" href="#" th:data-task-id="${task.getTaskId()}">Remove</a>
                 </td>
             </tr>
             </tbody>

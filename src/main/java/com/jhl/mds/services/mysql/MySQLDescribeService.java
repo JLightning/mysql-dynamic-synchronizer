@@ -1,9 +1,6 @@
 package com.jhl.mds.services.mysql;
 
-import com.jhl.mds.dto.MySQLFieldDTO;
-import com.jhl.mds.dto.MySQLFieldWithMappingDTO;
-import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.TableFieldsMappingDTO;
+import com.jhl.mds.dto.*;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
@@ -13,6 +10,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class MySQLDescribeService {
@@ -77,16 +76,28 @@ public class MySQLDescribeService {
     public List<MySQLFieldWithMappingDTO> getFieldsMappingFor2Table(MySQLServerDTO sourceServer, MySQLServerDTO targetServer, TableFieldsMappingDTO dto) throws SQLException {
         List<MySQLFieldDTO> sourceFields = getFields(sourceServer, dto.getSourceDatabase(), dto.getSourceTable());
         List<MySQLFieldDTO> targetFields = getFields(targetServer, dto.getTargetDatabase(), dto.getTargetTable());
-        HashMap<MySQLFieldDTO, Boolean> mapAlready = new HashMap<>();
 
         List<MySQLFieldWithMappingDTO> result = new ArrayList<>();
+
+        HashMap<MySQLFieldDTO, Boolean> mapAlreadyForTarget = new HashMap<>();
+
+        Map<String, String> sourceToTargetMap = null;
+        if (dto.getMapping() != null) {
+            sourceToTargetMap = dto.getMapping().stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getSourceField, SimpleFieldMappingDTO::getTargetField));
+        }
 
         outer_loop:
         for (MySQLFieldDTO sourceField : sourceFields) {
             for (MySQLFieldDTO targetField : targetFields) {
-                if (sourceField.getField().equals(targetField.getField()) && !mapAlready.containsKey(targetField)) {
+                boolean shouldMap = false;
+                if (sourceToTargetMap == null) {
+                    shouldMap = sourceField.getField().equals(targetField.getField());
+                } else {
+                    shouldMap = targetField.getField().equals(sourceToTargetMap.get(sourceField.getField()));
+                }
+                if (shouldMap && !mapAlreadyForTarget.containsKey(targetField)) {
                     result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField).targetField(targetField).mappable(true).build());
-                    mapAlready.put(targetField, true);
+                    mapAlreadyForTarget.put(targetField, true);
                     continue outer_loop;
                 }
             }
@@ -94,7 +105,7 @@ public class MySQLDescribeService {
             result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField).build());
         }
 
-        targetFields.removeAll(mapAlready.keySet());
+        targetFields.removeAll(mapAlreadyForTarget.keySet());
 
         for (MySQLFieldWithMappingDTO _result : result) {
             if (targetFields.size() == 0) break;

@@ -8,6 +8,7 @@ class TaskCreate extends React.Component {
         super(props);
         this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false};
         if (typeof taskDTO != 'undefined') {
+            this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
             this.state.table.source = taskDTO.source;
             this.state.table.target = taskDTO.target;
@@ -67,6 +68,9 @@ class TaskCreate extends React.Component {
             targetDatabase: targetParam.database,
             targetTable: targetParam.table
         };
+        if (typeof this.taskDTO !== 'undefined') {
+            postParam.mapping = this.taskDTO.mapping;
+        }
         $.ajax(DOMAIN + '/api/mysql/fields-mapping', {
             data: JSON.stringify(postParam),
             contentType: 'application/json',

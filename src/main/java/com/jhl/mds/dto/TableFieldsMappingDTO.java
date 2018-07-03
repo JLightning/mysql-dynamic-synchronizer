@@ -2,6 +2,8 @@ package com.jhl.mds.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class TableFieldsMappingDTO {
 
@@ -11,4 +13,6 @@ public class TableFieldsMappingDTO {
     private int targetServerId;
     private String targetDatabase;
     private String targetTable;
+
+    private List<SimpleFieldMappingDTO> mapping;
 }
