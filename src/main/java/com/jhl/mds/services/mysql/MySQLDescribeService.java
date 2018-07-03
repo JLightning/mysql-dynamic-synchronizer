@@ -89,12 +89,10 @@ public class MySQLDescribeService {
         outer_loop:
         for (MySQLFieldDTO sourceField : sourceFields) {
             for (MySQLFieldDTO targetField : targetFields) {
-                boolean shouldMap = false;
-                if (sourceToTargetMap == null) {
-                    shouldMap = sourceField.getField().equals(targetField.getField());
-                } else {
+                boolean shouldMap = sourceField.getField().equals(targetField.getField());
+                if (sourceToTargetMap != null)
                     shouldMap = targetField.getField().equals(sourceToTargetMap.get(sourceField.getField()));
-                }
+
                 if (shouldMap && !mapAlreadyForTarget.containsKey(targetField)) {
                     result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField).targetField(targetField).mappable(true).build());
                     mapAlreadyForTarget.put(targetField, true);
