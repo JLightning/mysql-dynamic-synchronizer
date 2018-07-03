@@ -7,7 +7,7 @@ class TaskCreate extends React.Component {
     constructor(props) {
         super(props);
         this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false};
-        if (typeof taskDTO != 'undefined') {
+        if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
             this.state.table.source = taskDTO.source;

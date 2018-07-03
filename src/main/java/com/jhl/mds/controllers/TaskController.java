@@ -48,27 +48,6 @@ public class TaskController {
         this.feMessageService = feMessageService;
     }
 
-    @GetMapping("/create")
-    public String createAction() {
-        return "task/create";
-    }
-
-    @GetMapping("/edit")
-    public String editAction(@RequestParam int taskId, Model model) {
-        Optional<Task> opt = taskRepository.findById(taskId);
-        if (!opt.isPresent()) {
-            feMessageService.addError("No task with id " + taskId + " found");
-            return "redirect:/task/list";
-        }
-        Task task = opt.get();
-        List<TaskFieldMapping> taskFieldMappings = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
-
-        TaskDTO taskDTO = taskDTOConverter.from(task, taskFieldMappings);
-        model.addAttribute("taskDTO", taskDTO);
-
-        return "task/create";
-    }
-
     @GetMapping("/list")
     public String listAction(Model model) {
         List<Task> tasks = taskRepository.findAll();
@@ -91,6 +70,33 @@ public class TaskController {
 
         model.addAttribute("serverMap", serverMap);
         return "task/list";
+    }
+
+    @GetMapping("/detail")
+    public String detailAction(@RequestParam int taskId, Model model) {
+        model.addAttribute("taskId", taskId);
+        return "task/detail";
+    }
+
+    @GetMapping("/create")
+    public String createAction() {
+        return "task/create";
+    }
+
+    @GetMapping("/edit")
+    public String editAction(@RequestParam int taskId, Model model) {
+        Optional<Task> opt = taskRepository.findById(taskId);
+        if (!opt.isPresent()) {
+            feMessageService.addError("No task with id " + taskId + " found");
+            return "redirect:/task/list";
+        }
+        Task task = opt.get();
+        List<TaskFieldMapping> taskFieldMappings = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
+
+        TaskDTO taskDTO = taskDTOConverter.from(task, taskFieldMappings);
+        model.addAttribute("taskDTO", taskDTO);
+
+        return "task/create";
     }
 
     @GetMapping("/delete")
