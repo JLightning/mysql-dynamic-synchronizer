@@ -1,7 +1,6 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.FutureUtil;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -49,14 +49,25 @@ public class FullMigrationService {
         List<Future<?>> futures = new ArrayList<>();
 
         mySQLReadService.async(dto.getSource(), item -> {
-            insertDataList.add(mapperService.mapToString(item));
+            futures.add(executor.submit(() -> {
+                String mappedData = mapperService.mapToString(item);
+                synchronized (insertDataList) {
+                    insertDataList.add(mappedData);
 
-            if (insertDataList.size() == INSERT_CHUNK_SIZE) {
-                String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-                futures.add(mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr));
+                    if (insertDataList.size() == INSERT_CHUNK_SIZE) {
+                        String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
+                        try {
+                            mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr).get();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
 
-                insertDataList.clear();
-            }
+                        insertDataList.clear();
+                    }
+                }
+            }));
         }).get();
 
         if (insertDataList.size() > 0) {
