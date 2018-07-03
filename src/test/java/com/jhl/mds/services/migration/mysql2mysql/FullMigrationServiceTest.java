@@ -21,7 +21,7 @@ import java.util.Random;
 
 public class FullMigrationServiceTest extends BaseTest {
 
-    private static final int LIMIT = 100000;
+    private static final int LIMIT = 10000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -42,7 +42,7 @@ public class FullMigrationServiceTest extends BaseTest {
                     StringBuilder values = new StringBuilder();
                     for (int i = 1; i <= 1000; i++) {
                         if (values.length() != 0) values.append(", ");
-                        int id = (j - 1) * 10000 + i;
+                        int id = (j - 1) * 1000 + i;
 
                         values.append(String.format("(%d, %d)", id, rand.nextInt(10)));
                     }
@@ -74,7 +74,7 @@ public class FullMigrationServiceTest extends BaseTest {
                 .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
                 .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
                 .mapping(Arrays.asList(
-                        new SimpleFieldMappingDTO("id", "id"),
+                        new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number", "random_number")
                 ))
                 .build();

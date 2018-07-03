@@ -13,19 +13,24 @@ import java.util.Map;
 @Service
 public class CustomMapping {
 
+    private final ScriptEngine jsEngine;
+    private final Bindings bindings;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public String resolve(String input, Map<String, Object> data) throws ScriptException {
+    public CustomMapping() {
         ScriptEngineManager manager = new ScriptEngineManager();
-        ScriptEngine engine = manager.getEngineByName("js");
+        this.jsEngine = manager.getEngineByName("js");
+        this.bindings = jsEngine.createBindings();
+    }
 
-        Bindings bindings = engine.createBindings();
+    public String resolve(String input, Map<String, Object> data) throws ScriptException {
+        bindings.clear();
         for (Map.Entry<String, Object> e : data.entrySet()) {
             bindings.put(e.getKey(), e.getValue());
         }
 
 //        logger.info("Try to evaluation " + input);
-        Object result = engine.eval(input, bindings);
+        Object result = jsEngine.eval(input, bindings);
         return String.valueOf(result);
     }
 }
