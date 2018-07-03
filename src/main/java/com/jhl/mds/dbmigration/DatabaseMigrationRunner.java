@@ -10,19 +10,16 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-@Service
 public class DatabaseMigrationRunner {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final DataSource dataSource;
 
-    @Autowired
     public DatabaseMigrationRunner(DataSource dataSource) throws SQLException {
         this.dataSource = dataSource;
     }
 
-    @PostConstruct
-    private void init() throws SQLException {
+    public void init() throws SQLException {
         runMigration();
     }
 

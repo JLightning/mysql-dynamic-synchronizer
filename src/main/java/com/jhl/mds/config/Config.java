@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import javax.sql.DataSource;
+import java.sql.SQLException;
 
 @Configuration
 @Import(DatabaseMigrationRunner.class)
@@ -23,10 +24,13 @@ public class Config {
     }
 
     @Bean
-    public DataSource dataSource() {
-        DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create()
+    public DataSource dataSource() throws SQLException {
+        DataSource dataSource = DataSourceBuilder.create()
                 .driverClassName("org.sqlite.JDBC")
-                .url(sqliteDatabaseFile);
-        return dataSourceBuilder.build();
+                .url(sqliteDatabaseFile)
+                .build();
+
+        new DatabaseMigrationRunner(dataSource).init();
+        return dataSource;
     }
 }
