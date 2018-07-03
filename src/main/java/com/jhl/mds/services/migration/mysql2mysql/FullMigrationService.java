@@ -10,16 +10,17 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
 public class FullMigrationService {
 
-    private static final int INSERT_CHUNK_SIZE = 1000;
+    private static final long INSERT_CHUNK_SIZE = 1000;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private static ExecutorService mappingExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
@@ -47,38 +48,49 @@ public class FullMigrationService {
         List<String> targetColumns = mapperService.getColumns();
 
         List<String> insertDataList = new ArrayList<>();
-        List<Future<?>> futures = new ArrayList<>();
+
+        long count = mySQLReadService.count(dto.getSource());
+        AtomicLong finished = new AtomicLong();
+
+        final Consumer<Long> finishCallback = size -> {
+            finished.addAndGet(size);
+            synchronized (finished) {
+                finished.notify();
+            }
+        };
 
         mySQLReadService.async(dto.getSource(), item -> {
-            futures.add(mappingExecutor.submit(() -> {
+            mappingExecutor.submit(() -> {
                 String mappedData = mapperService.mapToString(item);
                 synchronized (insertDataList) {
                     insertDataList.add(mappedData);
 
-                    if (insertDataList.size() == INSERT_CHUNK_SIZE) {
+                    if (insertDataList.size() >= INSERT_CHUNK_SIZE) {
                         String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-                        try {
-                            mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr).get();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        }
+                        mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr, () -> finishCallback.accept(INSERT_CHUNK_SIZE));
 
                         insertDataList.clear();
                     }
                 }
-            }));
+                return null;
+            });
         }).get();
 
-        if (insertDataList.size() > 0) {
-            String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
-            futures.add(mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr));
+        synchronized (insertDataList) {
+            if (insertDataList.size() > 0) {
+                long size = insertDataList.size();
+                String insertDataStr = insertDataList.stream().collect(Collectors.joining(", "));
+                mySQLWriteService.queue(dto.getTarget(), targetColumns, insertDataStr, () -> finishCallback.accept(size));
 
-            insertDataList.clear();
+                insertDataList.clear();
+            }
         }
 
-        FutureUtil.allOf(futures);
+        while (finished.get() < count) {
+            synchronized (finished) {
+                finished.wait();
+            }
+        }
 
         return true;
     }

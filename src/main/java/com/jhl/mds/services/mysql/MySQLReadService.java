@@ -62,6 +62,17 @@ public class MySQLReadService {
         }
     }
 
+    public long count(TableInfoDTO tableInfo) throws SQLException {
+        Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
+        Statement st = conn.createStatement();
+
+        String sql = String.format("SELECT COUNT(1) FROM %s;", tableInfo.getDatabase() + "." + tableInfo.getTable());
+        ResultSet result = st.executeQuery(sql);
+
+        result.next();
+        return result.getLong(1);
+    }
+
     public interface ResultCallback {
         void send(Map<String, Object> result);
     }

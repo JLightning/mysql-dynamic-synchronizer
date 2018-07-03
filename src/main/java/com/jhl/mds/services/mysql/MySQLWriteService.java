@@ -28,17 +28,17 @@ public class MySQLWriteService {
         this.mySQLConnectionPool = mySQLConnectionPool;
     }
 
-    public Future<?> queue(TableInfoDTO tableInfo, List<String> columns, String insertDatas) {
+    public Future<?> queue(TableInfoDTO tableInfo, List<String> columns, String insertDatas, Runnable finishCallback) {
         return executor.submit(() -> {
             try {
-                run(tableInfo, columns, insertDatas);
+                run(tableInfo, columns, insertDatas, finishCallback);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         });
     }
 
-    public void run(TableInfoDTO tableInfo, List<String> columns, String insertDatas) throws SQLException {
+    public void run(TableInfoDTO tableInfo, List<String> columns, String insertDatas, Runnable finishCallback) throws SQLException {
         Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
         Statement st = conn.createStatement();
 
@@ -47,5 +47,7 @@ public class MySQLWriteService {
 
         st.execute(sql);
         st.close();
+
+        finishCallback.run();
     }
 }
