@@ -3,7 +3,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.services.custommapping.CustomMapping;
+import com.jhl.mds.services.custommapping.CustomMappingPool;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.services.mysql.MySQLFieldDefaultValueService;
 import com.jhl.mds.util.MySQLStringUtil;
@@ -11,7 +11,6 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.script.ScriptException;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,12 +25,12 @@ public class MigrationMapperService {
     private final List<String> columns;
     private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
     private List<SimpleFieldMappingDTO> mapping;
-    private CustomMapping customMapping;
+    private CustomMappingPool customMapping;
 
     public MigrationMapperService(
             MySQLDescribeService mySQLDescribeService,
             MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
-            CustomMapping customMapping,
+            CustomMappingPool customMapping,
             TableInfoDTO tableInfo,
             List<SimpleFieldMappingDTO> mapping
     ) throws SQLException {
@@ -55,8 +54,8 @@ public class MigrationMapperService {
                     mappedData.put(targetColumn, data.get(sourceColumn));
                 } else {
                     try {
-                        mappedData.put(targetColumn, customMapping.resolve(sourceColumn, data));
-                    } catch (ScriptException e) {
+                        mappedData.put(targetColumn, customMapping.resolve(sourceColumn, data).get());
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -77,10 +76,10 @@ public class MigrationMapperService {
 
         private MySQLDescribeService mySQLDescribeService;
         private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
-        private CustomMapping customMapping;
+        private CustomMappingPool customMapping;
 
         @Autowired
-        public Factory(MySQLDescribeService mySQLDescribeService, MySQLFieldDefaultValueService mySQLFieldDefaultValueService, CustomMapping customMapping) {
+        public Factory(MySQLDescribeService mySQLDescribeService, MySQLFieldDefaultValueService mySQLFieldDefaultValueService, CustomMappingPool customMapping) {
             this.mySQLDescribeService = mySQLDescribeService;
             this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
             this.customMapping = customMapping;
