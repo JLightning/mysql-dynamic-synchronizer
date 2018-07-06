@@ -48,8 +48,8 @@ public class FullMigrationService {
         AtomicLong finished = new AtomicLong();
 
         final Consumer<Long> finishCallback = size -> {
-            finished.addAndGet(size);
-            synchronized (finished) {
+            boolean notify = finished.addAndGet(size) == count;
+            if (notify) synchronized (finished) {
                 finished.notify();
             }
         };
