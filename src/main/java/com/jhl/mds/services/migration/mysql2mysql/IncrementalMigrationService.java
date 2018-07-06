@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 @Service
 public class IncrementalMigrationService {
@@ -51,9 +50,9 @@ public class IncrementalMigrationService {
         try {
             List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
-            String insertDataList = data.stream().map(migrationMapperService::mapToString).collect(Collectors.joining(", "));
-
-            mySQLWriteService.queue(dto.getTarget(), new MySQLWriteService.WriteInfo(migrationMapperService.getColumns(), insertDataList, null));
+            data.forEach(item -> migrationMapperService.queueMapToString(item, insertData -> mySQLWriteService.queue(
+                    dto.getTarget(), new MySQLWriteService.WriteInfo(migrationMapperService.getColumns(), insertData, null)
+            )));
         } catch (SQLException e) {
             e.printStackTrace();
         }

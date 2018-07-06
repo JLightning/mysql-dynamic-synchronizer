@@ -3,8 +3,6 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,11 +15,7 @@ import java.util.function.Consumer;
 @Service
 public class FullMigrationService {
 
-    private static final long INSERT_CHUNK_SIZE = 1000;
-
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    private static ExecutorService mappingExecutor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLReadService mySQLReadService;
     private MySQLWriteService mySQLWriteService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
@@ -54,13 +48,10 @@ public class FullMigrationService {
             }
         };
 
-        mySQLReadService.run(dto.getSource(), item -> {
-            mappingExecutor.submit(() -> {
-                String mappedData = mapperService.mapToString(item);
-                mySQLWriteService.queue(dto.getTarget(), new MySQLWriteService.WriteInfo(targetColumns, mappedData, () -> finishCallback.accept(1L)));
-                return null;
-            });
-        });
+        mySQLReadService.run(dto.getSource(), item -> mapperService.queueMapToString(item, mappedData -> mySQLWriteService.queue(
+                dto.getTarget(),
+                new MySQLWriteService.WriteInfo(targetColumns, mappedData, () -> finishCallback.accept(1L))
+        )));
 
         while (finished.get() < count) {
             synchronized (finished) {
