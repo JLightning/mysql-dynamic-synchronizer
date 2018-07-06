@@ -1,5 +1,6 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
+import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -7,6 +8,7 @@ import com.jhl.mds.services.custommapping.CustomMappingPool;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.services.mysql.MySQLFieldDefaultValueService;
 import com.jhl.mds.util.MySQLStringUtil;
+import com.jhl.mds.util.PipeLineTaskRunner;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,7 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MigrationMapperService {
+public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationDTO> {
 
     private final List<MySQLFieldDTO> targetFields;
     private final Map<String, MySQLFieldDTO> targetFieldMap;
@@ -79,6 +81,12 @@ public class MigrationMapperService {
 
     public void queueMapToString(Map<String, Object> data, Consumer<String> callback) {
         executor.submit(() -> callback.accept(mapToString(data)));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void queue(FullMigrationDTO context, Object input, Consumer<Object> next) {
+        queueMapToString((Map<String, Object>) input, next::accept);
     }
 
     @Service

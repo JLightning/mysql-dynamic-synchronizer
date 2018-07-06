@@ -1,8 +1,10 @@
 package com.jhl.mds.services.mysql;
 
+import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
+import com.jhl.mds.util.PipeLineTaskRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +18,11 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class MySQLReadService {
+public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO> {
 
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private MySQLConnectionPool mySQLConnectionPool;
@@ -29,6 +32,17 @@ public class MySQLReadService {
     public MySQLReadService(MySQLConnectionPool mySQLConnectionPool, MySQLDescribeService mySQLDescribeService) {
         this.mySQLConnectionPool = mySQLConnectionPool;
         this.mySQLDescribeService = mySQLDescribeService;
+    }
+
+    @Override
+    public void queue(FullMigrationDTO context, Object input, Consumer<Object> next) {
+        executor.submit(() -> {
+            try {
+                run(context.getSource(), next::accept);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     public Future<?> async(TableInfoDTO tableInfo, ResultCallback resultCallback) {

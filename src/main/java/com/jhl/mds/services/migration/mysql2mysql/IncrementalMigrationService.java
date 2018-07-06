@@ -6,6 +6,7 @@ import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogService;
+import com.jhl.mds.util.Pipeline;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,12 +48,17 @@ public class IncrementalMigrationService {
     }
 
     private void insert(FullMigrationDTO dto, WriteRowsEventData eventData) {
+
         try {
-            List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
-            data.forEach(item -> migrationMapperService.queueMapToString(item, insertData -> mySQLWriteService.queue(
-                    dto.getTarget(), new MySQLWriteService.WriteInfo(migrationMapperService.getColumns(), insertData, null)
-            )));
+            dto.setTargetColumns(migrationMapperService.getColumns());
+
+            List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
+
+            Pipeline<FullMigrationDTO> pipeline = new Pipeline<>(dto);
+            pipeline.append((context, input, next) -> data.forEach(next::accept)).append(migrationMapperService)
+                    .append(mySQLWriteService)
+                    .execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }

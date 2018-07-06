@@ -1,7 +1,9 @@
 package com.jhl.mds.services.mysql;
 
+import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
+import com.jhl.mds.util.PipeLineTaskRunner;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -16,9 +18,10 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 @Service
-public class MySQLWriteService {
+public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO> {
 
     private static final int CHUNK_SIZE = 1000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -29,6 +32,11 @@ public class MySQLWriteService {
     @Autowired
     public MySQLWriteService(MySQLConnectionPool mySQLConnectionPool) {
         this.mySQLConnectionPool = mySQLConnectionPool;
+    }
+
+    @Override
+    public void queue(FullMigrationDTO context, Object input, Consumer<Object> next) {
+        this.queue(context.getTarget(), new WriteInfo(context.getTargetColumns(), (String) input, () -> next.accept(null)));
     }
 
     public Future<?> queue(TableInfoDTO tableInfo, WriteInfo... writeInfo) {

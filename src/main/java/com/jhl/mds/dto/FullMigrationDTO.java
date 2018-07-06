@@ -16,4 +16,5 @@ public class FullMigrationDTO {
     private TableInfoDTO source;
     private TableInfoDTO target;
     private List<SimpleFieldMappingDTO> mapping;
+    private List<String> targetColumns;
 }

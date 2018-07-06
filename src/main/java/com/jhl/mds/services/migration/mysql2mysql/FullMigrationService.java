@@ -3,6 +3,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
+import com.jhl.mds.util.Pipeline;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,6 +39,14 @@ public class FullMigrationService {
         MigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
         List<String> targetColumns = mapperService.getColumns();
 
+        dto.setTargetColumns(targetColumns);
+
+//        mySQLReadService.run(dto.getSource(), item -> mapperService.queueMapToString(item, mappedData -> mySQLWriteService.queue(
+//                dto.getTarget(),
+//                new MySQLWriteService.WriteInfo(targetColumns, mappedData, () -> finishCallback.accept(1L))
+//        )));
+//
+
         long count = mySQLReadService.count(dto.getSource());
         AtomicLong finished = new AtomicLong();
 
@@ -48,10 +57,12 @@ public class FullMigrationService {
             }
         };
 
-        mySQLReadService.run(dto.getSource(), item -> mapperService.queueMapToString(item, mappedData -> mySQLWriteService.queue(
-                dto.getTarget(),
-                new MySQLWriteService.WriteInfo(targetColumns, mappedData, () -> finishCallback.accept(1L))
-        )));
+        Pipeline<FullMigrationDTO> pipeline = new Pipeline<>(dto);
+        pipeline.setFinalNext(o -> finishCallback.accept(1L));
+        pipeline.append(mySQLReadService)
+                .append(mapperService)
+                .append(mySQLWriteService)
+                .execute();
 
         while (finished.get() < count) {
             synchronized (finished) {
