@@ -53,7 +53,7 @@ public class IncrementalMigrationService {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             String insertDataList = data.stream().map(migrationMapperService::mapToString).collect(Collectors.joining(", "));
 
-            mySQLWriteService.queue(dto.getTarget(), migrationMapperService.getColumns(), insertDataList, null);
+            mySQLWriteService.queue(dto.getTarget(), new MySQLWriteService.WriteInfo(migrationMapperService.getColumns(), insertDataList, null));
         } catch (SQLException e) {
             e.printStackTrace();
         }

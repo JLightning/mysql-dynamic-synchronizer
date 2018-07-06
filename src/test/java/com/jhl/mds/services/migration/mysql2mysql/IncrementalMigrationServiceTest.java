@@ -55,7 +55,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Connection conn = mySQLConnectionPool.getConnection(serverDTO);
 
         Statement st = conn.createStatement();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
         }
 
@@ -63,6 +63,6 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
-        Assert.assertEquals(10, result.getInt(1));
+        Assert.assertEquals(100, result.getInt(1));
     }
 }
