@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 @Service
 public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Object> {
 
-    private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private MySQLConnectionPool mySQLConnectionPool;
     private MySQLDescribeService mySQLDescribeService;
 

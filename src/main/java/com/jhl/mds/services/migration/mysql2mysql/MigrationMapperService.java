@@ -28,20 +28,17 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
     private final Map<String, MySQLFieldDTO> targetFieldMap;
     @Getter
     private final List<String> columns;
-    private ExecutorService executor;
     private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
     private List<SimpleFieldMappingDTO> mapping;
     private CustomMappingPool customMapping;
 
     public MigrationMapperService(
-            ExecutorService executor,
             MySQLDescribeService mySQLDescribeService,
             MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
             CustomMappingPool customMapping,
             TableInfoDTO tableInfo,
             List<SimpleFieldMappingDTO> mapping
     ) throws SQLException {
-        this.executor = executor;
         this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         this.mapping = mapping;
         this.customMapping = customMapping;
@@ -88,7 +85,6 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
     @Service
     public static class Factory {
 
-        private static ExecutorService executor = Executors.newFixedThreadPool(4);
         private MySQLDescribeService mySQLDescribeService;
         private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
         private CustomMappingPool customMapping;
@@ -101,7 +97,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
         }
 
         public MigrationMapperService create(TableInfoDTO tableInfo, List<SimpleFieldMappingDTO> mapping) throws SQLException {
-            return new MigrationMapperService(executor, mySQLDescribeService, mySQLFieldDefaultValueService, customMapping, tableInfo, mapping);
+            return new MigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, customMapping, tableInfo, mapping);
         }
     }
 }
