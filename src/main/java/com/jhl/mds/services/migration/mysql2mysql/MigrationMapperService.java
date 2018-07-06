@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationDTO> {
+public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationDTO, Map<String, Object>> {
 
     private final List<MySQLFieldDTO> targetFields;
     private final Map<String, MySQLFieldDTO> targetFieldMap;
@@ -79,14 +79,10 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
         return MySQLStringUtil.valueListString(map(data).values());
     }
 
-    public void queueMapToString(Map<String, Object> data, Consumer<String> callback) {
-        executor.submit(() -> callback.accept(mapToString(data)));
-    }
-
     @Override
     @SuppressWarnings("unchecked")
-    public void queue(FullMigrationDTO context, Object input, Consumer<Object> next) {
-        queueMapToString((Map<String, Object>) input, next::accept);
+    public void queue(FullMigrationDTO context, Map<String, Object> input, Consumer<Object> next) {
+        next.accept(mapToString(input));
     }
 
     @Service

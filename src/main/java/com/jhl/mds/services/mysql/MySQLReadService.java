@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO> {
+public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Object> {
 
     private static ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private MySQLConnectionPool mySQLConnectionPool;
@@ -36,23 +36,11 @@ public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO> {
 
     @Override
     public void queue(FullMigrationDTO context, Object input, Consumer<Object> next) {
-        executor.submit(() -> {
-            try {
-                run(context.getSource(), next::accept);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
-    public Future<?> async(TableInfoDTO tableInfo, ResultCallback resultCallback) {
-        return executor.submit(() -> {
-            try {
-                run(tableInfo, resultCallback);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        try {
+            run(context.getSource(), next::accept);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void run(TableInfoDTO tableInfo, ResultCallback resultCallback) throws SQLException {

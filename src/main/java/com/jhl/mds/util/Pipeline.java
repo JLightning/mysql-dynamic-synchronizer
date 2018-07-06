@@ -13,7 +13,6 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class Pipeline<T> {
 
-    private static final ExecutorService executor = Executors.newFixedThreadPool(16);
     @NonNull
     private T context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
@@ -27,6 +26,10 @@ public class Pipeline<T> {
 
     @SuppressWarnings("unchecked")
     public void execute() {
+        ExecutorService[] executorServices = new ExecutorService[taskList.size()];
+        for (int i = 0; i < taskList.size(); i++) {
+            executorServices[i] = Executors.newFixedThreadPool(4);
+        }
         Consumer[] nextList = new Consumer[taskList.size()];
         nextList[taskList.size() - 1] = o -> {
         };
@@ -35,11 +38,14 @@ public class Pipeline<T> {
         }
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
-            Consumer next = o -> executor.submit(() -> taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1]));
+            Consumer next = o -> executorServices[finalI + 1].submit(() -> taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1]));
+            if (taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread) {
+                next = o -> taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1]);
+            }
             nextList[i] = next;
         }
 
-        taskList.get(0).queue(context, null, nextList[0]);
+        executorServices[0].submit(() -> taskList.get(0).queue(context, null, nextList[0]));
     }
 }
 

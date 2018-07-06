@@ -17,11 +17,10 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO> {
+public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, String>, PipeLineTaskRunner.SelfHandleThread {
 
     private static final int CHUNK_SIZE = 1000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -35,17 +34,17 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO> {
     }
 
     @Override
-    public void queue(FullMigrationDTO context, Object input, Consumer<Object> next) {
-        this.queue(context.getTarget(), new WriteInfo(context.getTargetColumns(), (String) input, () -> next.accept(null)));
+    public void queue(FullMigrationDTO context, String input, Consumer<Object> next) {
+        this.queue(context.getTarget(), new WriteInfo(context.getTargetColumns(), input, () -> next.accept(null)));
     }
 
-    public Future<?> queue(TableInfoDTO tableInfo, WriteInfo... writeInfo) {
+    public void queue(TableInfoDTO tableInfo, WriteInfo... writeInfo) {
         synchronized (writeQueue) {
             if (!writeQueue.containsKey(tableInfo)) writeQueue.put(tableInfo, new ArrayList<>());
             writeQueue.get(tableInfo).addAll(Arrays.asList(writeInfo));
         }
 
-        return executor.submit(() -> {
+        executor.submit(() -> {
             try {
                 run(tableInfo);
             } catch (SQLException e) {
@@ -57,6 +56,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO> {
     /**
      * TODO: what if 2 different write for same table?
      * write from writeQuene of current tableInfo to database, if queue size > CHUNK_SIZE then requeue
+     *
      * @param tableInfo the info of the table to write to
      * @throws SQLException
      */
