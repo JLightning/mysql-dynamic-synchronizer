@@ -46,6 +46,12 @@ public class MySQLWriteService {
         });
     }
 
+    /**
+     * TODO: what if 2 different write for same table?
+     * write from writeQuene of current tableInfo to database, if queue size > CHUNK_SIZE then requeue
+     * @param tableInfo the info of the table to write to
+     * @throws SQLException
+     */
     private void run(TableInfoDTO tableInfo) throws SQLException {
         List<WriteInfo> tmpWriteList;
         synchronized (writeQueue) {
