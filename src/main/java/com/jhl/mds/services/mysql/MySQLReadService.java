@@ -15,14 +15,11 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Object> {
+public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Object, Map<String, Object>> {
 
     private MySQLConnectionPool mySQLConnectionPool;
     private MySQLDescribeService mySQLDescribeService;
@@ -34,7 +31,7 @@ public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Ob
     }
 
     @Override
-    public void queue(FullMigrationDTO context, Object input, Consumer<Object> next) {
+    public void queue(FullMigrationDTO context, Object input, Consumer<Map<String, Object>> next) {
         try {
             run(context.getSource(), next::accept);
         } catch (SQLException e) {

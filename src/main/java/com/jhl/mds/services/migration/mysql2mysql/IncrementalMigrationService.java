@@ -55,7 +55,7 @@ public class IncrementalMigrationService {
 
             List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
 
-            Pipeline<FullMigrationDTO> pipeline = new Pipeline<>(dto);
+            Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append((context, input, next) -> data.forEach(next::accept)).append(migrationMapperService)
                     .append(mySQLWriteService)
                     .execute();

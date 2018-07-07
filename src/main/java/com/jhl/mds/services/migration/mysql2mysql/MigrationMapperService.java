@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationDTO, Map<String, Object>> {
+public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationDTO, Map<String, Object>, String> {
 
     private final List<MySQLFieldDTO> targetFields;
     private final Map<String, MySQLFieldDTO> targetFieldMap;
@@ -76,7 +76,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
 
     @Override
     @SuppressWarnings("unchecked")
-    public void queue(FullMigrationDTO context, Map<String, Object> input, Consumer<Object> next) {
+    public void queue(FullMigrationDTO context, Map<String, Object> input, Consumer<String> next) {
         next.accept(mapToString(input));
     }
 

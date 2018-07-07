@@ -57,8 +57,8 @@ public class FullMigrationService {
             }
         };
 
-        Pipeline<FullMigrationDTO> pipeline = new Pipeline<>(dto);
-        pipeline.setFinalNext(o -> finishCallback.accept(1L));
+        Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
+        pipeline.setFinalNext(finishCallback);
         pipeline.append(mySQLReadService)
                 .append(mapperService)
                 .append(mySQLWriteService)

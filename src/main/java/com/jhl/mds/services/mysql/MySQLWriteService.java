@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, String>, PipeLineTaskRunner.SelfHandleThread {
+public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, String, Long>, PipeLineTaskRunner.SelfHandleThread {
 
     private static final int CHUNK_SIZE = 1000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -34,8 +34,8 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
     }
 
     @Override
-    public void queue(FullMigrationDTO context, String input, Consumer<Object> next) {
-        this.queue(context.getTarget(), new WriteInfo(context.getTargetColumns(), input, () -> next.accept(null)));
+    public void queue(FullMigrationDTO context, String input, Consumer<Long> next) {
+        this.queue(context.getTarget(), new WriteInfo(context.getTargetColumns(), input, () -> next.accept(1L)));
     }
 
     public void queue(TableInfoDTO tableInfo, WriteInfo... writeInfo) {

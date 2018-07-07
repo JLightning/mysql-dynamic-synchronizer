@@ -11,15 +11,15 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
-public class Pipeline<T> {
+public class Pipeline<T, R> {
 
     @NonNull
     private T context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
     @Setter
-    private Consumer<Object> finalNext;
+    private Consumer<R> finalNext;
 
-    public Pipeline<T> append(PipeLineTaskRunner taskRunner) {
+    public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
         taskList.add(taskRunner);
         return this;
     }

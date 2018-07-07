@@ -6,7 +6,6 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -15,9 +14,9 @@ import java.util.concurrent.Future;
 public class CustomMappingPool {
 
     private static final int POOL_SIZE = 4;
-    private final Random rand = new Random();
     private ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private List<CustomMapping> customMappingList = new ArrayList<>();
+    private Integer roundRobin = 0;
 
     @PostConstruct
     private void init() {
@@ -27,6 +26,12 @@ public class CustomMappingPool {
     }
 
     public Future<String> resolve(String input, Map<String, Object> data) {
-        return executor.submit(() -> customMappingList.get(rand.nextInt(POOL_SIZE)).resolve(input, data));
+        int tmpRoundRobin;
+        synchronized (roundRobin) {
+            roundRobin++;
+            if (roundRobin >= POOL_SIZE) roundRobin = 0;
+            tmpRoundRobin = roundRobin;
+        }
+        return executor.submit(() -> customMappingList.get(tmpRoundRobin).resolve(input, data));
     }
 }
