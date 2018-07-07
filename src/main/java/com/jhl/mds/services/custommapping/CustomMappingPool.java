@@ -26,7 +26,7 @@ public class CustomMappingPool {
     }
 
     public Future<String> resolve(String input, Map<String, Object> data) {
-        int tmpRoundRobin;
+        final int tmpRoundRobin;
         synchronized (roundRobin) {
             roundRobin++;
             if (roundRobin >= POOL_SIZE) roundRobin = 0;
