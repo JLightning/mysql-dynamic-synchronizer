@@ -20,7 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, String> {
+public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, String>, PipeLineTaskRunner.SelfHandleThread {
 
     private static final int CHUNK_SIZE = 1000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -44,11 +44,13 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
             writeQueue.get(tableInfo).addAll(Arrays.asList(writeInfo));
         }
 
-        try {
-            run(tableInfo);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        executor.submit(() -> {
+            try {
+                run(tableInfo);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
     }
 
     /**
