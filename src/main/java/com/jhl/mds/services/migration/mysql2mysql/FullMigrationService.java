@@ -41,12 +41,6 @@ public class FullMigrationService {
 
         dto.setTargetColumns(targetColumns);
 
-//        mySQLReadService.run(dto.getSource(), item -> mapperService.queueMapToString(item, mappedData -> mySQLWriteService.queue(
-//                dto.getTarget(),
-//                new MySQLWriteService.WriteInfo(targetColumns, mappedData, () -> finishCallback.accept(1L))
-//        )));
-//
-
         long count = mySQLReadService.count(dto.getSource());
         AtomicLong finished = new AtomicLong();
 
