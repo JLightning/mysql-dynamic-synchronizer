@@ -31,15 +31,11 @@ public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Ob
     }
 
     @Override
-    public void queue(FullMigrationDTO context, Object input, Consumer<Map<String, Object>> next) {
-        try {
-            run(context.getSource(), next::accept);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public void queue(FullMigrationDTO context, Object input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws SQLException {
+        run(context.getSource(), next);
     }
 
-    public void run(TableInfoDTO tableInfo, ResultCallback resultCallback) throws SQLException {
+    public void run(TableInfoDTO tableInfo, Consumer<Map<String, Object>> next) throws SQLException {
         List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
         List<String> columns = fields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
 
@@ -56,7 +52,7 @@ public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Ob
                 data.put(column, result.getObject(i + 1));
             }
 
-            resultCallback.send(data);
+            next.accept(data);
         }
     }
 
@@ -69,9 +65,5 @@ public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Ob
 
         result.next();
         return result.getLong(1);
-    }
-
-    public interface ResultCallback {
-        void send(Map<String, Object> result);
     }
 }

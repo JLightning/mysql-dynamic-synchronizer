@@ -18,6 +18,16 @@ services:
       - ./etc/mysql/my.cnf:/etc/mysql/my.cnf
     command:
       - '--user=mysql'
+  postgres:
+      image: postgres:9.6.9
+      container_name: mds_postgres
+      ports:
+        - "5432:5432"
+      environment:
+        POSTGRES_USERNAME: root
+        POSTGRES_PASSWORD: root
+      volumes:
+        - ./data/postgresql:/var/lib/postgresql
   node:
     image: node:6.11-slim
     container_name: mds_node

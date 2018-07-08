@@ -6,6 +6,7 @@ import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.PipeLineTaskRunner;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,23 +35,17 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
     }
 
     @Override
-    public void queue(FullMigrationDTO context, String input, Consumer<Long> next) {
-        this.queue(context.getTarget(), new WriteInfo(context.getTargetColumns(), input, () -> next.accept(1L)));
+    public void queue(FullMigrationDTO context, String input, Consumer<Long> next, Consumer<Exception> errorHandler) {
+        this.queue(context.getTarget(), next, errorHandler, new WriteInfo(context.getTargetColumns(), input));
     }
 
-    public void queue(TableInfoDTO tableInfo, WriteInfo... writeInfo) {
+    public void queue(TableInfoDTO tableInfo, Consumer<Long> next, Consumer<Exception> errorHandler, WriteInfo... writeInfo) {
         synchronized (writeQueue) {
             if (!writeQueue.containsKey(tableInfo)) writeQueue.put(tableInfo, new ArrayList<>());
             writeQueue.get(tableInfo).addAll(Arrays.asList(writeInfo));
         }
 
-        executor.submit(() -> {
-            try {
-                run(tableInfo);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+        executor.submit(() -> run(tableInfo, next, errorHandler));
     }
 
     /**
@@ -60,7 +55,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
      * @param tableInfo the info of the table to write to
      * @throws SQLException
      */
-    private void run(TableInfoDTO tableInfo) throws SQLException {
+    private void run(TableInfoDTO tableInfo, Consumer<Long> next, Consumer<Exception> errorHandler) {
         List<WriteInfo> tmpWriteList;
         synchronized (writeQueue) {
             if (!writeQueue.containsKey(tableInfo) || writeQueue.get(tableInfo).size() == 0) return;
@@ -69,7 +64,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
         }
 
         if (tmpWriteList.size() > CHUNK_SIZE) {
-            queue(tableInfo, tmpWriteList.subList(CHUNK_SIZE, tmpWriteList.size()).toArray(new WriteInfo[0]));
+            queue(tableInfo, next, errorHandler, tmpWriteList.subList(CHUNK_SIZE, tmpWriteList.size()).toArray(new WriteInfo[0]));
             tmpWriteList = tmpWriteList.subList(0, CHUNK_SIZE);
         }
 
@@ -81,19 +76,20 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
             insertDataStrBuilder.append(writeInfo.getInsertDatas());
         }
 
-        Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
-        Statement st = conn.createStatement();
+        try {
+            Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
+            Statement st = conn.createStatement();
 
-        String sql = String.format("INSERT INTO %s(%s) VALUES %s;", tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
-        logger.info("Run query: " + sql);
+            String sql = String.format("INSERT INTO %s(%s) VALUES %s;", tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
+            logger.info("Run query: " + sql);
 
-        st.execute(sql);
-        st.close();
-
-        for (WriteInfo writeInfo : tmpWriteList) {
-            if (writeInfo.getFinishCallback() == null) continue;
-            writeInfo.getFinishCallback().run();
+            st.execute(sql);
+            st.close();
+        } catch (Exception e) {
+            errorHandler.accept(new WriteServiceException(e, tmpWriteList.size()));
         }
+
+        next.accept((long) tmpWriteList.size());
     }
 
     @Getter
@@ -101,6 +97,16 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
     public static class WriteInfo {
         private List<String> columns;
         private String insertDatas;
-        private Runnable finishCallback;
+    }
+
+    public class WriteServiceException extends Exception {
+        @Getter
+        @Setter
+        private long count;
+
+        public WriteServiceException(Throwable cause, long count) {
+            super(cause);
+            this.count = count;
+        }
     }
 }

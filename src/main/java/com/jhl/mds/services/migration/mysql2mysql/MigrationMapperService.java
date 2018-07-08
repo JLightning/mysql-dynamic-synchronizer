@@ -17,12 +17,12 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationDTO, Map<String, Object>, String> {
 
-    private final List<MySQLFieldDTO> targetFields;
     private final Map<String, MySQLFieldDTO> targetFieldMap;
     @Getter
     private final List<String> columns;
@@ -40,12 +40,12 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
         this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         this.mapping = mapping;
         this.customMapping = customMapping;
-        targetFields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
+        List<MySQLFieldDTO> targetFields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
         targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
         columns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
     }
 
-    public Map<String, Object> map(Map<String, Object> data) {
+    public Map<String, Object> map(Map<String, Object> data) throws Exception {
         Map<String, String> targetToSourceColumnMatch = mapping.stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getTargetField, SimpleFieldMappingDTO::getSourceField));
 
         Map<String, Object> mappedData = new LinkedHashMap<>();
@@ -56,11 +56,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
                 if (data.containsKey(sourceColumn)) {
                     mappedData.put(targetColumn, data.get(sourceColumn));
                 } else {
-                    try {
-                        mappedData.put(targetColumn, customMapping.resolve(sourceColumn, data).get());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    mappedData.put(targetColumn, customMapping.resolve(sourceColumn, data).get());
                 }
             } else {
                 mappedData.put(targetColumn, mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn)));
@@ -70,13 +66,13 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
         return mappedData;
     }
 
-    public String mapToString(Map<String, Object> data) {
+    public String mapToString(Map<String, Object> data) throws Exception {
         return MySQLStringUtil.valueListString(map(data).values());
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void queue(FullMigrationDTO context, Map<String, Object> input, Consumer<String> next) {
+    public void queue(FullMigrationDTO context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
         next.accept(mapToString(input));
     }
 

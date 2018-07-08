@@ -53,6 +53,13 @@ public class FullMigrationService {
 
         Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
         pipeline.setFinalNext(finishCallback);
+        pipeline.setErrorHandler(e -> {
+            if (e instanceof MySQLWriteService.WriteServiceException) {
+                finishCallback.accept(((MySQLWriteService.WriteServiceException) e).getCount());
+            } else {
+                finishCallback.accept(1L);
+            }
+        });
         pipeline.append(mySQLReadService)
                 .append(mapperService)
                 .append(mySQLWriteService)

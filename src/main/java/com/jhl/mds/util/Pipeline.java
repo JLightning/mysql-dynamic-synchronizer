@@ -3,6 +3,7 @@ package com.jhl.mds.util;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,8 @@ public class Pipeline<T, R> {
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
     @Setter
     private Consumer<R> finalNext;
+    @Setter
+    private Consumer<Exception> errorHandler = Exception::printStackTrace;
 
     public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
         taskList.add(taskRunner);
@@ -38,14 +41,32 @@ public class Pipeline<T, R> {
         }
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
-            Consumer next = o -> executorServices[finalI + 1].submit(() -> taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1]));
+            Consumer next = o -> executorServices[finalI + 1].submit(() -> {
+                try {
+                    taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1], errorHandler);
+                } catch (Exception e) {
+                    errorHandler.accept(e);
+                }
+            });
             if (taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread) {
-                next = o -> taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1]);
+                next = o -> {
+                    try {
+                        taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1], errorHandler);
+                    } catch (Exception e) {
+                        errorHandler.accept(e);
+                    }
+                };
             }
             nextList[i] = next;
         }
 
-        executorServices[0].submit(() -> taskList.get(0).queue(context, null, nextList[0]));
+        executorServices[0].submit(() -> {
+            try {
+                taskList.get(0).queue(context, null, nextList[0], errorHandler);
+            } catch (Exception e) {
+                errorHandler.accept(e);
+            }
+        });
     }
 }
 

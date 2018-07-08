@@ -48,7 +48,6 @@ public class IncrementalMigrationService {
     }
 
     private void insert(FullMigrationDTO dto, WriteRowsEventData eventData) {
-
         try {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
@@ -56,7 +55,7 @@ public class IncrementalMigrationService {
             List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
 
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
-            pipeline.append((context, input, next) -> data.forEach(next::accept)).append(migrationMapperService)
+            pipeline.append((context, input, next, errorHandler) -> data.forEach(next::accept)).append(migrationMapperService)
                     .append(mySQLWriteService)
                     .execute();
         } catch (SQLException e) {
