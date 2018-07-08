@@ -17,7 +17,6 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -51,16 +50,18 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
         Map<String, Object> mappedData = new LinkedHashMap<>();
 
         for (String targetColumn : columns) {
+            Object value = null;
             if (targetToSourceColumnMatch.containsKey(targetColumn)) {
                 String sourceColumn = targetToSourceColumnMatch.get(targetColumn);
                 if (data.containsKey(sourceColumn)) {
-                    mappedData.put(targetColumn, data.get(sourceColumn));
+                    value = data.get(sourceColumn);
                 } else {
-                    mappedData.put(targetColumn, customMapping.resolve(sourceColumn, data).get());
+                    value = customMapping.resolve(sourceColumn, data).get();
                 }
-            } else {
-                mappedData.put(targetColumn, mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn)));
+            } else if (!targetFieldMap.get(targetColumn).isNullable()) {
+                value = mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn));
             }
+            mappedData.put(targetColumn, value);
         }
 
         return mappedData;

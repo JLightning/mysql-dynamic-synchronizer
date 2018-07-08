@@ -3,7 +3,6 @@ package com.jhl.mds.util;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,22 +40,20 @@ public class Pipeline<T, R> {
         }
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
-            Consumer next = o -> executorServices[finalI + 1].submit(() -> {
+
+            Consumer next = o -> {
                 try {
                     taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1], errorHandler);
                 } catch (Exception e) {
                     errorHandler.accept(e);
                 }
-            });
-            if (taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread) {
-                next = o -> {
-                    try {
-                        taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1], errorHandler);
-                    } catch (Exception e) {
-                        errorHandler.accept(e);
-                    }
-                };
+            };
+
+            if (!(taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread)) {
+                Consumer tmpNext = next;
+                next = o -> executorServices[finalI + 1].submit(() -> tmpNext.accept(o));
             }
+
             nextList[i] = next;
         }
 
