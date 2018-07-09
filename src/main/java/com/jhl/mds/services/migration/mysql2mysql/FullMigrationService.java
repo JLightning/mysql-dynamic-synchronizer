@@ -1,32 +1,37 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
+import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.Pipeline;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import javax.sql.DataSource;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 @Service
 public class FullMigrationService {
 
+    private final ExecutorService executorService = Executors.newFixedThreadPool(1);
     private MySQLReadService mySQLReadService;
     private MySQLWriteService mySQLWriteService;
+    private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
-    private Map<Integer, Double> progressList = new HashMap<>();
 
     public FullMigrationService(
             MySQLReadService mySQLReadService,
             MySQLWriteService mySQLWriteService,
+            TaskRepository taskRepository,
             MigrationMapperService.Factory migrationMapperServiceFactory
     ) {
         this.mySQLReadService = mySQLReadService;
         this.mySQLWriteService = mySQLWriteService;
+        this.taskRepository = taskRepository;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
     }
 
@@ -45,7 +50,7 @@ public class FullMigrationService {
             AtomicLong finished = new AtomicLong();
 
             final Consumer<Long> finishCallback = size -> {
-                progressList.put(dto.getTaskId(), (double) (finished.addAndGet(size) * 100) / count);
+                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.addAndGet(size) * 100) / count);
                 synchronized (finished) {
                     finished.notify();
                 }
@@ -59,7 +64,7 @@ public class FullMigrationService {
                 } else {
                     finishCallback.accept(1L);
                 }
-                progressList.put(dto.getTaskId(), (double) (finished.get() * 100) / count);
+                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.get() * 100) / count);
             });
             pipeline.append(mySQLReadService)
                     .append(mapperService)
@@ -76,7 +81,11 @@ public class FullMigrationService {
         }
     }
 
+    private void saveFullMigrationProgress(int taskId, double v) {
+        executorService.submit(() -> taskRepository.updateFullMigrationProgress(taskId, Math.round(v)));
+    }
+
     public double getProgress(int taskId) {
-        return progressList.getOrDefault(taskId, 0d);
+        return taskRepository.getOne(taskId).getFullMigrationProgress();
     }
 }

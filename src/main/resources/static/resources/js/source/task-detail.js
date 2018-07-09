@@ -15,13 +15,20 @@ class TaskDetail extends React.Component {
             }
         });
 
-        setInterval(() =>
+        this.fullMigrationProgressInterval = setInterval(() =>
             $.get(DOMAIN + '/api/task/detail/' + taskId + '/full-migration-progress').done(data => {
                 if (data.success) {
                     this.setState({fullMigrationProgress: data.data});
+                    if (parseInt(data.data) === 100) {
+                        clearInterval(this.fullMigrationProgressInterval);
+                    }
                 }
             }), 500
         )
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.fullMigrationProgressInterval);
     }
 
     render() {

@@ -59,6 +59,8 @@ public class TaskApiController {
                     .fkTargetServer(targetTaskDTOTable.getServerId())
                     .targetDatabase(targetTaskDTOTable.getDatabase())
                     .targetTable(targetTaskDTOTable.getTable())
+                    .taskType(TaskType.FULL_INCREMENTAL_MIGRATION.getCode())
+                    .fullMigrationProgress(0)
                     .createdAt(now)
                     .updatedAt(now)
                     .build();

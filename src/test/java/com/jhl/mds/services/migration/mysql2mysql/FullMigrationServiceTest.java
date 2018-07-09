@@ -21,7 +21,7 @@ import java.util.Random;
 
 public class FullMigrationServiceTest extends BaseTest {
 
-    private static final int LIMIT = 100000;
+    private static final int LIMIT = 1000000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired

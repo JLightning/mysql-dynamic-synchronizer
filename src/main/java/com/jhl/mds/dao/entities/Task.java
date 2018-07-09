@@ -5,12 +5,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.util.Date;
 
 @Entity
 @Getter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Task {
@@ -24,6 +27,8 @@ public class Task {
     private int fkTargetServer;
     private String targetDatabase;
     private String targetTable;
+    private int taskType;
+    private double fullMigrationProgress;
     private Date createdAt;
     private Date updatedAt;
 }

@@ -3,7 +3,6 @@ package com.jhl.mds.dbmigration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -40,6 +39,8 @@ public class DatabaseMigration100 extends AbstractDatabaseMigration {
                     "fk_target_server INTEGER," +
                     "target_database VARCHAR(255)," +
                     "target_table VARCHAR(255)," +
+                    "task_type INTEGER," +
+                    "full_migration_progress DOUBLE," +
                     "created_at TIMESTAMP," +
                     "updated_at TIMESTAMP," +
                     "FOREIGN KEY(fk_source_server) REFERENCES mysql_server(server_id) ON DELETE CASCADE," +
