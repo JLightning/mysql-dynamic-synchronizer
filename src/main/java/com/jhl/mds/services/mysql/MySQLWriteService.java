@@ -85,11 +85,12 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
 
             st.execute(sql);
             st.close();
+
+            next.accept((long) tmpWriteList.size());
+
         } catch (Exception e) {
             errorHandler.accept(new WriteServiceException(e, tmpWriteList.size()));
         }
-
-        next.accept((long) tmpWriteList.size());
     }
 
     @Getter

@@ -58,7 +58,8 @@ class TaskDetail extends React.Component {
                         </div>
                     </div>
                     <div className="col-1 vertial-center">
-                        <a className="btn btn-primary btn-sm" onClick={() => {
+                        <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
+                        <button type="button" className="float-right btn btn-primary btn-sm" onClick={() => {
                             $.get(DOMAIN + '/api/task/detail/' + taskId + '/start-full-migration').done((data) => {
                                 if (data.success) {
                                     this.observeFullMigrationProgress()
@@ -66,7 +67,8 @@ class TaskDetail extends React.Component {
                                     showError(data.errorMessage);
                                 }
                             });
-                        }}>Start</a>
+                        }}>Start
+                        </button>
                     </div>
                 </div>
                 <div className="row mt-3">
@@ -86,6 +88,33 @@ class TaskDetail extends React.Component {
                                     <td>{o.targetField}</td>
                                 </tr>
                             ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="col-6">
+                        <div className="row">
+                            <div className="col-6">
+                                <p className="h4">Incremental migration:</p>
+                            </div>
+                            <div className="col-6">
+                                <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
+                                <button type="button" className="float-right btn btn-primary btn-sm">Start</button>
+                            </div>
+                        </div>
+                        <table className="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Insert</th>
+                                <th scope="col">Update</th>
+                                <th scope="col">Delete</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>0</td>
+                            </tr>
                             </tbody>
                         </table>
                     </div>
