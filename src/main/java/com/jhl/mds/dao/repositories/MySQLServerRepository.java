@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface MySQLServerRepository extends JpaRepository<MySQLServer, Integer> {
     List<MySQLServer> findByServerId(List<Integer> serverIds);
+
+    MySQLServer findByServerId(Integer serverId);
 }

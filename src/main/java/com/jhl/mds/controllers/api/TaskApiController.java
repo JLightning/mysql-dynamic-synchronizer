@@ -1,12 +1,13 @@
 package com.jhl.mds.controllers.api;
 
+import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
+import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
-import com.jhl.mds.dto.ApiResponse;
-import com.jhl.mds.dto.SimpleFieldMappingDTO;
-import com.jhl.mds.dto.TaskDTO;
+import com.jhl.mds.dto.*;
+import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
 import com.jhl.mds.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -23,30 +24,41 @@ public class TaskApiController {
 
     private TaskRepository taskRepository;
     private TaskFieldMappingRepository taskFieldMappingRepository;
+    private MySQLServerRepository mySQLServerRepository;
+    private FullMigrationService fullMigrationService;
     private TaskDTO.Converter taskDTOConverter;
+    private MySQLServerDTO.Converter serverDTOConverter;
 
     @Autowired
     public TaskApiController(
             TaskRepository taskRepository,
             TaskFieldMappingRepository taskFieldMappingRepository,
-            TaskDTO.Converter taskDTOConverter
+            MySQLServerRepository mySQLServerRepository,
+            FullMigrationService fullMigrationService,
+            TaskDTO.Converter taskDTOConverter,
+            MySQLServerDTO.Converter serverDTOConverter
     ) {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
+        this.mySQLServerRepository = mySQLServerRepository;
+        this.fullMigrationService = fullMigrationService;
         this.taskDTOConverter = taskDTOConverter;
+        this.serverDTOConverter = serverDTOConverter;
     }
 
     @PostMapping("/create")
     public ApiResponse<TaskDTO> createTaskAction(@RequestBody TaskDTO dto) {
         try {
             Date now = new Date();
+            TaskDTO.Table sourceTaskDTOTable = dto.getSource();
+            TaskDTO.Table targetTaskDTOTable = dto.getTarget();
             Task task = Task.builder().name(dto.getTaskName())
-                    .fkSourceServer(dto.getSource().getServerId())
-                    .sourceDatabase(dto.getSource().getDatabase())
-                    .sourceTable(dto.getSource().getTable())
-                    .fkTargetServer(dto.getTarget().getServerId())
-                    .targetDatabase(dto.getTarget().getDatabase())
-                    .targetTable(dto.getTarget().getTable())
+                    .fkSourceServer(sourceTaskDTOTable.getServerId())
+                    .sourceDatabase(sourceTaskDTOTable.getDatabase())
+                    .sourceTable(sourceTaskDTOTable.getTable())
+                    .fkTargetServer(targetTaskDTOTable.getServerId())
+                    .targetDatabase(targetTaskDTOTable.getDatabase())
+                    .targetTable(targetTaskDTOTable.getTable())
                     .createdAt(now)
                     .updatedAt(now)
                     .build();
@@ -65,7 +77,21 @@ public class TaskApiController {
                 taskFieldMappingRepository.save(fieldMapping);
             }
 
+            MySQLServer sourceServer = mySQLServerRepository.findByServerId(sourceTaskDTOTable.getServerId());
+            MySQLServer targetServer = mySQLServerRepository.findByServerId(sourceTaskDTOTable.getServerId());
+
+            TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), sourceTaskDTOTable.getDatabase(), sourceTaskDTOTable.getTable());
+            TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), targetTaskDTOTable.getDatabase(), targetTaskDTOTable.getTable());
+
             dto.setTaskId(task.getTaskId());
+
+            fullMigrationService.queue(FullMigrationDTO.builder()
+                    .taskId(task.getTaskId())
+                    .mapping(dto.getMapping())
+                    .source(sourceTableInfoDTO)
+                    .target(targetTableInfoDTO)
+                    .build());
+
             return ApiResponse.success(dto);
         } catch (JpaSystemException e) {
             return ApiResponse.error(e.getRootCause().getMessage());
@@ -84,5 +110,10 @@ public class TaskApiController {
         List<TaskFieldMapping> taskMapping = Util.defaultIfNull(taskFieldMappingRepository.findByFkTaskId(taskId), new ArrayList<>());
 
         return ApiResponse.success(taskDTOConverter.from(optTask.get(), taskMapping));
+    }
+
+    @GetMapping("/detail/{taskId}/full-migration-progress")
+    public ApiResponse<Double> getFullMigrationTaskProgress(@PathVariable int taskId) {
+        return ApiResponse.success(fullMigrationService.getProgress(taskId));
     }
 }

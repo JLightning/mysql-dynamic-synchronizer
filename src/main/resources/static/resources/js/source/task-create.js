@@ -111,7 +111,7 @@ class TaskCreate extends React.Component {
             if (!data.success) {
                 showError(data.errorMessage);
             } else {
-                location.href = DOMAIN + '/task/list';
+                location.href = DOMAIN + '/task/detail/?taskId=' + data.data.taskId;
             }
         });
     }

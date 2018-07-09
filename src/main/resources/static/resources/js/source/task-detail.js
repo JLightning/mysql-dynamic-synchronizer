@@ -5,7 +5,7 @@ class TaskDetail extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {};
+        this.state = {fullMigrationProgress: 0};
     }
 
     componentDidMount() {
@@ -14,6 +14,14 @@ class TaskDetail extends React.Component {
                 this.setState({task: data.data});
             }
         });
+
+        setInterval(() =>
+            $.get(DOMAIN + '/api/task/detail/' + taskId + '/full-migration-progress').done(data => {
+                if (data.success) {
+                    this.setState({fullMigrationProgress: data.data});
+                }
+            }), 500
+        )
     }
 
     render() {
@@ -33,7 +41,8 @@ class TaskDetail extends React.Component {
                     <div className="col-9">
                         <div className="progress ml-1" style={{height: "24px"}}>
                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                 aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style={{width: '75%'}}>75%
+                                 aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
+                                 style={{width: this.state.fullMigrationProgress + '%'}}>{this.state.fullMigrationProgress}%
                             </div>
                         </div>
                     </div>
@@ -49,18 +58,12 @@ class TaskDetail extends React.Component {
                             </tr>
                             </thead>
                             <tbody>
-                            <tr>
-                                <td>id</td>
-                                <td>id</td>
-                            </tr>
-                            <tr>
-                                <td>created_at</td>
-                                <td>created_at</td>
-                            </tr>
-                            <tr>
-                                <td>updated_at</td>
-                                <td>updated_at</td>
-                            </tr>
+                            {this.state.task.mapping.map(o => (
+                                <tr>
+                                    <td>{o.sourceField}</td>
+                                    <td>{o.targetField}</td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     </div>

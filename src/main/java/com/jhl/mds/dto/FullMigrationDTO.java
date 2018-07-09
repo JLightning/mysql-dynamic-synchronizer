@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class FullMigrationDTO {
 
+    private int taskId;
     private TableInfoDTO source;
     private TableInfoDTO target;
     private List<SimpleFieldMappingDTO> mapping;
