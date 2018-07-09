@@ -59,7 +59,13 @@ class TaskDetail extends React.Component {
                     </div>
                     <div className="col-1 vertial-center">
                         <a className="btn btn-primary btn-sm" onClick={() => {
-                            $.get(DOMAIN + '/api/task/detail/' + taskId+'/start-full-migration').done(() => this.observeFullMigrationProgress());
+                            $.get(DOMAIN + '/api/task/detail/' + taskId + '/start-full-migration').done((data) => {
+                                if (data.success) {
+                                    this.observeFullMigrationProgress()
+                                } else {
+                                    showError(data.errorMessage);
+                                }
+                            });
                         }}>Start</a>
                     </div>
                 </div>

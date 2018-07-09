@@ -7,8 +7,9 @@ import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.Pipeline;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,6 +23,7 @@ public class FullMigrationService {
     private MySQLWriteService mySQLWriteService;
     private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
+    private Set<Integer> runningTask = new HashSet<>();
 
     public FullMigrationService(
             MySQLReadService mySQLReadService,
@@ -36,6 +38,10 @@ public class FullMigrationService {
     }
 
     public void queue(FullMigrationDTO dto) {
+        if (runningTask.contains(dto.getTaskId())) {
+            throw new RuntimeException("Task has already been running");
+        }
+        runningTask.add(dto.getTaskId());
         new Thread(() -> run(dto)).start();
     }
 
@@ -59,6 +65,7 @@ public class FullMigrationService {
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.setFinalNext(finishCallback);
             pipeline.setErrorHandler(e -> {
+                e.printStackTrace();
                 if (e instanceof MySQLWriteService.WriteServiceException) {
                     finishCallback.accept(((MySQLWriteService.WriteServiceException) e).getCount());
                 } else {
@@ -79,6 +86,9 @@ public class FullMigrationService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
+        runningTask.remove(dto.getTaskId());
     }
 
     private void saveFullMigrationProgress(int taskId, double v) {

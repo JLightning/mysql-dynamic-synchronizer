@@ -109,6 +109,7 @@ public class TaskApiController {
     @GetMapping("/detail/{taskId}/start-full-migration")
     public ApiResponse<Boolean> startFullMigrationTask(@PathVariable int taskId) {
         Task task = taskRepository.getOne(taskId);
+
         List<TaskFieldMapping> mapping = taskFieldMappingRepository.findByFkTaskId(taskId);
 
         List<SimpleFieldMappingDTO> mappingDTOs = mapping.stream().map(m -> new SimpleFieldMappingDTO(m.getSourceField(), m.getTargetField())).collect(Collectors.toList());
@@ -119,12 +120,16 @@ public class TaskApiController {
         TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), task.getSourceDatabase(), task.getSourceTable());
         TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), task.getTargetDatabase(), task.getTargetTable());
 
-        fullMigrationService.queue(FullMigrationDTO.builder()
-                .taskId(task.getTaskId())
-                .mapping(mappingDTOs)
-                .source(sourceTableInfoDTO)
-                .target(targetTableInfoDTO)
-                .build());
+        try {
+            fullMigrationService.queue(FullMigrationDTO.builder()
+                    .taskId(task.getTaskId())
+                    .mapping(mappingDTOs)
+                    .source(sourceTableInfoDTO)
+                    .target(targetTableInfoDTO)
+                    .build());
+        } catch (Exception e) {
+            return ApiResponse.error(e);
+        }
 
         return ApiResponse.success(true);
     }
