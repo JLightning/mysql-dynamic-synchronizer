@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/task")
@@ -79,21 +80,7 @@ public class TaskApiController {
                 taskFieldMappingRepository.save(fieldMapping);
             }
 
-            MySQLServer sourceServer = mySQLServerRepository.findByServerId(sourceTaskDTOTable.getServerId());
-            MySQLServer targetServer = mySQLServerRepository.findByServerId(sourceTaskDTOTable.getServerId());
-
-            TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), sourceTaskDTOTable.getDatabase(), sourceTaskDTOTable.getTable());
-            TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), targetTaskDTOTable.getDatabase(), targetTaskDTOTable.getTable());
-
             dto.setTaskId(task.getTaskId());
-
-            fullMigrationService.queue(FullMigrationDTO.builder()
-                    .taskId(task.getTaskId())
-                    .mapping(dto.getMapping())
-                    .source(sourceTableInfoDTO)
-                    .target(targetTableInfoDTO)
-                    .build());
-
             return ApiResponse.success(dto);
         } catch (JpaSystemException e) {
             return ApiResponse.error(e.getRootCause().getMessage());
@@ -117,5 +104,28 @@ public class TaskApiController {
     @GetMapping("/detail/{taskId}/full-migration-progress")
     public ApiResponse<Double> getFullMigrationTaskProgress(@PathVariable int taskId) {
         return ApiResponse.success(fullMigrationService.getProgress(taskId));
+    }
+
+    @GetMapping("/detail/{taskId}/start-full-migration")
+    public ApiResponse<Boolean> startFullMigrationTask(@PathVariable int taskId) {
+        Task task = taskRepository.getOne(taskId);
+        List<TaskFieldMapping> mapping = taskFieldMappingRepository.findByFkTaskId(taskId);
+
+        List<SimpleFieldMappingDTO> mappingDTOs = mapping.stream().map(m -> new SimpleFieldMappingDTO(m.getSourceField(), m.getTargetField())).collect(Collectors.toList());
+
+        MySQLServer sourceServer = mySQLServerRepository.findByServerId(task.getFkSourceServer());
+        MySQLServer targetServer = mySQLServerRepository.findByServerId(task.getFkTargetServer());
+
+        TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), task.getSourceDatabase(), task.getSourceTable());
+        TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), task.getTargetDatabase(), task.getTargetTable());
+
+        fullMigrationService.queue(FullMigrationDTO.builder()
+                .taskId(task.getTaskId())
+                .mapping(mappingDTOs)
+                .source(sourceTableInfoDTO)
+                .target(targetTableInfoDTO)
+                .build());
+
+        return ApiResponse.success(true);
     }
 }

@@ -15,13 +15,17 @@ class TaskDetail extends React.Component {
             }
         });
 
+        this.observeFullMigrationProgress();
+    }
+
+    observeFullMigrationProgress() {
         this.fullMigrationProgressInterval = setInterval(() =>
             $.get(DOMAIN + '/api/task/detail/' + taskId + '/full-migration-progress').done(data => {
                 if (data.success) {
                     this.setState({fullMigrationProgress: data.data});
-                    if (parseInt(data.data) === 100) {
-                        clearInterval(this.fullMigrationProgressInterval);
-                    }
+                    // if (parseInt(data.data) === 100) {
+                    //     clearInterval(this.fullMigrationProgressInterval);
+                    // }
                 }
             }), 500
         )
@@ -42,16 +46,21 @@ class TaskDetail extends React.Component {
                     </div>
                 </div>
                 <div className="row mt-1">
-                    <div className="col-3 pl-3">
-                        <p>Full migration progress:</p>
+                    <div className="col-3 pl-3 vertial-center">
+                        <div>Full migration progress:</div>
                     </div>
-                    <div className="col-9">
+                    <div className="col-8 vertial-center">
                         <div className="progress ml-1" style={{height: "24px"}}>
                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                  aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
                                  style={{width: this.state.fullMigrationProgress + '%'}}>{this.state.fullMigrationProgress}%
                             </div>
                         </div>
+                    </div>
+                    <div className="col-1 vertial-center">
+                        <a className="btn btn-primary btn-sm" onClick={() => {
+                            $.get(DOMAIN + '/api/task/detail/' + taskId+'/start-full-migration').done(() => this.observeFullMigrationProgress());
+                        }}>Start</a>
                     </div>
                 </div>
                 <div className="row mt-3">

@@ -11,3 +11,7 @@
 .dropdown.fullWidth .dropdown-menu {
     width: 100%;
 }
+
+.vertial-center {
+    margin: auto 0;
+}
