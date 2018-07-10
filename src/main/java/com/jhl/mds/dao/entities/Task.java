@@ -29,6 +29,7 @@ public class Task {
     private String targetTable;
     private int taskType;
     private double fullMigrationProgress;
+    private boolean incrementalMigrationActive;
     private Date createdAt;
     private Date updatedAt;
 }

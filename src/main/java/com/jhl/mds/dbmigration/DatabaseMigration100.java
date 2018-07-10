@@ -41,6 +41,7 @@ public class DatabaseMigration100 extends AbstractDatabaseMigration {
                     "target_table VARCHAR(255)," +
                     "task_type INTEGER," +
                     "full_migration_progress DOUBLE," +
+                    "incremental_migration_active INTEGER," +
                     "created_at TIMESTAMP," +
                     "updated_at TIMESTAMP," +
                     "FOREIGN KEY(fk_source_server) REFERENCES mysql_server(server_id) ON DELETE CASCADE," +

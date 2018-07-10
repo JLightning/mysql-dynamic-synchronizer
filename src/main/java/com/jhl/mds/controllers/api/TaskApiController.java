@@ -127,6 +127,8 @@ public class TaskApiController {
         try {
             FullMigrationDTO fullMigrationDTO = getFullMigrationDTO(taskId);
             incrementalMigrationService.run(fullMigrationDTO);
+
+            taskRepository.updateIncrementalMigrationActive(taskId, true);
         } catch (Exception e) {
             return ApiResponse.error(e);
         }
