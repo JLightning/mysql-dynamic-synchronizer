@@ -17,7 +17,7 @@ public class Pipeline<T, R> {
     private T context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
     @Setter
-    private Consumer<R> finalNext;
+    private Consumer<R> finalNext = System.out::println;
     @Setter
     private Consumer<Exception> errorHandler = Exception::printStackTrace;
 
@@ -33,11 +33,7 @@ public class Pipeline<T, R> {
             executorServices[i] = Executors.newFixedThreadPool(4);
         }
         Consumer[] nextList = new Consumer[taskList.size()];
-        nextList[taskList.size() - 1] = o -> {
-        };
-        if (finalNext != null) {
-            nextList[taskList.size() - 1] = finalNext;
-        }
+        nextList[taskList.size() - 1] = finalNext;
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
 
