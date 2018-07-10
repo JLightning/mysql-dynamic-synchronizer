@@ -8,6 +8,7 @@ import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
+import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
 import com.jhl.mds.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.jpa.JpaSystemException;
@@ -27,6 +28,7 @@ public class TaskApiController {
     private TaskFieldMappingRepository taskFieldMappingRepository;
     private MySQLServerRepository mySQLServerRepository;
     private FullMigrationService fullMigrationService;
+    private IncrementalMigrationService incrementalMigrationService;
     private TaskDTO.Converter taskDTOConverter;
     private MySQLServerDTO.Converter serverDTOConverter;
 
@@ -36,6 +38,7 @@ public class TaskApiController {
             TaskFieldMappingRepository taskFieldMappingRepository,
             MySQLServerRepository mySQLServerRepository,
             FullMigrationService fullMigrationService,
+            IncrementalMigrationService incrementalMigrationService,
             TaskDTO.Converter taskDTOConverter,
             MySQLServerDTO.Converter serverDTOConverter
     ) {
@@ -43,6 +46,7 @@ public class TaskApiController {
         this.taskFieldMappingRepository = taskFieldMappingRepository;
         this.mySQLServerRepository = mySQLServerRepository;
         this.fullMigrationService = fullMigrationService;
+        this.incrementalMigrationService = incrementalMigrationService;
         this.taskDTOConverter = taskDTOConverter;
         this.serverDTOConverter = serverDTOConverter;
     }
@@ -108,6 +112,29 @@ public class TaskApiController {
 
     @GetMapping("/detail/{taskId}/start-full-migration")
     public ApiResponse<Boolean> startFullMigrationTask(@PathVariable int taskId) {
+        try {
+            FullMigrationDTO fullMigrationDTO = getFullMigrationDTO(taskId);
+            fullMigrationService.queue(fullMigrationDTO);
+        } catch (Exception e) {
+            return ApiResponse.error(e);
+        }
+
+        return ApiResponse.success(true);
+    }
+
+    @GetMapping("/detail/{taskId}/start-incremental-migration")
+    public ApiResponse<Boolean> startIncrementalMigrationTask(@PathVariable int taskId) {
+        try {
+            FullMigrationDTO fullMigrationDTO = getFullMigrationDTO(taskId);
+            incrementalMigrationService.run(fullMigrationDTO);
+        } catch (Exception e) {
+            return ApiResponse.error(e);
+        }
+
+        return ApiResponse.success(true);
+    }
+
+    private FullMigrationDTO getFullMigrationDTO(@PathVariable int taskId) {
         Task task = taskRepository.getOne(taskId);
 
         List<TaskFieldMapping> mapping = taskFieldMappingRepository.findByFkTaskId(taskId);
@@ -120,17 +147,11 @@ public class TaskApiController {
         TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), task.getSourceDatabase(), task.getSourceTable());
         TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), task.getTargetDatabase(), task.getTargetTable());
 
-        try {
-            fullMigrationService.queue(FullMigrationDTO.builder()
-                    .taskId(task.getTaskId())
-                    .mapping(mappingDTOs)
-                    .source(sourceTableInfoDTO)
-                    .target(targetTableInfoDTO)
-                    .build());
-        } catch (Exception e) {
-            return ApiResponse.error(e);
-        }
-
-        return ApiResponse.success(true);
+        return FullMigrationDTO.builder()
+                .taskId(task.getTaskId())
+                .mapping(mappingDTOs)
+                .source(sourceTableInfoDTO)
+                .target(targetTableInfoDTO)
+                .build();
     }
 }

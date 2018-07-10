@@ -42,6 +42,7 @@ public class FullMigrationService {
             throw new RuntimeException("Task has already been running");
         }
         runningTask.add(dto.getTaskId());
+        saveFullMigrationProgress(dto.getTaskId(), 0, false);
         new Thread(() -> run(dto)).start();
     }
 
@@ -56,7 +57,7 @@ public class FullMigrationService {
             AtomicLong finished = new AtomicLong();
 
             final Consumer<Long> finishCallback = size -> {
-                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.addAndGet(size) * 100) / count);
+                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.addAndGet(size) * 100) / count, true);
                 synchronized (finished) {
                     finished.notify();
                 }
@@ -71,7 +72,7 @@ public class FullMigrationService {
                 } else {
                     finishCallback.accept(1L);
                 }
-                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.get() * 100) / count);
+                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.get() * 100) / count, true);
             });
             pipeline.append(mySQLReadService)
                     .append(mapperService)
@@ -91,8 +92,10 @@ public class FullMigrationService {
         runningTask.remove(dto.getTaskId());
     }
 
-    private void saveFullMigrationProgress(int taskId, double v) {
-        executorService.submit(() -> taskRepository.updateFullMigrationProgress(taskId, Math.round(v)));
+    private void saveFullMigrationProgress(int taskId, double v, boolean async) {
+        Runnable runnable = () -> taskRepository.updateFullMigrationProgress(taskId, Math.round(v));
+        if (async) executorService.submit(runnable);
+        else runnable.run();
     }
 
     public double getProgress(int taskId) {

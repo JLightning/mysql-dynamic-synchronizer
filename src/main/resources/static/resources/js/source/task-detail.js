@@ -23,9 +23,9 @@ class TaskDetail extends React.Component {
             $.get(DOMAIN + '/api/task/detail/' + taskId + '/full-migration-progress').done(data => {
                 if (data.success) {
                     this.setState({fullMigrationProgress: data.data});
-                    // if (parseInt(data.data) === 100) {
-                    //     clearInterval(this.fullMigrationProgressInterval);
-                    // }
+                    if (parseInt(data.data) === 100) {
+                        clearInterval(this.fullMigrationProgressInterval);
+                    }
                 }
             }), 500
         )
@@ -98,7 +98,13 @@ class TaskDetail extends React.Component {
                             </div>
                             <div className="col-6">
                                 <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
-                                <button type="button" className="float-right btn btn-primary btn-sm">Start</button>
+                                <button type="button" className="float-right btn btn-primary btn-sm"  onClick={() => {
+                                    $.get(DOMAIN + '/api/task/detail/' + taskId + '/start-incremental-migration').done((data) => {
+                                        if (!data.success) {
+                                            showError(data.errorMessage);
+                                        }
+                                    });
+                                }}>Start</button>
                             </div>
                         </div>
                         <table className="table">
