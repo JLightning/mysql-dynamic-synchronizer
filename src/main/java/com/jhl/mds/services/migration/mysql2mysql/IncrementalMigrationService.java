@@ -44,6 +44,7 @@ public class IncrementalMigrationService {
     private MySQLBinLogService mySQLBinLogService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MySQLWriteService mySQLWriteService;
+    private FullMigrationDTO.Converter fullMigrationDTOConverter;
     private Set<Integer> runningTask = new HashSet<>();
 
     @Autowired
@@ -55,7 +56,8 @@ public class IncrementalMigrationService {
             MySQLBinLogPool mySQLBinLogPool,
             MySQLBinLogService mySQLBinLogService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
-            MySQLWriteService mySQLWriteService
+            MySQLWriteService mySQLWriteService,
+            FullMigrationDTO.Converter fullMigrationDTOConverter
     ) {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
@@ -65,31 +67,14 @@ public class IncrementalMigrationService {
         this.mySQLBinLogService = mySQLBinLogService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.mySQLWriteService = mySQLWriteService;
+        this.fullMigrationDTOConverter = fullMigrationDTOConverter;
     }
 
     @PostConstruct
-    // TODO: clean FullMigrationDTO generation
     private void init() {
         List<Task> tasks = taskRepository.findByIncrementalMigrationActive(true);
         for (Task task : tasks) {
-            List<TaskFieldMapping> mapping = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
-
-            List<SimpleFieldMappingDTO> mappingDTOs = mapping.stream().map(m -> new SimpleFieldMappingDTO(m.getSourceField(), m.getTargetField())).collect(Collectors.toList());
-
-            MySQLServer sourceServer = mySQLServerRepository.findByServerId(task.getFkSourceServer());
-            MySQLServer targetServer = mySQLServerRepository.findByServerId(task.getFkTargetServer());
-
-            TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), task.getSourceDatabase(), task.getSourceTable());
-            TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), task.getTargetDatabase(), task.getTargetTable());
-
-            FullMigrationDTO fullMigrationDTO = FullMigrationDTO.builder()
-                    .taskId(task.getTaskId())
-                    .mapping(mappingDTOs)
-                    .source(sourceTableInfoDTO)
-                    .target(targetTableInfoDTO)
-                    .build();
-
-            run(fullMigrationDTO);
+            run(fullMigrationDTOConverter.from(task));
         }
     }
 
