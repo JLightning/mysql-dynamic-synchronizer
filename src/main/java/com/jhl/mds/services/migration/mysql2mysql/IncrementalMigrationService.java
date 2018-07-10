@@ -68,7 +68,7 @@ public class IncrementalMigrationService {
     }
 
     @PostConstruct
-    // TODO: clean FullMigrationDTO generation, support bin log server restart
+    // TODO: clean FullMigrationDTO generation
     private void init() {
         List<Task> tasks = taskRepository.findByIncrementalMigrationActive(true);
         for (Task task : tasks) {
