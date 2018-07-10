@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/task")
@@ -43,6 +42,11 @@ public class TaskApiController {
         this.incrementalMigrationService = incrementalMigrationService;
         this.taskDTOConverter = taskDTOConverter;
         this.fullMigrationDTOConverter = fullMigrationDTOConverter;
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ApiResponse exceptionHandler(Exception e) {
+        return ApiResponse.error(e);
     }
 
     @PostMapping("/create")
@@ -89,14 +93,10 @@ public class TaskApiController {
 
     @GetMapping("/detail/{taskId}")
     public ApiResponse<TaskDTO> getTaskAction(@PathVariable int taskId) {
-        Optional<Task> optTask = taskRepository.findById(taskId);
-        if (!optTask.isPresent()) {
-            return ApiResponse.error("Task not found");
-        }
-
+        Task task = taskRepository.getOne(taskId);
         List<TaskFieldMapping> taskMapping = Util.defaultIfNull(taskFieldMappingRepository.findByFkTaskId(taskId), new ArrayList<>());
 
-        return ApiResponse.success(taskDTOConverter.from(optTask.get(), taskMapping));
+        return ApiResponse.success(taskDTOConverter.from(task, taskMapping));
     }
 
     @GetMapping("/detail/{taskId}/full-migration-progress")
