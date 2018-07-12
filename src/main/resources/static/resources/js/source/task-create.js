@@ -122,6 +122,8 @@ class TaskCreate extends React.Component {
         const dragFieldIdx = fields.indexOf(dragField);
         const dropFieldIdx = fields.indexOf(dropField);
 
+        if (dragFieldIdx === dropFieldIdx) return;
+
         const tmp = fields[dragFieldIdx].sourceField;
         fields[dragFieldIdx].sourceField = fields[dropFieldIdx].sourceField;
         fields[dropFieldIdx].sourceField = tmp;
@@ -213,9 +215,23 @@ class FieldRowList extends React.Component {
 
 class FieldRow extends React.Component {
 
-    dragOver(e) {
+    constructor(props) {
+        super(props);
+        this.state = {dropTargetClass: ''};
+    }
+
+    onDragOver(e) {
+        this.setState({dropTargetClass: 'bg-primary text-white'});
         e.preventDefault();
         e.stopPropagation();
+    }
+
+    onDragLeave(e) {
+        this.setState({dropTargetClass: ''});
+    }
+
+    onDrop(e) {
+        this.setState({dropTargetClass: ''});
     }
 
     render() {
@@ -224,10 +240,18 @@ class FieldRow extends React.Component {
         return (
             <tr>
                 {
-                    <td draggable="true"
-                        onDragStart={() => this.props.captureDrapStartField(field)}
-                        onDrop={() => this.props.onDrop(field)}
-                        onDragOver={e => this.dragOver(e)}
+                    <td className={this.state.dropTargetClass}
+                        draggable="true"
+                        onDragStart={() => {
+                            this.setState({dropTargetClass: 'bg-success text-white'});
+                            this.props.captureDrapStartField(field);
+                        }}
+                        onDrop={() => {
+                            this.onDrop();
+                            this.props.onDrop(field);
+                        }}
+                        onDragOver={e => this.onDragOver(e)}
+                        onDragLeave={e => this.onDragLeave(e)}
                     >{sourceText}</td>
                 }
                 <td>
