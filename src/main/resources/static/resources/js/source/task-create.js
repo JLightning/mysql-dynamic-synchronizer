@@ -246,7 +246,7 @@ class FieldRow extends React.Component {
                 <div>
                     <input type="text" value={field.sourceField}
                            onChange={e => this.props.editField(this.props.idx, e.target.value)}/>
-                    <i className="fa fa-check-square-o ml-2" aria-hidden="true" onClick={() => this.setState({custom: false})}></i>
+                    <i className="fa fa-check-square-o ml-2" aria-hidden="true" onClick={() => this.setState({custom: false})}/>
                 </div>
             );
         return <div onClick={() => this.setState({custom: true})}
