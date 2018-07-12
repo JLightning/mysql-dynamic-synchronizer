@@ -132,6 +132,12 @@ class TaskCreate extends React.Component {
         this.setState({fields: fields});
     }
 
+    editField(idx, fieldName) {
+        let fields = this.state.fields;
+        fields[idx].sourceField = fieldName;
+        this.setState({fields: fields});
+    }
+
     render() {
         return (
             <div className="container mt-3">
@@ -170,7 +176,8 @@ class TaskCreate extends React.Component {
                                 <FieldRowList
                                     fields={this.state.fields}
                                     handleMappableChange={(e, idx) => this.handleMappableChange(e, idx)}
-                                    swapField={this.swapField.bind(this)}/>
+                                    swapField={this.swapField.bind(this)}
+                                    editField={this.editField.bind(this)}/>
                                 </tbody>
                             </table> : ''
                     }
@@ -201,7 +208,9 @@ class FieldRowList extends React.Component {
     render() {
         return this.props.fields.map((field, idx) => <FieldRow
             key={idx}
+            idx={idx}
             field={field}
+            editField={this.props.editField}
             handleMappableChange={e => this.props.handleMappableChange(e, idx)}
             onDrop={this.onDrop.bind(this)}
             captureDrapStartField={this.captureDrapStartField.bind(this)}
@@ -233,8 +242,15 @@ class FieldRow extends React.Component {
     getSourceText() {
         const field = this.props.field;
         if (this.state.custom)
-            return <input type="text" value={field.sourceField}/>
-        return field.sourceField;
+            return (
+                <div>
+                    <input type="text" value={field.sourceField}
+                           onChange={e => this.props.editField(this.props.idx, e.target.value)}/>
+                    <i className="fa fa-check-square-o ml-2" aria-hidden="true" onClick={() => this.setState({custom: false})}></i>
+                </div>
+            );
+        return <div onClick={() => this.setState({custom: true})}
+                    style={{minHeight: '1.5rem'}}>{field.sourceField}</div>;
     }
 
     render() {
@@ -243,7 +259,7 @@ class FieldRow extends React.Component {
         return (
             <tr>
                 {
-                    <td className={this.state.dropTargetClass}
+                    <td className={this.state.dropTargetClass + ' pointer'}
                         draggable="true"
                         onDragStart={() => {
                             this.setState({dropTargetClass: 'bg-success text-white'});
@@ -257,16 +273,11 @@ class FieldRow extends React.Component {
                         onDragLeave={e => this.onDragLeave(e)}
                     >
                         {sourceText}
-                        <button className="btn btn-primary btn-sm float-right"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    this.setState({custom: true})
-                                }}>custom
-                        </button>
                     </td>
                 }
                 <td>
-                    {<input type="checkbox" checked={field.mappable} onChange={e => this.props.handleMappableChange(e)}/>}
+                    {<input type="checkbox" checked={field.mappable}
+                            onChange={e => this.props.handleMappableChange(e)}/>}
                 </td>
                 {
                     field.targetField == null ? <td></td> :

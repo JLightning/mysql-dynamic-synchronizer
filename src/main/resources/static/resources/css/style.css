@@ -15,3 +15,7 @@
 .vertial-center {
     margin: auto 0;
 }
+
+.pointer {
+    cursor: pointer;
+}
