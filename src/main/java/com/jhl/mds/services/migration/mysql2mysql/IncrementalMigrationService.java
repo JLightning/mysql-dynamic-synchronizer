@@ -37,9 +37,6 @@ public class IncrementalMigrationService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private static ExecutorService executor = Executors.newFixedThreadPool(4);
     private TaskRepository taskRepository;
-    private TaskFieldMappingRepository taskFieldMappingRepository;
-    private MySQLServerRepository mySQLServerRepository;
-    private MySQLServerDTO.Converter serverDTOConverter;
     private MySQLBinLogPool mySQLBinLogPool;
     private MySQLBinLogService mySQLBinLogService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
@@ -50,9 +47,6 @@ public class IncrementalMigrationService {
     @Autowired
     public IncrementalMigrationService(
             TaskRepository taskRepository,
-            TaskFieldMappingRepository taskFieldMappingRepository,
-            MySQLServerRepository mySQLServerRepository,
-            MySQLServerDTO.Converter serverDTOConverter,
             MySQLBinLogPool mySQLBinLogPool,
             MySQLBinLogService mySQLBinLogService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
@@ -60,9 +54,6 @@ public class IncrementalMigrationService {
             FullMigrationDTO.Converter fullMigrationDTOConverter
     ) {
         this.taskRepository = taskRepository;
-        this.taskFieldMappingRepository = taskFieldMappingRepository;
-        this.mySQLServerRepository = mySQLServerRepository;
-        this.serverDTOConverter = serverDTOConverter;
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.mySQLBinLogService = mySQLBinLogService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
