@@ -213,7 +213,7 @@ class FieldRow extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {dropTargetClass: ''};
+        this.state = {dropTargetClass: '', custom: false};
     }
 
     onDragOver(e) {
@@ -230,9 +230,16 @@ class FieldRow extends React.Component {
         this.setState({dropTargetClass: ''});
     }
 
+    getSourceText() {
+        const field = this.props.field;
+        if (this.state.custom)
+            return <input type="text" value={field.sourceField}/>
+        return field.sourceField;
+    }
+
     render() {
         const field = this.props.field;
-        const sourceText = field.sourceField == null ? '' : field.sourceField;
+        const sourceText = this.getSourceText();
         return (
             <tr>
                 {
@@ -250,12 +257,16 @@ class FieldRow extends React.Component {
                         onDragLeave={e => this.onDragLeave(e)}
                     >
                         {sourceText}
-                        <button className="btn btn-primary btn-sm float-right">custom</button>
+                        <button className="btn btn-primary btn-sm float-right"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    this.setState({custom: true})
+                                }}>custom
+                        </button>
                     </td>
                 }
                 <td>
-                    <input type="checkbox" checked={field.mappable}
-                           onChange={e => this.props.handleMappableChange(e)}/>
+                    {<input type="checkbox" checked={field.mappable} onChange={e => this.props.handleMappableChange(e)}/>}
                 </td>
                 {
                     field.targetField == null ? <td></td> :
