@@ -49,9 +49,7 @@ public class FullMigrationService {
     public void run(FullMigrationDTO dto) {
         try {
             MigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
-            List<String> targetColumns = mapperService.getColumns();
-
-            dto.setTargetColumns(targetColumns);
+            dto.setTargetColumns(mapperService.getColumns());
 
             long count = mySQLReadService.count(dto.getSource());
             AtomicLong finished = new AtomicLong();

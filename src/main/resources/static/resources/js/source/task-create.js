@@ -87,6 +87,7 @@ class TaskCreate extends React.Component {
     handleMappableChange(e, idx) {
         const fields = this.state.fields;
         fields[idx].mappable = e.target.checked;
+        console.log(fields);
         this.setState({fields: fields});
     }
 
@@ -116,6 +117,23 @@ class TaskCreate extends React.Component {
         });
     }
 
+    swapField(dragField, dropField) {
+        let fields = this.state.fields;
+        const dragFieldIdx = fields.indexOf(dragField);
+        const dropFieldIdx = fields.indexOf(dropField);
+
+        const tmp = fields[dragFieldIdx].sourceField;
+        fields[dragFieldIdx].sourceField = fields[dropFieldIdx].sourceField;
+        fields[dropFieldIdx].sourceField = tmp;
+
+        fields[dropFieldIdx].mappable = true;
+        fields[dragFieldIdx].mappable = false;
+
+        console.log(fields);
+
+        this.setState({fields: fields});
+    }
+
     render() {
         return (
             <div className="container mt-3">
@@ -131,10 +149,12 @@ class TaskCreate extends React.Component {
 
                     <div className="row">
                         <div className="col">
-                            <TableSelector table={this.state.table.source} title='Source' onSelected={o => this.tableSelected(o, true)}/>
+                            <TableSelector table={this.state.table.source} title='Source'
+                                           onSelected={o => this.tableSelected(o, true)}/>
                         </div>
                         <div className="col">
-                            <TableSelector table={this.state.table.target} title='Target' onSelected={o => this.tableSelected(o, false)}/>
+                            <TableSelector table={this.state.table.target} title='Target'
+                                           onSelected={o => this.tableSelected(o, false)}/>
                         </div>
                     </div>
 
@@ -149,10 +169,10 @@ class TaskCreate extends React.Component {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {
-                                    this.state.fields.map((field, idx) => <FieldRow key={idx} field={field}
-                                                                                    handleMappableChange={e => this.handleMappableChange(e, idx)}/>)
-                                }
+                                <FieldRowList
+                                    fields={this.state.fields}
+                                    handleMappableChange={(e, idx) => this.handleMappableChange(e, idx)}
+                                    swapField={this.swapField.bind(this)}/>
                                 </tbody>
                             </table> : ''
                     }
@@ -168,15 +188,47 @@ class TaskCreate extends React.Component {
     }
 }
 
+class FieldRowList extends React.Component {
+
+    captureDrapStartField(field) {
+        this.setState({capturedField: field});
+    }
+
+    onDrop(field) {
+        if (this.state.capturedField !== null) {
+            this.props.swapField(this.state.capturedField, field);
+        }
+    }
+
+    render() {
+        return this.props.fields.map((field, idx) => <FieldRow
+            key={idx}
+            field={field}
+            handleMappableChange={e => this.props.handleMappableChange(e, idx)}
+            onDrop={this.onDrop.bind(this)}
+            captureDrapStartField={this.captureDrapStartField.bind(this)}
+        />);
+    }
+}
+
 class FieldRow extends React.Component {
+
+    dragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
 
     render() {
         const field = this.props.field;
+        const sourceText = field.sourceField == null ? '' : field.sourceField.field + ' [' + field.sourceField.type + ']';
         return (
             <tr>
                 {
-                    field.sourceField == null ? <td></td> :
-                        <td>{field.sourceField.field} [{field.sourceField.type}]</td>
+                    <td draggable="true"
+                        onDragStart={() => this.props.captureDrapStartField(field)}
+                        onDrop={() => this.props.onDrop(field)}
+                        onDragOver={e => this.dragOver(e)}
+                    >{sourceText}</td>
                 }
                 <td>
                     <input type="checkbox" defaultChecked={field.mappable}
