@@ -94,13 +94,13 @@ public class MySQLDescribeService {
                     shouldMap = targetField.getField().equals(sourceToTargetMap.get(sourceField.getField()));
 
                 if (shouldMap && !mapAlreadyForTarget.containsKey(targetField)) {
-                    result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField).targetField(targetField).mappable(true).build());
+                    result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField.getField()).targetField(targetField.getField()).mappable(true).build());
                     mapAlreadyForTarget.put(targetField, true);
                     continue outer_loop;
                 }
             }
 
-            result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField).build());
+            result.add(MySQLFieldWithMappingDTO.builder().sourceField(sourceField.getField()).build());
         }
 
         targetFields.removeAll(mapAlreadyForTarget.keySet());
@@ -108,13 +108,13 @@ public class MySQLDescribeService {
         for (MySQLFieldWithMappingDTO _result : result) {
             if (targetFields.size() == 0) break;
             if (!_result.isMappable()) {
-                _result.setTargetField(targetFields.get(0));
+                _result.setTargetField(targetFields.get(0).getField());
                 targetFields.remove(0);
             }
         }
 
         for (MySQLFieldDTO targetField : targetFields) {
-            result.add(MySQLFieldWithMappingDTO.builder().targetField(targetField).build());
+            result.add(MySQLFieldWithMappingDTO.builder().targetField(targetField.getField()).build());
         }
         return result;
     }

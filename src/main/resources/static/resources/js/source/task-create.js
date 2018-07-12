@@ -92,11 +92,9 @@ class TaskCreate extends React.Component {
     }
 
     submit() {
-        const mapping = [];
-        this.state.fields.filter(field => field.mappable).forEach(field => mapping.push({
-            sourceField: field.sourceField.field,
-            targetField: field.targetField.field
-        }));
+        const mapping = this.state.fields.filter(field => field.mappable).map(field => {
+            return {sourceField: field.sourceField, targetField: field.targetField}
+        });
         const postParams = {
             taskName: this.state.taskName,
             mapping: mapping,
@@ -130,8 +128,6 @@ class TaskCreate extends React.Component {
 
         fields[dropFieldIdx].mappable = true;
         fields[dragFieldIdx].mappable = false;
-
-        console.log(fields);
 
         this.setState({fields: fields});
     }
@@ -236,7 +232,7 @@ class FieldRow extends React.Component {
 
     render() {
         const field = this.props.field;
-        const sourceText = field.sourceField == null ? '' : field.sourceField.field + ' [' + field.sourceField.type + ']';
+        const sourceText = field.sourceField == null ? '' : field.sourceField;
         return (
             <tr>
                 {
@@ -252,15 +248,18 @@ class FieldRow extends React.Component {
                         }}
                         onDragOver={e => this.onDragOver(e)}
                         onDragLeave={e => this.onDragLeave(e)}
-                    >{sourceText}</td>
+                    >
+                        {sourceText}
+                        <button className="btn btn-primary btn-sm float-right">custom</button>
+                    </td>
                 }
                 <td>
-                    <input type="checkbox" defaultChecked={field.mappable}
+                    <input type="checkbox" checked={field.mappable}
                            onChange={e => this.props.handleMappableChange(e)}/>
                 </td>
                 {
                     field.targetField == null ? <td></td> :
-                        <td>{field.targetField.field} [{field.targetField.type}]</td>
+                        <td>{field.targetField}</td>
                 }
             </tr>
         );

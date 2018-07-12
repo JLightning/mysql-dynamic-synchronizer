@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MySQLFieldWithMappingDTO {
-    private MySQLFieldDTO sourceField;
-    private MySQLFieldDTO targetField;
+    private String sourceField;
+    private String targetField;
     private boolean mappable;
 }
