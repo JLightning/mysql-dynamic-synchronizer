@@ -40,4 +40,14 @@ public class MySQLBinLogPool {
             connection.addListener(source, listener);
         }
     }
+
+    public void removeListener(TableInfoDTO source, MySQLBinLogListener listener) {
+        if (!connectionMap.containsKey(source.getServer())) {
+            openNewConnection(source.getServer());
+        }
+        MySQLBinLogConnection connection = connectionMap.get(source.getServer());
+        if (connection != null) {
+            connection.removeListener(source, listener);
+        }
+    }
 }

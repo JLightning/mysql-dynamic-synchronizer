@@ -118,14 +118,20 @@ public class TaskApiController {
 
     @GetMapping("/detail/{taskId}/start-incremental-migration")
     public ApiResponse<Boolean> startIncrementalMigrationTask(@PathVariable int taskId) {
-        try {
-            FullMigrationDTO fullMigrationDTO = fullMigrationDTOConverter.from(taskId);
-            incrementalMigrationService.run(fullMigrationDTO);
+        FullMigrationDTO fullMigrationDTO = fullMigrationDTOConverter.from(taskId);
+        incrementalMigrationService.run(fullMigrationDTO);
 
-            taskRepository.updateIncrementalMigrationActive(taskId, true);
-        } catch (Exception e) {
-            return ApiResponse.error(e);
-        }
+        taskRepository.updateIncrementalMigrationActive(taskId, true);
+
+        return ApiResponse.success(true);
+    }
+
+    @GetMapping("/detail/{taskId}/stop-incremental-migration")
+    public ApiResponse<Boolean> stopIncrementalMigrationTask(@PathVariable int taskId) {
+        FullMigrationDTO fullMigrationDTO = fullMigrationDTOConverter.from(taskId);
+        incrementalMigrationService.stop(fullMigrationDTO);
+
+        taskRepository.updateIncrementalMigrationActive(taskId, false);
 
         return ApiResponse.success(true);
     }

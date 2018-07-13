@@ -83,6 +83,13 @@ public class MySQLBinLogConnection {
         listenerMap.put(tableInfoDTO, list);
     }
 
+    public void removeListener(TableInfoDTO tableInfoDTO, MySQLBinLogListener listener) {
+        List<MySQLBinLogListener> list = listenerMap.get(tableInfoDTO);
+        if (list == null) return;
+        list.remove(listener);
+        listenerMap.put(tableInfoDTO, list);
+    }
+
     private void writeBinlogPosition(String binlogFilename, long position) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(BINLOG_POSITION_FILENAME))) {
             bw.write(jacksonObjectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)));
