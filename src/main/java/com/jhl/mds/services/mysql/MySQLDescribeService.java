@@ -1,6 +1,7 @@
 package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.*;
+import com.jhl.mds.services.customefilter.CustomFilterPool;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
@@ -17,9 +18,17 @@ import java.util.stream.Collectors;
 public class MySQLDescribeService {
 
     private MySQLConnectionPool mySQLConnectionPool;
+    private CustomFilterPool customFilterPool;
+    private MySQLFieldDefaultValueService mySQLFieldDefaultValueService;
 
-    public MySQLDescribeService(MySQLConnectionPool mySQLConnectionPool) {
+    public MySQLDescribeService(
+            MySQLConnectionPool mySQLConnectionPool,
+            CustomFilterPool customFilterPool,
+            MySQLFieldDefaultValueService mySQLFieldDefaultValueService
+    ) {
         this.mySQLConnectionPool = mySQLConnectionPool;
+        this.customFilterPool = customFilterPool;
+        this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
     }
 
     public List<String> getDatabases(MySQLServerDTO dto) throws SQLException {
@@ -73,7 +82,7 @@ public class MySQLDescribeService {
         return fields;
     }
 
-    public List<MySQLFieldWithMappingDTO> getFieldsMappingFor2Table(MySQLServerDTO sourceServer, MySQLServerDTO targetServer, TableFieldsMappingDTO dto) throws SQLException {
+    public List<MySQLFieldWithMappingDTO> getFieldsMappingFor2Table(MySQLServerDTO sourceServer, MySQLServerDTO targetServer, TableFieldsMappingRequestDTO dto) throws SQLException {
         List<MySQLFieldDTO> sourceFields = getFields(sourceServer, dto.getSourceDatabase(), dto.getSourceTable());
         List<MySQLFieldDTO> targetFields = getFields(targetServer, dto.getTargetDatabase(), dto.getTargetTable());
 
@@ -117,5 +126,28 @@ public class MySQLDescribeService {
             result.add(MySQLFieldWithMappingDTO.builder().targetField(targetField.getField()).build());
         }
         return result;
+    }
+
+    public void validateFilter(MySQLServerDTO dto, String database, String table, String filter) throws Exception {
+        filter = filter.replaceAll("&", "&&");
+        filter = filter.replaceAll("\\|", "||");
+
+        List<MySQLFieldDTO> fields = getFields(dto, database, table);
+        Map<String, Object> sampleData = fields.stream().map(field -> new Object[]{field, mySQLFieldDefaultValueService.getDefaultValue(field)}).collect(Collectors.toMap(o -> ((MySQLFieldDTO) o[0]).getField(), o -> (String) o[1]));
+
+        customFilterPool.resolve(filter, sampleData).get();
+    }
+
+    public String beautifyFilter(String filter) {
+        filter = filter.replaceAll("&", "&&");
+        filter = filter.replaceAll("\\|", "||");
+        String allOperatersRegex = "(\\+|-|\\*|/|>|>=|<|<=|&&|\\|\\|)";
+        filter = filter.replaceAll(" {2,}", " ");
+        filter = filter.replaceAll("([^ ])" + allOperatersRegex + "([^ ])", "$1 $2 $3");
+        filter = filter.replaceAll("([^ ])" + allOperatersRegex, "$1 $2");
+        filter = filter.replaceAll(allOperatersRegex+ "([^ ])", "$1 $2");
+        filter = filter.replaceAll("\\( \\(", "((");
+        filter = filter.replaceAll("\\) \\)", "))");
+        return filter;
     }
 }

@@ -6,7 +6,7 @@ class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false};
+        this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false, filters: []};
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
@@ -141,7 +141,9 @@ class TaskCreate extends React.Component {
     render() {
         return (
             <div className="container mt-3">
+                <h1>Task Information</h1>
                 <form>
+                    <h4>Choose Source and Target table</h4>
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
                         <input type="text" className="form-control" id="name" name="name"
@@ -162,6 +164,7 @@ class TaskCreate extends React.Component {
                         </div>
                     </div>
 
+                    <h4 className="mt-3">Mapping</h4>
                     {
                         this.state.fields.length > 0 ?
                             <table className="table mt-3">
@@ -182,6 +185,32 @@ class TaskCreate extends React.Component {
                             </table> : ''
                     }
 
+                    <h4 className="mt-3">Filter</h4>
+                    <TaskFilter filters={this.state.filters} addFilter={(filter, cb) => {
+                        let params = {
+                            serverId: this.state.table.source.serverId,
+                            database: this.state.table.source.database,
+                            table: this.state.table.source.table,
+                            filter: filter
+                        };
+
+                        $.post(DOMAIN + "/api/mysql/validate-filter", params).done(data => {
+                            if (data.success) {
+                                let filters = this.state.filters;
+                                filters.push(data.data)
+                                this.setState({filters: filters});
+                                cb();
+                            } else {
+                                showError(data.errorMessage);
+                            }
+                        });
+                    }}
+                                removeFilter={idx => {
+                                    let filters = this.state.filters;
+                                    filters.splice(idx, 1);
+                                    this.setState({filters: filters});
+                                }}/>
+
                     <button type="button" className="btn btn-primary float-right mt-3"
                             disabled={!this.state.readyForSubmit}
                             onClick={() => this.submit()}>
@@ -190,6 +219,42 @@ class TaskCreate extends React.Component {
                 </form>
             </div>
         )
+    }
+}
+
+class TaskFilter extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {filters: this.props.filters || [], inputValue: ''};
+    }
+
+    render() {
+        return (
+            <div>
+                <div className="filterWrapper">
+                    {this.state.filters.map((filter, idx) =>
+                        <span key={idx} className="filter btn btn-secondary btn-sm mr-2"
+                              onClick={idx => this.props.removeFilter(idx)}>
+                            <span>{filter}</span>
+                            <i className="fa fa-close ml-2" aria-hidden="true"/>
+                        </span>
+                    )}
+                </div>
+                <input type="text" className="form-control mt-2" id="filter" name="filter" placeholder="Enter Task Name"
+                       onKeyPress={(e) => {
+                           if (e.key === 'Enter') {
+                               const value = e.target.value;
+                               if (value.trim() !== '') {
+                                   this.props.addFilter(value, () => this.setState({inputValue: ''}))
+                               }
+                               return;
+                           }
+                       }}
+                       value={this.state.inputValue}
+                       onChange={e => this.setState({inputValue: e.target.value})}/>
+            </div>
+        );
     }
 }
 
@@ -246,7 +311,8 @@ class FieldRow extends React.Component {
                 <div>
                     <input type="text" value={field.sourceField}
                            onChange={e => this.props.editField(this.props.idx, e.target.value)}/>
-                    <i className="fa fa-check-square-o ml-2" aria-hidden="true" onClick={() => this.setState({custom: false})}/>
+                    <i className="fa fa-check-square-o ml-2" aria-hidden="true"
+                       onClick={() => this.setState({custom: false})}/>
                 </div>
             );
         return <div onClick={() => this.setState({custom: true})}

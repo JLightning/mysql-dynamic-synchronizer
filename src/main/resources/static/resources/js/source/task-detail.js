@@ -97,7 +97,13 @@ class TaskDetail extends React.Component {
                                 <p className="h4">Incremental migration:</p>
                             </div>
                             <div className="col-6">
-                                <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
+                                <button type="button" className="float-right btn btn-primary btn-sm ml-1" onClick={() => {
+                                    $.get(DOMAIN + '/api/task/detail/' + taskId + '/stop-incremental-migration').done((data) => {
+                                        if (!data.success) {
+                                            showError(data.errorMessage);
+                                        }
+                                    });
+                                }}>Stop</button>
                                 <button type="button" className="float-right btn btn-primary btn-sm"  onClick={() => {
                                     $.get(DOMAIN + '/api/task/detail/' + taskId + '/start-incremental-migration').done((data) => {
                                         if (!data.success) {

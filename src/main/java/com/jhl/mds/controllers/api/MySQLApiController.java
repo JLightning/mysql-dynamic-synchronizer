@@ -4,6 +4,7 @@ import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,9 +60,16 @@ public class MySQLApiController {
     }
 
     @PostMapping("/fields-mapping")
-    public ApiResponse<List<MySQLFieldWithMappingDTO>> getMappingFor2Table(@RequestBody TableFieldsMappingDTO dto) throws SQLException {
+    public ApiResponse<List<MySQLFieldWithMappingDTO>> getMappingFor2Table(@RequestBody TableFieldsMappingRequestDTO dto) throws SQLException {
         MySQLServer sourceServer = mySQLServerRepository.getOne(dto.getSourceServerId());
         MySQLServer targetServer = mySQLServerRepository.getOne(dto.getTargetServerId());
         return ApiResponse.success(mySQLDescribeService.getFieldsMappingFor2Table(mysqlServerDtoConverter.from(sourceServer), mysqlServerDtoConverter.from(targetServer), dto));
+    }
+
+    @PostMapping("/validate-filter")
+    public ApiResponse<String> validateFilter(@RequestParam int serverId, @RequestParam String database, @RequestParam String table, @RequestParam String filter) throws Exception {
+        MySQLServer server = mySQLServerRepository.getOne(serverId);
+        mySQLDescribeService.validateFilter(mysqlServerDtoConverter.from(server), database, table, filter);
+        return ApiResponse.success(mySQLDescribeService.beautifyFilter(filter));
     }
 }

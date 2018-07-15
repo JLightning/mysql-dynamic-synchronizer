@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class TableFieldsMappingDTO {
+public class TableFieldsMappingRequestDTO {
 
     private int sourceServerId;
     private String sourceDatabase;
