@@ -17,11 +17,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
 
 public class FullMigrationServiceTest extends BaseTest {
 
-    private static final int LIMIT = 1000000;
+    private static final int LIMIT = 100000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -77,6 +78,7 @@ public class FullMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number", "random_number")
                 ))
+                .filters(Collections.singletonList("id % 2 == 1"))
                 .build();
 
         checkTime("full_migration", () -> {
@@ -89,6 +91,6 @@ public class FullMigrationServiceTest extends BaseTest {
 
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
-        Assert.assertEquals(LIMIT, result.getInt(1));
+        Assert.assertEquals(LIMIT / 2, result.getInt(1));
     }
 }

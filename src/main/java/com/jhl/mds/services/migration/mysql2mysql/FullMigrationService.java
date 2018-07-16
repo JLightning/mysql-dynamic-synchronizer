@@ -2,6 +2,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.Pipeline;
@@ -20,6 +21,7 @@ public class FullMigrationService {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(1);
     private MySQLReadService mySQLReadService;
+    private CustomFilterService customFilterService;
     private MySQLWriteService mySQLWriteService;
     private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
@@ -27,11 +29,13 @@ public class FullMigrationService {
 
     public FullMigrationService(
             MySQLReadService mySQLReadService,
+            CustomFilterService customFilterService,
             MySQLWriteService mySQLWriteService,
             TaskRepository taskRepository,
             MigrationMapperService.Factory migrationMapperServiceFactory
     ) {
         this.mySQLReadService = mySQLReadService;
+        this.customFilterService = customFilterService;
         this.mySQLWriteService = mySQLWriteService;
         this.taskRepository = taskRepository;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
@@ -64,7 +68,6 @@ public class FullMigrationService {
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.setFinalNext(finishCallback);
             pipeline.setErrorHandler(e -> {
-                e.printStackTrace();
                 if (e instanceof MySQLWriteService.WriteServiceException) {
                     finishCallback.accept(((MySQLWriteService.WriteServiceException) e).getCount());
                 } else {
@@ -73,6 +76,7 @@ public class FullMigrationService {
                 saveFullMigrationProgress(dto.getTaskId(), (double) (finished.get() * 100) / count, true);
             });
             pipeline.append(mySQLReadService)
+                    .append(customFilterService)
                     .append(mapperService)
                     .append(mySQLWriteService)
                     .execute();
