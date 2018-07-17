@@ -5,15 +5,12 @@ import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Arrays;
 
 public class IncrementalMigrationServiceTest extends BaseTest {
@@ -21,18 +18,9 @@ public class IncrementalMigrationServiceTest extends BaseTest {
     @Autowired
     private IncrementalMigrationService incrementalMigrationService;
 
-    @Autowired
-    private MySQLConnectionPool mySQLConnectionPool;
-
     public void prepareData() throws SQLException {
-        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
-
-        Connection conn = mySQLConnectionPool.getConnection(serverDTO);
-
-        Statement st = conn.createStatement();
-
-        st.execute("TRUNCATE mds.tablea;");
-        st.execute("TRUNCATE mds.tableb;");
+        getStatement().execute("TRUNCATE mds.tablea;");
+        getStatement().execute("TRUNCATE mds.tableb;");
     }
 
     @Test
@@ -52,17 +40,35 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         incrementalMigrationService.run(dto);
 
-        Connection conn = mySQLConnectionPool.getConnection(serverDTO);
-
-        Statement st = conn.createStatement();
         for (int i = 0; i < 100; i++) {
-            st.execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
+            getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
         }
 
         Thread.sleep(1000);
 
-        ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
+        ResultSet result = getStatement().executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
         Assert.assertEquals(100, result.getInt(1));
+    }
+
+    @Test
+    public void updateTest() throws Exception {
+        prepareData();
+
+        FullMigrationDTO dto = FullMigrationDTO.builder()
+                .source(new TableInfoDTO(getSourceServerDTO(), "mds", "tablea"))
+                .target(new TableInfoDTO(getSourceServerDTO(), "mds", "tableb"))
+                .mapping(Arrays.asList(
+                        new SimpleFieldMappingDTO("id + 1", "id"),
+                        new SimpleFieldMappingDTO("random_number * 2", "random_number")
+                ))
+                .build();
+
+        incrementalMigrationService.run(dto);
+
+        getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
+        getStatement().execute("UPDATE mds.tablea SET random_number = 2");
+
+        Thread.sleep(2000);
     }
 }

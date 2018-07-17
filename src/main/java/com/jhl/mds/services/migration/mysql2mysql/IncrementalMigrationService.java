@@ -1,16 +1,10 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
+import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
-import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.entities.Task;
-import com.jhl.mds.dao.entities.TaskFieldMapping;
-import com.jhl.mds.dao.repositories.MySQLServerRepository;
-import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.SimpleFieldMappingDTO;
-import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
@@ -26,7 +20,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 @Service
 public class IncrementalMigrationService {
@@ -79,6 +72,11 @@ public class IncrementalMigrationService {
             public void insert(WriteRowsEventData eventData) {
                 executor.submit(() -> IncrementalMigrationService.this.insert(dto, eventData));
             }
+
+            @Override
+            public void update(UpdateRowsEventData eventData) {
+                executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
+            }
         };
 
         listenerMap.put(dto.getTaskId(), listener);
@@ -92,7 +90,24 @@ public class IncrementalMigrationService {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
-            List<Map<String, Object>> data = mySQLBinLogService.mapDataToField(dto.getSource(), eventData);
+            List<Map<String, Object>> data = mySQLBinLogService.mapInsertDataToField(dto.getSource(), eventData);
+
+            Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
+            pipeline.append((context, input, next, errorHandler) -> data.forEach(next))
+                    .append(migrationMapperService)
+                    .append(mySQLWriteService)
+                    .execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void update(FullMigrationDTO dto, UpdateRowsEventData eventData) {
+        try {
+            MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
+            dto.setTargetColumns(migrationMapperService.getColumns());
+
+            List<Map<String, Object>> data = mySQLBinLogService.mapUpdateDataToField(dto.getSource(), eventData);
 
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append((context, input, next, errorHandler) -> data.forEach(next))

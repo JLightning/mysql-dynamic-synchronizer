@@ -3,6 +3,7 @@ package com.jhl.mds.services.mysql.binlog;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
+import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -46,6 +47,16 @@ public class MySQLBinLogConnection {
                         List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
                         for (MySQLBinLogListener listener : listeners) {
                             listener.insert(event.getData());
+                        }
+                    }
+                    break;
+                case EXT_UPDATE_ROWS:
+                    UpdateRowsEventData updateRowsEventData = event.getData();
+                    tableInfo = tableMap.get(updateRowsEventData.getTableId());
+                    if (listenerMap.containsKey(tableInfo)) {
+                        List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
+                        for (MySQLBinLogListener listener : listeners) {
+                            listener.update(event.getData());
                         }
                     }
                     break;
