@@ -65,21 +65,50 @@ public class MySQLDescribeService {
         Connection conn = mySQLConnectionPool.getConnection(dto);
         Statement st = conn.createStatement();
 
-        st.executeQuery("USE " + database);
-        ResultSet rs = st.executeQuery("DESCRIBE " + table + ";");
+        ResultSet rs = st.executeQuery("SHOW FULL COLUMNS FROM " + database + "." + table + ";");
 
         List<MySQLFieldDTO> fields = new ArrayList<>();
         while (rs.next()) {
             fields.add(MySQLFieldDTO.builder()
                     .field(rs.getString(1))
                     .type(rs.getString(2))
-                    .nullable(!rs.getString(3).equals("NO"))
-                    .key(rs.getString(4))
-                    .defaultValue(rs.getString(5))
-                    .extra(rs.getString(6))
+                    .collation(rs.getString(3))
+                    .nullable(!rs.getString(4).equals("NO"))
+                    .key(rs.getString(5))
+                    .defaultValue(rs.getString(6))
+                    .extra(rs.getString(7))
+                    .comment(rs.getString(9))
                     .build());
         }
         return fields;
+    }
+
+    public List<MySQLIndexDTO> getIndexes(MySQLServerDTO dto, String database, String table) throws SQLException {
+        Connection conn = mySQLConnectionPool.getConnection(dto);
+        Statement st = conn.createStatement();
+
+        ResultSet rs = st.executeQuery("SHOW INDEXES FROM " + database + "." + table + ";");
+
+        List<MySQLIndexDTO> indexes = new ArrayList<>();
+        while (rs.next()) {
+            indexes.add(MySQLIndexDTO.builder()
+                    .table(rs.getString(1))
+                    .nonUnique(rs.getInt(2) == 1)
+                    .keyName(rs.getString(3))
+                    .seqInIndex(rs.getInt(4))
+                    .columnName(rs.getString(5))
+                    .collation(rs.getString(6))
+                    .cardinality(rs.getLong(7))
+                    .subPart(rs.getString(8))
+                    .packed(rs.getString(9))
+                    .isNull(rs.getString(10).equals("YES"))
+                    .indexType(rs.getString(11))
+                    .comment(rs.getString(12))
+                    .indexComment(rs.getString(13))
+                    .build());
+        }
+
+        return indexes;
     }
 
     public List<MySQLFieldWithMappingDTO> getFieldsMappingFor2Table(MySQLServerDTO sourceServer, MySQLServerDTO targetServer, TableFieldsMappingRequestDTO dto) throws SQLException {
@@ -145,7 +174,7 @@ public class MySQLDescribeService {
         filter = filter.replaceAll(" {2,}", " ");
         filter = filter.replaceAll("([^ ])" + allOperatersRegex + "([^ ])", "$1 $2 $3");
         filter = filter.replaceAll("([^ ])" + allOperatersRegex, "$1 $2");
-        filter = filter.replaceAll(allOperatersRegex+ "([^ ])", "$1 $2");
+        filter = filter.replaceAll(allOperatersRegex + "([^ ])", "$1 $2");
         filter = filter.replaceAll("\\( \\(", "((");
         filter = filter.replaceAll("\\) \\)", "))");
         return filter;

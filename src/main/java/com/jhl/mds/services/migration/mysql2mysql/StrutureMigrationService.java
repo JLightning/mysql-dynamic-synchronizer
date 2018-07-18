@@ -1,15 +1,15 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
-import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.dto.SimpleFieldMappingDTO;
+import com.jhl.mds.dto.*;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
+import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.util.PipeLineTaskRunner;
-import com.jhl.mds.util.Regex;
 import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +20,16 @@ import java.util.stream.Collectors;
 @Service
 public class StrutureMigrationService implements PipeLineTaskRunner<FullMigrationDTO, Object, Void> {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
+    private MySQLDescribeService mySQLDescribeService;
 
     public StrutureMigrationService(
-            MySQLConnectionPool mySQLConnectionPool
+            MySQLConnectionPool mySQLConnectionPool,
+            MySQLDescribeService mySQLDescribeService
     ) {
         this.mySQLConnectionPool = mySQLConnectionPool;
+        this.mySQLDescribeService = mySQLDescribeService;
     }
 
     //    CREATE TABLE `task` (
@@ -40,47 +44,51 @@ public class StrutureMigrationService implements PipeLineTaskRunner<FullMigratio
 //  `updated_at` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
 //   PRIMARY KEY (`task_id`)
 //) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1
+
+    // TODO: support more indexes
     @Override
     public void execute(FullMigrationDTO context, Object input, Consumer<Void> next, Consumer<Exception> errorHandler) throws Exception {
-        List<SimpleFieldMappingDTO> mapping = context.getMapping();
-        Map<String, String> fieldSourceToTargetMap = mapping.stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getSourceField, SimpleFieldMappingDTO::getTargetField));
+        TableInfoDTO targetTableInfo = context.getTarget();
+        Connection targetConn = mySQLConnectionPool.getConnection(targetTableInfo.getServer());
+        Statement st = targetConn.createStatement();
 
-        Connection sourceConn = mySQLConnectionPool.getConnection(context.getSource().getServer());
-        Statement sourceSt = sourceConn.createStatement();
+        TableInfoDTO sourceTableInfo = context.getSource();
+        List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(sourceTableInfo.getServer(), sourceTableInfo.getDatabase(), sourceTableInfo.getTable());
+        List<MySQLIndexDTO> indexes = mySQLDescribeService.getIndexes(sourceTableInfo.getServer(), sourceTableInfo.getDatabase(), sourceTableInfo.getTable());
 
-        Connection targetConn = mySQLConnectionPool.getConnection(context.getTarget().getServer());
-        Statement targetSt = targetConn.createStatement();
+        Map<String, String> fieldSourceToTargetMapping = context.getMapping().stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getSourceField, SimpleFieldMappingDTO::getTargetField));
 
-        ResultSet result = sourceSt.executeQuery(String.format("SHOW CREATE TABLE %s.%s", context.getSource().getDatabase(), context.getSource().getTable()));
-        result.next();
-
-        String createTableQuery = result.getString(2);
-
-        String[] arr = createTableQuery.split("\n");
-        List<String> newQueryArr = new ArrayList<>();
-
-        newQueryArr.add(arr[0].replaceAll("`" + context.getSource().getTable() + "`", "`" + context.getTarget().getTable() + "`"));
-        for (int i = 1; i < arr.length; i++) {
-            String line = arr[i].trim();
-            List<List<String>> fieldNameRegexResult = Regex.findAllStringSubmatches(line, "`(.*)`");
-            boolean already = false;
-            if (fieldNameRegexResult.size() == 1 && fieldNameRegexResult.get(0).size() == 2) {
-                String fieldName = fieldNameRegexResult.get(0).get(1);
-                if (fieldSourceToTargetMap.containsKey(fieldName)) {
-                    newQueryArr.add(line.replaceAll("`" + fieldName + "`", "`" + fieldSourceToTargetMap.get(fieldName) + "`"));
-                    already = true;
-                }
-            }
-            if (!line.startsWith("`") && !already) {
-                newQueryArr.add(line);
+        List<String> createFieldStrs = new ArrayList<>();
+        for (MySQLFieldDTO fieldDTO : fields) {
+            if (fieldSourceToTargetMapping.containsKey(fieldDTO.getField())) {
+                createFieldStrs.add(fieldToCreateTableString(fieldDTO, fieldSourceToTargetMapping));
             }
         }
 
-        createTableQuery = Strings.join(newQueryArr, ' ');
+        for (MySQLIndexDTO indexDTO : indexes) {
+            if (fieldSourceToTargetMapping.containsKey(indexDTO.getColumnName())) {
+                createFieldStrs.add(indexToCreateTableString(indexDTO, fieldSourceToTargetMapping));
+            }
+        }
 
-        System.out.println("createTableQuery = " + createTableQuery);
+        String sql = String.format("CREATE TABLE `%s`.`%s`(%s) ENGINE=InnoDB DEFAULT CHARSET=latin1",
+                targetTableInfo.getDatabase(), targetTableInfo.getTable(), Strings.join(createFieldStrs, ','));
 
-        targetSt.execute("USE " + context.getTarget().getDatabase());
-        targetSt.execute(createTableQuery);
+        logger.info("Run query: " + sql);
+
+        st.execute(sql);
+    }
+
+    private String indexToCreateTableString(MySQLIndexDTO indexDTO, Map<String, String> mapping) {
+        if (indexDTO.getKeyName().equals("PRIMARY")) {
+            return String.format("PRIMARY KEY (`%s`)", mapping.get(indexDTO.getColumnName()));
+        }
+        return "";
+    }
+
+    public String fieldToCreateTableString(MySQLFieldDTO fieldDTO, Map<String, String> mapping) {
+        String defaultStr = fieldDTO.getDefaultValue() != null ? "DEFAULT " + fieldDTO.getDefaultValue() : "";
+        String commentStr = fieldDTO.getComment() != null ? "COMMENT '" + fieldDTO.getComment() + "'" : "";
+        return String.format("`%s` %s %s %s %s %s", mapping.get(fieldDTO.getField()), fieldDTO.getType(), fieldDTO.isNullable() ? "NULLABLE" : "NOT NULL", defaultStr, fieldDTO.getExtra(), commentStr);
     }
 }
