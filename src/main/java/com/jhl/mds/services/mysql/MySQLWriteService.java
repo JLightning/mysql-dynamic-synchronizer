@@ -35,7 +35,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
     }
 
     @Override
-    public void queue(FullMigrationDTO context, String input, Consumer<Long> next, Consumer<Exception> errorHandler) {
+    public void execute(FullMigrationDTO context, String input, Consumer<Long> next, Consumer<Exception> errorHandler) {
         this.queue(context.getTarget(), next, errorHandler, new WriteInfo(context.getTargetColumns(), input));
     }
 
@@ -50,7 +50,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
 
     /**
      * TODO: what if 2 different write for same table?
-     * write from writeQuene of current tableInfo to database, if queue size > CHUNK_SIZE then requeue
+     * write from writeQuene of current tableInfo to database, if execute size > CHUNK_SIZE then requeue
      *
      * @param tableInfo the info of the table to write to
      * @throws SQLException

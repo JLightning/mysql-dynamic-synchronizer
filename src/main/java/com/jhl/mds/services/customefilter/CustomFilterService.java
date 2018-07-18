@@ -19,7 +19,7 @@ public class CustomFilterService implements PipeLineTaskRunner<FullMigrationDTO,
     }
 
     @Override
-    public void queue(FullMigrationDTO context, Map<String, Object> input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(FullMigrationDTO context, Map<String, Object> input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
         List<String> filters = context.getFilters();
         if (filters != null) {
             for (String filter : filters) {

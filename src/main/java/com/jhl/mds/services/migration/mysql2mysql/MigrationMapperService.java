@@ -75,7 +75,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
 
     @Override
     @SuppressWarnings("unchecked")
-    public void queue(FullMigrationDTO context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(FullMigrationDTO context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
         next.accept(mapToString(input));
     }
 

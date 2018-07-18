@@ -31,7 +31,7 @@ public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Ob
     }
 
     @Override
-    public void queue(FullMigrationDTO context, Object input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws SQLException {
+    public void execute(FullMigrationDTO context, Object input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws SQLException {
         run(context.getSource(), next);
     }
 

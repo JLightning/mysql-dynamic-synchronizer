@@ -45,7 +45,7 @@ public class Pipeline<T, R> {
 
             Consumer next = o -> {
                 try {
-                    taskList.get(finalI + 1).queue(context, o, nextList[finalI + 1], errorHandler);
+                    taskList.get(finalI + 1).execute(context, o, nextList[finalI + 1], errorHandler);
                 } catch (Exception e) {
                     errorHandler.accept(e);
                 }
@@ -61,7 +61,7 @@ public class Pipeline<T, R> {
 
         executorServices[0].submit(() -> {
             try {
-                taskList.get(0).queue(context, input, nextList[0], errorHandler);
+                taskList.get(0).execute(context, input, nextList[0], errorHandler);
             } catch (Exception e) {
                 errorHandler.accept(e);
             }

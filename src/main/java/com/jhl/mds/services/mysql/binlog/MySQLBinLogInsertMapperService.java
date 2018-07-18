@@ -24,7 +24,7 @@ public class MySQLBinLogInsertMapperService implements PipeLineTaskRunner<FullMi
     }
 
     @Override
-    public void queue(FullMigrationDTO context, WriteRowsEventData eventData, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(FullMigrationDTO context, WriteRowsEventData eventData, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
         List<Map<String, Object>> list = mapInsertDataToField(context.getSource(), eventData);
         for (Map<String, Object> item : list) {
             next.accept(item);

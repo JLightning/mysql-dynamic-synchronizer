@@ -24,7 +24,7 @@ public class MySQLUpdateService implements PipeLineTaskRunner<FullMigrationDTO, 
     }
 
     @Override
-    public void queue(FullMigrationDTO context, Pair<Map<String, Object>, Map<String, Object>> input, Consumer<Long> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(FullMigrationDTO context, Pair<Map<String, Object>, Map<String, Object>> input, Consumer<Long> next, Consumer<Exception> errorHandler) throws Exception {
         TableInfoDTO tableInfo = context.getTarget();
         try {
             Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
