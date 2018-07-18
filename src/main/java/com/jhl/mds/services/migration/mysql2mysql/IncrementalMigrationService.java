@@ -111,6 +111,7 @@ public class IncrementalMigrationService {
         }
     }
 
+    // TODO: make sure update run after insert
     private void update(FullMigrationDTO dto, UpdateRowsEventData eventData) {
         try {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
