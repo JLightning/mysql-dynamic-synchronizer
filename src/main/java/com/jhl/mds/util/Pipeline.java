@@ -20,14 +20,20 @@ public class Pipeline<T, R> {
     private Consumer<R> finalNext = System.out::println;
     @Setter
     private Consumer<Exception> errorHandler = Exception::printStackTrace;
+    @Setter
+    private boolean threadEnable = false;
 
     public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
         taskList.add(taskRunner);
         return this;
     }
 
-    @SuppressWarnings("unchecked")
     public void execute() {
+        execute(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void execute(Object input) {
         ExecutorService[] executorServices = new ExecutorService[taskList.size() + 1];
         for (int i = 0; i < taskList.size(); i++) {
             executorServices[i] = Executors.newFixedThreadPool(4);
@@ -45,7 +51,7 @@ public class Pipeline<T, R> {
                 }
             };
 
-            if (!(taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread)) {
+            if (!(taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread) && threadEnable) {
                 Consumer tmpNext = next;
                 next = o -> executorServices[finalI + 1].submit(() -> tmpNext.accept(o));
             }
@@ -55,7 +61,7 @@ public class Pipeline<T, R> {
 
         executorServices[0].submit(() -> {
             try {
-                taskList.get(0).queue(context, null, nextList[0], errorHandler);
+                taskList.get(0).queue(context, input, nextList[0], errorHandler);
             } catch (Exception e) {
                 errorHandler.accept(e);
             }

@@ -5,14 +5,18 @@ import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.services.mysql.MySQLUpdateService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
+import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogService;
+import com.jhl.mds.services.mysql.binlog.MySQLBinLogUpdateMapperService;
+import com.jhl.mds.util.PipeLineTaskRunner;
 import com.jhl.mds.util.Pipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -20,6 +24,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 @Service
 public class IncrementalMigrationService {
@@ -28,9 +33,11 @@ public class IncrementalMigrationService {
     private static ExecutorService executor = Executors.newFixedThreadPool(4);
     private TaskRepository taskRepository;
     private MySQLBinLogPool mySQLBinLogPool;
-    private MySQLBinLogService mySQLBinLogService;
+    private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
+    private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MySQLWriteService mySQLWriteService;
+    private MySQLUpdateService mySQLUpdateService;
     private FullMigrationDTO.Converter fullMigrationDTOConverter;
     private Set<Integer> runningTask = new HashSet<>();
     private Map<Integer, MySQLBinLogListener> listenerMap = new HashMap<>();
@@ -39,16 +46,20 @@ public class IncrementalMigrationService {
     public IncrementalMigrationService(
             TaskRepository taskRepository,
             MySQLBinLogPool mySQLBinLogPool,
-            MySQLBinLogService mySQLBinLogService,
+            MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
+            MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
             MySQLWriteService mySQLWriteService,
+            MySQLUpdateService mySQLUpdateService,
             FullMigrationDTO.Converter fullMigrationDTOConverter
     ) {
         this.taskRepository = taskRepository;
         this.mySQLBinLogPool = mySQLBinLogPool;
-        this.mySQLBinLogService = mySQLBinLogService;
+        this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
+        this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.mySQLWriteService = mySQLWriteService;
+        this.mySQLUpdateService = mySQLUpdateService;
         this.fullMigrationDTOConverter = fullMigrationDTOConverter;
     }
 
@@ -90,13 +101,11 @@ public class IncrementalMigrationService {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
-            List<Map<String, Object>> data = mySQLBinLogService.mapInsertDataToField(dto.getSource(), eventData);
-
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
-            pipeline.append((context, input, next, errorHandler) -> data.forEach(next))
+            pipeline.append(mySQLBinLogInsertMapperService)
                     .append(migrationMapperService)
                     .append(mySQLWriteService)
-                    .execute();
+                    .execute(eventData);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -107,13 +116,18 @@ public class IncrementalMigrationService {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
-            List<Map<String, Object>> data = mySQLBinLogService.mapUpdateDataToField(dto.getSource(), eventData);
-
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
-            pipeline.append((context, input, next, errorHandler) -> data.forEach(next))
-                    .append(migrationMapperService)
-                    .append(mySQLWriteService)
-                    .execute();
+            pipeline.append(mySQLBinLogUpdateMapperService)
+                    .append((PipeLineTaskRunner<FullMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                        Map<String, Object> key = input.getFirst();
+                        Map<String, Object> value = input.getSecond();
+                        key = migrationMapperService.map(key, false);
+                        value = migrationMapperService.map(value, false);
+
+                        next.accept(Pair.of(key, value));
+                    })
+                    .append(mySQLUpdateService)
+                    .execute(eventData);
         } catch (SQLException e) {
             e.printStackTrace();
         }

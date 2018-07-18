@@ -114,8 +114,6 @@ public class MySQLBinLogConnection {
         try (BufferedReader br = new BufferedReader(new FileReader(BINLOG_POSITION_FILENAME))) {
             String value = br.readLine().trim();
             binlogPosition = jacksonObjectMapper.readValue(value, BinlogPosition.class);
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             return binlogPosition;
         }

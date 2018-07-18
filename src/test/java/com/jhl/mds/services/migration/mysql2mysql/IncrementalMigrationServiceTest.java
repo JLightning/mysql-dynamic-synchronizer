@@ -44,7 +44,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
             getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
         }
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         ResultSet result = getStatement().executeQuery("SELECT COUNT(1) FROM mds.tableb");
         result.next();
@@ -66,8 +66,9 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         incrementalMigrationService.run(dto);
 
-        getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
-        getStatement().execute("UPDATE mds.tablea SET random_number = 2");
+        getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (2)");
+        Thread.sleep(200);
+        getStatement().execute("UPDATE mds.tablea SET random_number = 8");
 
         Thread.sleep(2000);
     }

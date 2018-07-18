@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,10 +44,10 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
         columns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
     }
 
-    public List<Object> map(Map<String, Object> data) throws Exception {
+    public Map<String, Object> map(Map<String, Object> data, boolean includeDefault) throws Exception {
         Map<String, String> targetToSourceColumnMatch = mapping.stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getTargetField, SimpleFieldMappingDTO::getSourceField));
 
-        List<Object> mappedData = new ArrayList<>();
+        Map<String, Object> mappedData = new LinkedHashMap<>();
 
         for (String targetColumn : columns) {
             Object value = null;
@@ -59,17 +58,19 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
                 } else {
                     value = customMapping.resolve(sourceColumn, data).get();
                 }
-            } else if (!targetFieldMap.get(targetColumn).isNullable()) {
+            } else if (!targetFieldMap.get(targetColumn).isNullable() && includeDefault) {
                 value = mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn));
             }
-            mappedData.add(value);
+            if (value != null || includeDefault) {
+                mappedData.put(targetColumn, value);
+            }
         }
 
         return mappedData;
     }
 
     public String mapToString(Map<String, Object> data) throws Exception {
-        return MySQLStringUtil.valueListString(map(data));
+        return MySQLStringUtil.valueListString(map(data, true).values());
     }
 
     @Override
