@@ -7,18 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
 
-public class CustomMappingTest extends BaseTest {
+public class CustomMappingPoolTest extends BaseTest {
 
     @Autowired
-    private CustomMapping customMapping;
+    private CustomMappingPool customMappingPool;
 
     @Test
     public void testResolve() throws Exception {
         HashMap<String, Object> data = new HashMap<String, Object>() {{
             put("id", 5);
         }};
-        Assert.assertEquals("test_5", customMapping.resolve("'test_' + id", data));
-        Assert.assertEquals("abc_xyz_5", customMapping.resolve("'abc_' + 'xyz_' + id", data));
-        Assert.assertEquals("id_5", customMapping.resolve("'id_' + id", data));
+        Assert.assertEquals("test_5", customMappingPool.resolve("'test_' + id", data).get());
+        Assert.assertEquals("abc_xyz_5", customMappingPool.resolve("'abc_' + 'xyz_' + id", data).get());
+        Assert.assertEquals("id_5", customMappingPool.resolve("'id_' + id", data).get());
     }
 }

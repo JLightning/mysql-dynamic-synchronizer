@@ -17,7 +17,7 @@ import java.time.Instant;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class BaseTest {
+public abstract class BaseTest {
 
     @Autowired
     private MySQLConnectionPool mySQLConnectionPool;
