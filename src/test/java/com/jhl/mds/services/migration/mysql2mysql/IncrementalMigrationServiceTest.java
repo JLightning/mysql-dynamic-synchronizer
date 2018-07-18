@@ -71,5 +71,9 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         getStatement().execute("UPDATE mds.tablea SET random_number = 8");
 
         Thread.sleep(2000);
+
+        ResultSet result = getStatement().executeQuery("SELECT * FROM mds.tableb");
+        result.next();
+        Assert.assertEquals(16, result.getInt(2));
     }
 }
