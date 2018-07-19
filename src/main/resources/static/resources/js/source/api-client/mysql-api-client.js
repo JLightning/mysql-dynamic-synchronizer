@@ -2,6 +2,18 @@ import AbstractClient from "./abstract-client";
 
 class MySQLApiClient extends AbstractClient {
 
+    getServers() {
+        return this.get('/api/mysql/servers');
+    }
+
+    getDatabases(serverId) {
+        return this.get('/api/mysql/databases', {serverId});
+    }
+
+    getTables(serverId, database) {
+        return this.get('/api/mysql/tables', {serverId, database});
+    }
+
     getFields(serverId, database, table) {
         return this.get('/api/mysql/fields', {serverId, database, table});
     }

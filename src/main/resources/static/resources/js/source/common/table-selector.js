@@ -1,5 +1,6 @@
 import React from "react";
 import Select, {SelectOption} from "./select";
+import mySQLApiClient from "../api-client/mysql-api-client";
 
 export default class TableSelector extends React.Component {
 
@@ -21,27 +22,18 @@ export default class TableSelector extends React.Component {
     }
 
     getServers() {
-        $.get(DOMAIN + '/api/mysql/servers').done((data) => {
-            if (data.success) {
-                this.setState({servers: data.data});
-            }
-        });
+        mySQLApiClient.getServers().done(data => this.setState({servers: data}));
     }
 
     serverSelected(serverId) {
-        $.get(DOMAIN + '/api/mysql/databases', {serverId}).done((data) => {
-            if (data.success) {
-                this.setState({databases: data.data, serverId: serverId});
-            }
-        });
+        mySQLApiClient.getDatabases(serverId).done(data => this.setState({databases: data, serverId: serverId}));
     }
 
     databaseSelected(databaseName) {
-        $.get(DOMAIN + '/api/mysql/tables', {serverId: this.state.serverId, database: databaseName}).done((data) => {
-            if (data.success) {
-                this.setState({tables: data.data, databaseName: databaseName});
-            }
-        });
+        mySQLApiClient.getTables(this.state.serverId, databaseName).done(data => this.setState({
+            tables: data,
+            databaseName: databaseName
+        }));
     }
 
     render() {

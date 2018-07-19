@@ -65,6 +65,7 @@ public class IncrementalMigrationService {
 
     @PostConstruct
     private void init() {
+        logger.info("Start Migration incremental service");
         List<Task> tasks = taskRepository.findByIncrementalMigrationActive(true);
         for (Task task : tasks) {
             run(fullMigrationDTOConverter.from(task));

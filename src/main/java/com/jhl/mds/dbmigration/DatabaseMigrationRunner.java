@@ -2,14 +2,16 @@ package com.jhl.mds.dbmigration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+@SpringBootApplication
 public class DatabaseMigrationRunner {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -19,6 +21,7 @@ public class DatabaseMigrationRunner {
         this.dataSource = dataSource;
     }
 
+    @PostConstruct
     public void init() throws SQLException {
         runMigration();
     }
@@ -29,5 +32,10 @@ public class DatabaseMigrationRunner {
         try (Connection conn = dataSource.getConnection()) {
             new DatabaseMigration100().run(conn);
         }
+    }
+
+    public static void start() {
+        ConfigurableApplicationContext ctx = SpringApplication.run(DatabaseMigrationRunner.class);
+        ctx.close();
     }
 }
