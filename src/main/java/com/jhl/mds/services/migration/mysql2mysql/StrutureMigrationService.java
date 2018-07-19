@@ -65,11 +65,7 @@ public class StrutureMigrationService implements PipeLineTaskRunner<FullMigratio
             }
         }
 
-        for (MySQLIndexDTO indexDTO : indexes) {
-            if (fieldSourceToTargetMapping.containsKey(indexDTO.getColumnName())) {
-                createFieldStrs.add(indexToCreateTableString(indexDTO, fieldSourceToTargetMapping));
-            }
-        }
+        addIndexesToTable(indexes, fieldSourceToTargetMapping, createFieldStrs);
 
         String sql = String.format("CREATE TABLE `%s`.`%s`(%s) ENGINE=InnoDB DEFAULT CHARSET=latin1",
                 targetTableInfo.getDatabase(), targetTableInfo.getTable(), Strings.join(createFieldStrs, ','));
@@ -79,11 +75,22 @@ public class StrutureMigrationService implements PipeLineTaskRunner<FullMigratio
         st.execute(sql);
     }
 
-    private String indexToCreateTableString(MySQLIndexDTO indexDTO, Map<String, String> mapping) {
-        if (indexDTO.getKeyName().equals("PRIMARY")) {
-            return String.format("PRIMARY KEY (`%s`)", mapping.get(indexDTO.getColumnName()));
+    private void addIndexesToTable(List<MySQLIndexDTO> indexes, Map<String, String> fieldSourceToTargetMapping, List<String> createFieldStrs) {
+        for (MySQLIndexDTO indexDTO : indexes) {
+            if (fieldSourceToTargetMapping.containsKey(indexDTO.getColumnName())) {
+                createFieldStrs.add(indexToCreateTableString(indexDTO, fieldSourceToTargetMapping));
+            }
         }
-        return "";
+    }
+
+    private String indexToCreateTableString(MySQLIndexDTO indexDTO, Map<String, String> mapping) {
+        String mappedColumn = mapping.get(indexDTO.getColumnName());
+        if (indexDTO.getKeyName().equals("PRIMARY")) {
+            return String.format("PRIMARY KEY (`%s`)", mappedColumn);
+        } else if (!indexDTO.isNonUnique()) {
+            return String.format("UNIQUE `%s` (`%s` %s)", indexDTO.getKeyName(), mappedColumn, indexDTO.getCollation().equals("A") ? "ASC" : "DESC");
+        }
+        return String.format("INDEX `%s` (`%s` %s)", indexDTO.getKeyName(), mappedColumn, indexDTO.getCollation().equals("A") ? "ASC" : "DESC");
     }
 
     public String fieldToCreateTableString(MySQLFieldDTO fieldDTO, Map<String, String> mapping) {
