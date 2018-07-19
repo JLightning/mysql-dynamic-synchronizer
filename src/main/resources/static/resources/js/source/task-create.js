@@ -40,7 +40,7 @@ class TaskCreate extends React.Component {
         if (this.state.table.source != null && this.state.table.target != null) {
             this.getMapping();
         } else {
-            this.mysqlApiClient.getFields(params).done(data => {
+            this.mysqlApiClient.getFields(o.serverId, o.databaseName, o.tableName).done(data => {
                 const fields = this.state.fields;
                 data.forEach((field, i) => {
                     if (fields.length > i) {
@@ -139,6 +139,7 @@ class TaskCreate extends React.Component {
     }
 
     render() {
+        const state = this.state;
         return (
             <div className="container mt-3">
                 <h1>Task Information</h1>
@@ -187,23 +188,13 @@ class TaskCreate extends React.Component {
 
                     <h4 className="mt-3">Filter</h4>
                     <TaskFilter filters={this.state.filters} addFilter={(filter, cb) => {
-                        let params = {
-                            serverId: this.state.table.source.serverId,
-                            database: this.state.table.source.database,
-                            table: this.state.table.source.table,
-                            filter: filter
-                        };
-
-                        $.post(DOMAIN + "/api/mysql/validate-filter", params).done(data => {
-                            if (data.success) {
+                        this.mysqlApiClient.validateFilter(state.table.source.serverId, state.table.source.database, state.table.source.table, filter)
+                            .done(data => {
                                 let filters = this.state.filters;
-                                filters.push(data.data)
+                                filters.push(data)
                                 this.setState({filters: filters});
                                 cb();
-                            } else {
-                                showError(data.errorMessage);
-                            }
-                        });
+                            });
                     }}
                                 removeFilter={idx => {
                                     let filters = this.state.filters;
