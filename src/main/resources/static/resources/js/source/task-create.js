@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import TableSelector from './common/table-selector';
+import MySQLApiClient from "./api-client/mysql-api-client";
 
 class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false, filters: []};
+        this.mysqlApiClient = new MySQLApiClient;
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
@@ -38,21 +40,19 @@ class TaskCreate extends React.Component {
         if (this.state.table.source != null && this.state.table.target != null) {
             this.getMapping();
         } else {
-            $.get(DOMAIN + '/api/mysql/fields', params).done((data) => {
-                if (data.success) {
-                    const fields = this.state.fields;
-                    data.data.forEach((field, i) => {
-                        if (fields.length > i) {
-                            fields[i][sub] = field;
-                        } else {
-                            const _o = {};
-                            _o[sub] = field;
-                            fields.push(_o);
-                        }
-                    });
+            this.mysqlApiClient.getFields(params).done(data => {
+                const fields = this.state.fields;
+                data.forEach((field, i) => {
+                    if (fields.length > i) {
+                        fields[i][sub] = field.field;
+                    } else {
+                        const _o = {};
+                        _o[sub] = field.field;
+                        fields.push(_o);
+                    }
+                });
 
-                    this.setState({fields: fields});
-                }
+                this.setState({fields: fields});
             });
         }
     }
