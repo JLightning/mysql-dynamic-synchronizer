@@ -1,14 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import TableSelector from './common/table-selector';
-import MySQLApiClient from "./api-client/mysql-api-client";
+import mySQLApiClient from './api-client/mysql-api-client';
 
 class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false, filters: []};
-        this.mysqlApiClient = new MySQLApiClient;
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
@@ -40,7 +39,7 @@ class TaskCreate extends React.Component {
         if (this.state.table.source != null && this.state.table.target != null) {
             this.getMapping();
         } else {
-            this.mysqlApiClient.getFields(o.serverId, o.databaseName, o.tableName).done(data => {
+            mySQLApiClient.getFields(o.serverId, o.databaseName, o.tableName).done(data => {
                 const fields = this.state.fields;
                 data.forEach((field, i) => {
                     if (fields.length > i) {
@@ -60,28 +59,13 @@ class TaskCreate extends React.Component {
     getMapping() {
         const sourceParam = this.state.table.source;
         const targetParam = this.state.table.target;
-        const postParam = {
-            sourceServerId: sourceParam.serverId,
-            sourceDatabase: sourceParam.database,
-            sourceTable: sourceParam.table,
-            targetServerId: targetParam.serverId,
-            targetDatabase: targetParam.database,
-            targetTable: targetParam.table
-        };
-        if (typeof this.taskDTO !== 'undefined') {
-            postParam.mapping = this.taskDTO.mapping;
-        }
-        $.ajax(DOMAIN + '/api/mysql/fields-mapping', {
-            data: JSON.stringify(postParam),
-            contentType: 'application/json',
-            type: 'POST'
-        }).done((data) => {
-            if (data.success) {
-                const fields = data.data;
-                this.setState({fields: fields});
+
+        const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
+        mySQLApiClient.getMapping(sourceParam.serverId, sourceParam.database, sourceParam.table, targetParam.serverId, targetParam.database, targetParam.table, mapping)
+            .done(data => {
+                this.setState({fields: data});
                 this.recalculateReadyForSubmit();
-            }
-        });
+            });
     }
 
     handleMappableChange(e, idx) {
@@ -188,7 +172,7 @@ class TaskCreate extends React.Component {
 
                     <h4 className="mt-3">Filter</h4>
                     <TaskFilter filters={this.state.filters} addFilter={(filter, cb) => {
-                        this.mysqlApiClient.validateFilter(state.table.source.serverId, state.table.source.database, state.table.source.table, filter)
+                        mySQLApiClient.validateFilter(state.table.source.serverId, state.table.source.database, state.table.source.table, filter)
                             .done(data => {
                                 let filters = this.state.filters;
                                 filters.push(data)
