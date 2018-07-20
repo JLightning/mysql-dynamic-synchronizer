@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import TableSelector from './common/table-selector';
 import mySQLApiClient from './api-client/mysql-api-client';
+import taskApiClient from "./api-client/task-api-client";
 
 class TaskCreate extends React.Component {
 
@@ -39,7 +40,7 @@ class TaskCreate extends React.Component {
         if (this.state.table.source != null && this.state.table.target != null) {
             this.getMapping();
         } else {
-            mySQLApiClient.getFields(o.serverId, o.databaseName, o.tableName).done(data => {
+            mySQLApiClient.getFieldForServerDatabaseAndTable(o.serverId, o.databaseName, o.tableName).done(data => {
                 const fields = this.state.fields;
                 data.forEach((field, i) => {
                     if (fields.length > i) {
@@ -61,7 +62,7 @@ class TaskCreate extends React.Component {
         const targetParam = this.state.table.target;
 
         const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
-        mySQLApiClient.getMapping(sourceParam.serverId, sourceParam.database, sourceParam.table, targetParam.serverId, targetParam.database, targetParam.table, mapping)
+        mySQLApiClient.getMappingFor2TableFlat(sourceParam.serverId, sourceParam.database, sourceParam.table, targetParam.serverId, targetParam.database, targetParam.table, mapping)
             .done(data => {
                 this.setState({fields: data});
                 this.recalculateReadyForSubmit();
@@ -86,16 +87,8 @@ class TaskCreate extends React.Component {
             target: this.state.table.target
         };
 
-        $.ajax(DOMAIN + '/api/task/create', {
-            data: JSON.stringify(postParams),
-            contentType: 'application/json',
-            type: 'POST'
-        }).done(function (data) {
-            if (!data.success) {
-                showError(data.errorMessage);
-            } else {
-                location.href = DOMAIN + '/task/detail/?taskId=' + data.data.taskId;
-            }
+        taskApiClient.createTaskAction(postParams).done(data => {
+            location.href = DOMAIN + '/task/detail/?taskId=' + data.taskId;
         });
     }
 

@@ -3,8 +3,8 @@ package com.jhl.mds.controllers.api;
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.*;
+import com.jhl.mds.jsclientgenerator.JsClientController;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/mysql")
+@JsClientController(className = "MySQLApiClient", fileName = "mysql-api-client")
 public class MySQLApiController {
 
     private final MySQLServerRepository mySQLServerRepository;

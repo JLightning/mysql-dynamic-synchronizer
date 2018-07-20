@@ -26,11 +26,11 @@ export default class TableSelector extends React.Component {
     }
 
     serverSelected(serverId) {
-        mySQLApiClient.getDatabases(serverId).done(data => this.setState({databases: data, serverId: serverId}));
+        mySQLApiClient.getDatabasesForServer(serverId).done(data => this.setState({databases: data, serverId: serverId}));
     }
 
     databaseSelected(databaseName) {
-        mySQLApiClient.getTables(this.state.serverId, databaseName).done(data => this.setState({
+        mySQLApiClient.getTablesForServerAndDatabase(this.state.serverId, databaseName).done(data => this.setState({
             tables: data,
             databaseName: databaseName
         }));

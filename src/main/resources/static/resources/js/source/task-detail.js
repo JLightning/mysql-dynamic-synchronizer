@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import taskApiClient from "./api-client/task-api-client";
 
 class TaskDetail extends React.Component {
 
@@ -9,26 +10,19 @@ class TaskDetail extends React.Component {
     }
 
     componentDidMount() {
-        $.get(DOMAIN + '/api/task/detail/' + taskId).done(data => {
-            if (data.success) {
-                this.setState({task: data.data});
-            }
-        });
-
+        taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));
         this.observeFullMigrationProgress();
     }
 
     observeFullMigrationProgress() {
         this.fullMigrationProgressInterval = setInterval(() =>
-            $.get(DOMAIN + '/api/task/detail/' + taskId + '/full-migration-progress').done(data => {
-                if (data.success) {
-                    this.setState({fullMigrationProgress: data.data});
-                    if (parseInt(data.data) === 100) {
-                        clearInterval(this.fullMigrationProgressInterval);
-                    }
+            taskApiClient.getFullMigrationTaskProgress(taskId).done(data => {
+                this.setState({fullMigrationProgress: data});
+                if (parseInt(data) === 100) {
+                    clearInterval(this.fullMigrationProgressInterval);
                 }
-            }), 500
-        )
+            })
+        );
     }
 
     componentWillUnmount() {
@@ -59,15 +53,9 @@ class TaskDetail extends React.Component {
                     </div>
                     <div className="col-1 vertial-center">
                         <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
-                        <button type="button" className="float-right btn btn-primary btn-sm" onClick={() => {
-                            $.get(DOMAIN + '/api/task/detail/' + taskId + '/start-full-migration').done((data) => {
-                                if (data.success) {
-                                    this.observeFullMigrationProgress()
-                                } else {
-                                    showError(data.errorMessage);
-                                }
-                            });
-                        }}>Start
+                        <button type="button" className="float-right btn btn-primary btn-sm"
+                                onClick={() => taskApiClient.startFullMigrationTask(taskId).done(data => this.observeFullMigrationProgress())}>
+                            Start
                         </button>
                     </div>
                 </div>
@@ -97,20 +85,19 @@ class TaskDetail extends React.Component {
                                 <p className="h4">Incremental migration:</p>
                             </div>
                             <div className="col-6">
-                                <button type="button" className="float-right btn btn-primary btn-sm ml-1" onClick={() => {
-                                    $.get(DOMAIN + '/api/task/detail/' + taskId + '/stop-incremental-migration').done((data) => {
-                                        if (!data.success) {
-                                            showError(data.errorMessage);
-                                        }
-                                    });
-                                }}>Stop</button>
-                                <button type="button" className="float-right btn btn-primary btn-sm"  onClick={() => {
-                                    $.get(DOMAIN + '/api/task/detail/' + taskId + '/start-incremental-migration').done((data) => {
-                                        if (!data.success) {
-                                            showError(data.errorMessage);
-                                        }
-                                    });
-                                }}>Start</button>
+                                <button type="button" className="float-right btn btn-primary btn-sm ml-1"
+                                        onClick={() => {
+                                            $.get(DOMAIN + '/api/task/detail/' + taskId + '/stop-incremental-migration').done((data) => {
+                                                if (!data.success) {
+                                                    showError(data.errorMessage);
+                                                }
+                                            });
+                                        }}>Stop
+                                </button>
+                                <button type="button" className="float-right btn btn-primary btn-sm"
+                                        onClick={() => taskApiClient.startIncrementalMigrationTask(taskId)}>
+                                    Start
+                                </button>
                             </div>
                         </div>
                         <table className="table">

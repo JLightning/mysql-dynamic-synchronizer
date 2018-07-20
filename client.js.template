@@ -1,0 +1,15 @@
+[class_template]
+import AbstractClient from "./abstract-client";
+
+class {className} extends AbstractClient {
+
+{methods}
+}
+
+const {newVariableClassName} = new {className}();
+export default {newVariableClassName};
+
+[method_template]
+    {methodName}({methodParameters}) {
+        return this.{methodAction}({methodUri}, {{httpParameters}});
+    }
