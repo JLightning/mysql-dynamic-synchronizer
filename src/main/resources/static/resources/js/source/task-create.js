@@ -229,8 +229,7 @@ class FieldRowList extends React.Component {
             key={idx}
             idx={idx}
             field={field}
-            editField={this.props.editField}
-            handleMappableChange={e => this.props.handleMappableChange(e, idx)}
+            {...this.props}
             onDrop={this.onDrop.bind(this)}
             captureDrapStartField={this.captureDrapStartField.bind(this)}
         />);
