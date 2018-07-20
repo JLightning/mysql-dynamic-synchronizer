@@ -13,7 +13,6 @@ class TableStructureSync extends React.Component {
     }
 
     tableSelected(params, isSource) {
-        const sub = isSource ? 'sourceField' : 'targetField';
         const sub2 = isSource ? 'source' : 'target';
 
         const table = this.state.table;
@@ -23,9 +22,7 @@ class TableStructureSync extends React.Component {
         mySQLApiClient.getFieldForServerDatabaseAndTable(params.serverId, params.database, params.table).done(data => {
             let fields = [];
 
-            data.forEach((field, i) => {
-                fields.push({sourceField: field.field, mappable: true, targetField: field.field});
-            });
+            data.forEach(field => fields.push({sourceField: field.field, mappable: true, targetField: field.field}));
 
             this.setState({fields: fields});
         });
