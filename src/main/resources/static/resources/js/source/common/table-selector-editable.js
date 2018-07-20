@@ -17,7 +17,7 @@ export default class TableSelectorEditable extends TableSelector {
                         <input type="text" className="form-control" placeholder="New table name"/>
                     </div>
                     <div className="col-2">
-                        <a href="#" className="btn btn-primary">Done</a>
+                        <a className="btn btn-primary text-white">Done</a>
                     </div>
                 </div>
             </div>

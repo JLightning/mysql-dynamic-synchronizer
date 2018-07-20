@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import TableSelector from './common/table-selector';
 import mySQLApiClient from './api-client/mysql-api-client';
 import taskApiClient from "./api-client/task-api-client";
+import Table from "./common/table";
 
 class TaskCreate extends React.Component {
 
@@ -67,7 +68,6 @@ class TaskCreate extends React.Component {
     handleMappableChange(e, idx) {
         const fields = this.state.fields;
         fields[idx].mappable = e.target.checked;
-        console.log(fields);
         this.setState({fields: fields});
     }
 
@@ -140,22 +140,13 @@ class TaskCreate extends React.Component {
                     <h4 className="mt-3">Mapping</h4>
                     {
                         this.state.fields.length > 0 ?
-                            <table className="table mt-3">
-                                <thead>
-                                <tr>
-                                    <th scope="col">Source Fields</th>
-                                    <th scope="col">Sync?</th>
-                                    <th scope="col">Target Fields</th>
-                                </tr>
-                                </thead>
-                                <tbody>
+                            <Table th={['Source Fields', 'Sync?', 'Target Fields']} className="mt-3">
                                 <FieldRowList
                                     fields={this.state.fields}
                                     handleMappableChange={(e, idx) => this.handleMappableChange(e, idx)}
                                     swapField={this.swapField.bind(this)}
                                     editField={this.editField.bind(this)}/>
-                                </tbody>
-                            </table> : ''
+                            </Table> : ''
                     }
 
                     <h4 className="mt-3">Filter</h4>
