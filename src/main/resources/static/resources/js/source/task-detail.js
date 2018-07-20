@@ -54,7 +54,7 @@ class TaskDetail extends React.Component {
                     <div className="col-1 vertial-center">
                         <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
                         <button type="button" className="float-right btn btn-primary btn-sm"
-                                onClick={() => taskApiClient.startFullMigrationTask(taskId).done(data => this.observeFullMigrationProgress())}>
+                                onClick={() => taskApiClient.startFullMigrationTask(taskId).done(() => this.observeFullMigrationProgress())}>
                             Start
                         </button>
                     </div>
@@ -86,13 +86,7 @@ class TaskDetail extends React.Component {
                             </div>
                             <div className="col-6">
                                 <button type="button" className="float-right btn btn-primary btn-sm ml-1"
-                                        onClick={() => {
-                                            $.get(DOMAIN + '/api/task/detail/' + taskId + '/stop-incremental-migration').done((data) => {
-                                                if (!data.success) {
-                                                    showError(data.errorMessage);
-                                                }
-                                            });
-                                        }}>Stop
+                                        onClick={() => taskApiClient.stopIncrementalMigrationTask(taskId)}>Stop
                                 </button>
                                 <button type="button" className="float-right btn btn-primary btn-sm"
                                         onClick={() => taskApiClient.startIncrementalMigrationTask(taskId)}>
