@@ -24,15 +24,10 @@ class TaskCreate extends React.Component {
         this.setState({readyForSubmit: readyForSubmit});
     }
 
-    tableSelected(o, isSource) {
+    tableSelected(params, isSource) {
         const sub = isSource ? 'sourceField' : 'targetField';
         const sub2 = isSource ? 'source' : 'target';
 
-        let params = {
-            serverId: o.serverId,
-            database: o.databaseName,
-            table: o.tableName
-        };
         const table = this.state.table;
         table[sub2] = params;
         this.setState({table: table});
@@ -40,7 +35,7 @@ class TaskCreate extends React.Component {
         if (this.state.table.source != null && this.state.table.target != null) {
             this.getMapping();
         } else {
-            mySQLApiClient.getFieldForServerDatabaseAndTable(o.serverId, o.databaseName, o.tableName).done(data => {
+            mySQLApiClient.getFieldForServerDatabaseAndTable(params.serverId, params.database, params.table).done(data => {
                 const fields = this.state.fields;
                 data.forEach((field, i) => {
                     if (fields.length > i) {

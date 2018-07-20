@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom";
 import React from 'react';
 import TableSelector from "./common/table-selector";
+import TableSelectorEditable from "./common/table-selector-editable";
 
 class TableStructureSync extends React.Component {
 
@@ -18,7 +19,7 @@ class TableStructureSync extends React.Component {
                                        onSelected={o => this.tableSelected(o, true)}/>
                     </div>
                     <div className="col">
-                        <TableSelector table={this.state.table.target} title='Target'
+                        <TableSelectorEditable table={this.state.table.target} title='Target'
                                        onSelected={o => this.tableSelected(o, false)}/>
                     </div>
                 </div>

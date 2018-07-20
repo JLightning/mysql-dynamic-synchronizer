@@ -42,8 +42,10 @@ export default class Select extends React.Component {
                         onClick={() => this.setState({show: !this.state.show})}>
                     {this.state.btnTitle || this.props.btnTitle || 'Select'}
                 </button>
-                <div className={className} aria-labelledby="dropdownMenuButton">
-                    {this.renderDropdownItems()}
+                <div className="col">
+                    <div className={className} aria-labelledby="dropdownMenuButton">
+                        {this.renderDropdownItems()}
+                    </div>
                 </div>
             </div>
         );
