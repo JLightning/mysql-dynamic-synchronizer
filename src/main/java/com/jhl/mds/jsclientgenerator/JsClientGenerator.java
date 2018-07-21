@@ -11,6 +11,8 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
@@ -69,7 +71,7 @@ public class JsClientGenerator {
             for (Method method : methods) {
                 Annotation[] annotations = method.getDeclaredAnnotations();
                 for (Annotation annotation : annotations) {
-                    if (annotation instanceof GetMapping || annotation instanceof PostMapping || annotation instanceof RequestMapping) {
+                    if (annotation instanceof GetMapping || annotation instanceof PostMapping || annotation instanceof RequestMapping || annotation instanceof SubscribeMapping) {
                         jsMethods.addAll(renderMethod(baseUri, method, annotation));
                     }
                 }
@@ -102,6 +104,9 @@ public class JsClientGenerator {
                 methodAction = "post";
             }
             methodUri += ((RequestMapping) annotation).value()[0];
+        } else if (annotation instanceof SubscribeMapping) {
+            methodAction = "subscribe";
+            methodUri = "/app" + ((SubscribeMapping) annotation).value()[0];
         }
 
         List<String> methodParameters = new ArrayList<>();
@@ -112,20 +117,24 @@ public class JsClientGenerator {
         for (Parameter parameter : method.getParameters()) {
             Annotation[] annotations = parameter.getAnnotations();
             for (Annotation a : annotations) {
+                String parameterName = parameterNames[count];
                 if (a instanceof RequestParam) {
-                    methodParameters.add(parameterNames[count]);
-                    httpParameters.add(parameterNames[count]);
+                    methodParameters.add(parameterName);
+                    httpParameters.add(parameterName);
                     break;
                 } else if (a instanceof RequestBody) {
                     requestBodyParameter = parameter;
                     methodAction = "postJson";
-                    methodParameters.add(parameterNames[count]);
-                    httpParameters.add(parameterNames[count]);
+                    methodParameters.add(parameterName);
+                    httpParameters.add(parameterName);
                     break;
                 } else if (a instanceof PathVariable) {
-                    String parameterName = parameterNames[count];
                     methodUri = methodUri.replaceAll("\\{" + parameterName + "}", "' + " + parameterName + " + '");
                     methodParameters.add(parameterName);
+                } else if (a instanceof DestinationVariable) {
+                    methodUri = methodUri.replaceAll("\\{" + parameterName + "}", "' + " + parameterName + " + '");
+                    methodParameters.add(parameterName);
+                    httpParameters.add("callback");
                 }
             }
             count++;
@@ -154,6 +163,10 @@ public class JsClientGenerator {
         if (methodAction.equals("postJson")) {
             renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
             renderMethodContent = renderMethodContent.replaceAll("\\{\\{httpParameters}}", StringUtils.join(httpParameters, ", "));
+        } else if (methodAction.equals("subscribe")) {
+            methodParameters.add("callback");
+            renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
+            renderMethodContent = renderMethodContent.replaceAll("\\{\\{httpParameters}}", "callback");
         } else {
             renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
             renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(httpParameters, ", "));

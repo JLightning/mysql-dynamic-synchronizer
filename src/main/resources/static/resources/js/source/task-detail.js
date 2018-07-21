@@ -10,23 +10,8 @@ class TaskDetail extends React.Component {
     }
 
     componentDidMount() {
+        taskApiClient.getFullMigrationTaskProgressWs(taskId, progress => this.setState({fullMigrationProgress: progress}));
         taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));
-        this.observeFullMigrationProgress();
-    }
-
-    observeFullMigrationProgress() {
-        this.fullMigrationProgressInterval = setInterval(() =>
-            taskApiClient.getFullMigrationTaskProgress(taskId).done(data => {
-                this.setState({fullMigrationProgress: data});
-                if (parseInt(data) === 100) {
-                    clearInterval(this.fullMigrationProgressInterval);
-                }
-            })
-        );
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.fullMigrationProgressInterval);
     }
 
     render() {
@@ -54,7 +39,7 @@ class TaskDetail extends React.Component {
                     <div className="col-1 vertial-center">
                         <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
                         <button type="button" className="float-right btn btn-primary btn-sm"
-                                onClick={() => taskApiClient.startFullMigrationTask(taskId).done(() => this.observeFullMigrationProgress())}>
+                                onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
                             Start
                         </button>
                     </div>

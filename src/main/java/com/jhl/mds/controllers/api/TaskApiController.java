@@ -10,6 +10,8 @@ import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
 import com.jhl.mds.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,6 +106,11 @@ public class TaskApiController {
     @GetMapping("/detail/{taskId}/full-migration-progress")
     public ApiResponse<Double> getFullMigrationTaskProgress(@PathVariable int taskId) {
         return ApiResponse.success(fullMigrationService.getProgress(taskId));
+    }
+
+    @SubscribeMapping("/channel/task/full-migration-progress/{taskId}")
+    public Double getFullMigrationTaskProgressWs(@DestinationVariable int taskId) {
+        return fullMigrationService.getProgress(taskId);
     }
 
     @GetMapping("/detail/{taskId}/start-full-migration")

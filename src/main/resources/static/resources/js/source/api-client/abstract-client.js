@@ -1,67 +1,44 @@
+import wsClient from './ws-client';
+
 export default class AbstractClient {
 
-    get(uri, data) {
+    baseHttpRequest(request) {
         let done = null;
         let error = message => showError(message);
-        $.get(DOMAIN + uri, data)
-            .done(data => {
-                if (data.success) {
-                    if (done != null) done(data.data);
-                } else {
-                    error(data.errorMessage);
-                }
-            })
-            .fail(() => {
-                error("Network failed");
-            });
-
-        return {
-            done: f => done = f,
-            error: f => error = f
-        }
-    }
-
-    post(uri, data) {
-        let done = null;
-        let error = message => showError(message);
-        $.post(DOMAIN + uri, data)
-            .done(data => {
-                if (data.success) {
-                    if (done != null) done(data.data);
-                } else {
-                    error(data.errorMessage);
-                }
-            })
-            .fail(() => {
-                error("Network failed");
-            });
-
-        return {
-            done: f => done = f,
-            error: f => error = f
-        }
-    }
-
-    postJson(uri, data) {
-        let done = null;
-        let error = message => showError(message);
-        $.ajax(DOMAIN + uri, {
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            type: 'POST'
-        }).done(data => {
+        request.done(data => {
             if (data.success) {
                 if (done != null) done(data.data);
             } else {
                 error(data.errorMessage);
             }
-        }).fail(() => {
-            error("Network failed");
-        });
+        })
+            .fail(() => {
+                error("Network failed");
+            });
 
         return {
             done: f => done = f,
             error: f => error = f
         }
+    }
+
+    get(uri, data) {
+        return this.baseHttpRequest($.get(DOMAIN + uri, data));
+    }
+
+    post(uri, data) {
+        return this.baseHttpRequest($.post(DOMAIN + uri, data));
+    }
+
+    postJson(uri, data) {
+        return this.baseHttpRequest($.ajax(DOMAIN + uri, {
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            type: 'POST'
+        }));
+    }
+
+    subscribe(uri, cb) {
+        wsClient.subscribe(uri, cb)
     }
 }

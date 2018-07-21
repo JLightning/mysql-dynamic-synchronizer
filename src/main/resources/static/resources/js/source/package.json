@@ -11,9 +11,7 @@
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
     "watchify": "^3.7.0",
-    "minifier": "^0.8.1",
-    "draft-js": "^0.10.5",
-    "draft-js-import-html": "^1.2.1"
+    "minifier": "^0.8.1"
   },
   "scripts": {
     "build": "browserify ./react-app.js -t babelify -o ../react-app.js && minify ../react-app.js",
