@@ -2,8 +2,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.events.BaseEvent;
-import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
+import com.jhl.mds.events.MigrationProgressUpdateEvent;
 import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
@@ -51,7 +50,7 @@ public class FullMigrationService {
             throw new RuntimeException("Task has already been running");
         }
         runningTask.add(dto.getTaskId());
-        saveFullMigrationProgress(dto.getTaskId(), 0, false);
+        saveFullMigrationProgress(dto, 0, false);
         new Thread(() -> run(dto)).start();
     }
 
@@ -64,7 +63,7 @@ public class FullMigrationService {
             AtomicLong finished = new AtomicLong();
 
             final Consumer<Long> finishCallback = size -> {
-                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.addAndGet(size) * 100) / count, true);
+                saveFullMigrationProgress(dto, (double) (finished.addAndGet(size) * 100) / count, true);
                 synchronized (finished) {
                     finished.notify();
                 }
@@ -78,7 +77,7 @@ public class FullMigrationService {
                 } else {
                     finishCallback.accept(1L);
                 }
-                saveFullMigrationProgress(dto.getTaskId(), (double) (finished.get() * 100) / count, true);
+                saveFullMigrationProgress(dto, (double) (finished.get() * 100) / count, true);
             });
             pipeline.append(mySQLReadService)
                     .append(customFilterService)
@@ -99,9 +98,10 @@ public class FullMigrationService {
         runningTask.remove(dto.getTaskId());
     }
 
-    private void saveFullMigrationProgress(int taskId, double progress, boolean async) {
-        eventPublisher.publishEvent(new FullMigrationProgressUpdateEvent(taskId, progress));
-        Runnable runnable = () -> taskRepository.updateFullMigrationProgress(taskId, Math.round(progress));
+    private void saveFullMigrationProgress(FullMigrationDTO dto, double progress, boolean async) {
+        eventPublisher.publishEvent(new MigrationProgressUpdateEvent(dto, progress));
+
+        Runnable runnable = () -> taskRepository.updateFullMigrationProgress(dto.getTaskId(), Math.round(progress));
         if (async) executorService.submit(runnable);
         else runnable.run();
     }

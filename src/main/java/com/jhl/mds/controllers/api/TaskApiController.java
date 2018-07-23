@@ -5,7 +5,7 @@ import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.*;
-import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
+import com.jhl.mds.events.ProgressUpdateEvent;
 import com.jhl.mds.jsclientgenerator.JsClientController;
 import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
@@ -125,8 +125,9 @@ public class TaskApiController {
 
     @EventListener
     @Async
-    public void onFullMigrationTaskProgressUpdate(FullMigrationProgressUpdateEvent event) {
-        simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + event.getTaskId(), Math.round(event.getProgress()));
+    public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<FullMigrationDTO> event) {
+        FullMigrationDTO dto = event.getDto();
+        simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + dto.getTaskId(), Math.round(event.getProgress()));
     }
 
     @GetMapping("/detail/{taskId}/start-full-migration")
