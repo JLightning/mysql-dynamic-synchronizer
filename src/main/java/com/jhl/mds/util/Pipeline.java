@@ -21,7 +21,7 @@ public class Pipeline<T, R> {
     @Setter
     private Consumer<Exception> errorHandler = Exception::printStackTrace;
     @Setter
-    private boolean threadEnable = false;
+    private boolean threadEnable = true;
 
     public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
         taskList.add(taskRunner);

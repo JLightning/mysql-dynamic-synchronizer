@@ -2,14 +2,16 @@ package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.events.BaseEvent;
+import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
 import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.Pipeline;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,6 +27,7 @@ public class FullMigrationService {
     private MySQLWriteService mySQLWriteService;
     private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
+    private ApplicationEventPublisher eventPublisher;
     private Set<Integer> runningTask = new HashSet<>();
 
     public FullMigrationService(
@@ -32,13 +35,15 @@ public class FullMigrationService {
             CustomFilterService customFilterService,
             MySQLWriteService mySQLWriteService,
             TaskRepository taskRepository,
-            MigrationMapperService.Factory migrationMapperServiceFactory
+            MigrationMapperService.Factory migrationMapperServiceFactory,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.mySQLReadService = mySQLReadService;
         this.customFilterService = customFilterService;
         this.mySQLWriteService = mySQLWriteService;
         this.taskRepository = taskRepository;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
+        this.eventPublisher = eventPublisher;
     }
 
     public void queue(FullMigrationDTO dto) {
@@ -94,8 +99,9 @@ public class FullMigrationService {
         runningTask.remove(dto.getTaskId());
     }
 
-    private void saveFullMigrationProgress(int taskId, double v, boolean async) {
-        Runnable runnable = () -> taskRepository.updateFullMigrationProgress(taskId, Math.round(v));
+    private void saveFullMigrationProgress(int taskId, double progress, boolean async) {
+        eventPublisher.publishEvent(new FullMigrationProgressUpdateEvent(taskId, progress));
+        Runnable runnable = () -> taskRepository.updateFullMigrationProgress(taskId, Math.round(progress));
         if (async) executorService.submit(runnable);
         else runnable.run();
     }

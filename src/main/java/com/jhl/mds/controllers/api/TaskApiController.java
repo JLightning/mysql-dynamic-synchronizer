@@ -5,14 +5,20 @@ import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.*;
+import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
 import com.jhl.mds.jsclientgenerator.JsClientController;
 import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
 import com.jhl.mds.util.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.orm.jpa.JpaSystemException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -24,12 +30,14 @@ import java.util.List;
 @JsClientController(className = "TaskApiClient", fileName = "task-api-client")
 public class TaskApiController {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private TaskRepository taskRepository;
     private TaskFieldMappingRepository taskFieldMappingRepository;
     private FullMigrationService fullMigrationService;
     private IncrementalMigrationService incrementalMigrationService;
     private TaskDTO.Converter taskDTOConverter;
     private FullMigrationDTO.Converter fullMigrationDTOConverter;
+    private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
     public TaskApiController(
@@ -38,7 +46,8 @@ public class TaskApiController {
             FullMigrationService fullMigrationService,
             IncrementalMigrationService incrementalMigrationService,
             TaskDTO.Converter taskDTOConverter,
-            FullMigrationDTO.Converter fullMigrationDTOConverter
+            FullMigrationDTO.Converter fullMigrationDTOConverter,
+            SimpMessagingTemplate simpMessagingTemplate
     ) {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
@@ -46,6 +55,7 @@ public class TaskApiController {
         this.incrementalMigrationService = incrementalMigrationService;
         this.taskDTOConverter = taskDTOConverter;
         this.fullMigrationDTOConverter = fullMigrationDTOConverter;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     @ExceptionHandler(Exception.class)
@@ -111,6 +121,12 @@ public class TaskApiController {
     @SubscribeMapping("/channel/task/full-migration-progress/{taskId}")
     public Double getFullMigrationTaskProgressWs(@DestinationVariable int taskId) {
         return fullMigrationService.getProgress(taskId);
+    }
+
+    @EventListener
+    @Async
+    public void onFullMigrationTaskProgressUpdate(FullMigrationProgressUpdateEvent event) {
+        simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + event.getTaskId(), Math.round(event.getProgress()));
     }
 
     @GetMapping("/detail/{taskId}/start-full-migration")

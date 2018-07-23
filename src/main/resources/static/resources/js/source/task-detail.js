@@ -10,7 +10,9 @@ class TaskDetail extends React.Component {
     }
 
     componentDidMount() {
-        taskApiClient.getFullMigrationTaskProgressWs(taskId, progress => this.setState({fullMigrationProgress: progress}));
+        taskApiClient.getFullMigrationTaskProgressWs(taskId, progress => {
+            if (this.state.fullMigrationProgress !== progress) this.setState({fullMigrationProgress: progress})
+        });
         taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));
     }
 
