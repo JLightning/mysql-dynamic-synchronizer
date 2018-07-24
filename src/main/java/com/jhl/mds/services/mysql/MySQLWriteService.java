@@ -21,13 +21,10 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, String, Long>, PipeLineTaskRunner.SelfHandleThread {
+public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, List<String>, Long> {
 
-    private static final int CHUNK_SIZE = 1000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private static ExecutorService executor = Executors.newFixedThreadPool(4);
     private MySQLConnectionPool mySQLConnectionPool;
-    private final Map<TableInfoDTO, List<WriteInfo>> writeQueue = new HashMap<>();
 
     @Autowired
     public MySQLWriteService(MySQLConnectionPool mySQLConnectionPool) {
@@ -35,45 +32,19 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
     }
 
     @Override
-    public void execute(FullMigrationDTO context, String input, Consumer<Long> next, Consumer<Exception> errorHandler) {
-        this.queue(context.getTarget(), next, errorHandler, new WriteInfo(context.getTargetColumns(), input));
+    public void execute(FullMigrationDTO context, List<String> input, Consumer<Long> next, Consumer<Exception> errorHandler) {
+        this.run(context, next, errorHandler, input);
     }
 
-    public void queue(TableInfoDTO tableInfo, Consumer<Long> next, Consumer<Exception> errorHandler, WriteInfo... writeInfo) {
-        synchronized (writeQueue) {
-            if (!writeQueue.containsKey(tableInfo)) writeQueue.put(tableInfo, new ArrayList<>());
-            writeQueue.get(tableInfo).addAll(Arrays.asList(writeInfo));
-        }
+    private void run(FullMigrationDTO context, Consumer<Long> next, Consumer<Exception> errorHandler, List<String> input) {
+        TableInfoDTO tableInfo = context.getTarget();
 
-        executor.submit(() -> run(tableInfo, next, errorHandler));
-    }
-
-    /**
-     * TODO: what if 2 different write for same table?
-     * write from writeQuene of current tableInfo to database, if execute size > CHUNK_SIZE then requeue
-     *
-     * @param tableInfo the info of the table to write to
-     * @throws SQLException
-     */
-    private void run(TableInfoDTO tableInfo, Consumer<Long> next, Consumer<Exception> errorHandler) {
-        List<WriteInfo> tmpWriteList;
-        synchronized (writeQueue) {
-            if (!writeQueue.containsKey(tableInfo) || writeQueue.get(tableInfo).size() == 0) return;
-            tmpWriteList = new ArrayList<>(writeQueue.get(tableInfo));
-            writeQueue.get(tableInfo).clear();
-        }
-
-        if (tmpWriteList.size() > CHUNK_SIZE) {
-            queue(tableInfo, next, errorHandler, tmpWriteList.subList(CHUNK_SIZE, tmpWriteList.size()).toArray(new WriteInfo[0]));
-            tmpWriteList = tmpWriteList.subList(0, CHUNK_SIZE);
-        }
-
-        List<String> columns = tmpWriteList.get(0).getColumns();
+        List<String> columns = context.getTargetColumns();
         StringBuilder insertDataStrBuilder = new StringBuilder();
 
-        for (WriteInfo writeInfo : tmpWriteList) {
+        for (String writeInfo : input) {
             if (insertDataStrBuilder.length() != 0) insertDataStrBuilder.append(", ");
-            insertDataStrBuilder.append(writeInfo.getInsertDatas());
+            insertDataStrBuilder.append(writeInfo);
         }
 
         try {
@@ -86,10 +57,10 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, S
             st.execute(sql);
             st.close();
 
-            next.accept((long) tmpWriteList.size());
+            next.accept((long) input.size());
 
         } catch (Exception e) {
-            errorHandler.accept(new WriteServiceException(e, tmpWriteList.size()));
+            errorHandler.accept(new WriteServiceException(e, input.size()));
         }
     }
 

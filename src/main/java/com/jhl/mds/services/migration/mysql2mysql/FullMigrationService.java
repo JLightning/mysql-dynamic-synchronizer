@@ -7,6 +7,7 @@ import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.util.Pipeline;
+import com.jhl.mds.util.PipelineGrouperService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -82,6 +83,7 @@ public class FullMigrationService {
             pipeline.append(mySQLReadService)
                     .append(customFilterService)
                     .append(mapperService)
+                    .append(new PipelineGrouperService<String>())
                     .append(mySQLWriteService)
                     .execute();
 

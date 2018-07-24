@@ -76,7 +76,7 @@ public class FullMigrationServiceTest extends BaseTest {
                 .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
-                        new SimpleFieldMappingDTO("random_number", "random_number")
+                        new SimpleFieldMappingDTO("random_number * 10", "random_number")
                 ))
                 .filters(Collections.singletonList("id % 2 == 1"))
                 .build();

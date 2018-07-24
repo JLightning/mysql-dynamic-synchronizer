@@ -22,9 +22,13 @@ public class Pipeline<T, R> {
     private Consumer<Exception> errorHandler = Exception::printStackTrace;
     @Setter
     private boolean threadEnable = true;
+    private List<PipelineGrouperService> pipelineGrouperServiceList = new ArrayList<>();
 
     public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
         taskList.add(taskRunner);
+        if (taskRunner instanceof PipelineGrouperService) {
+            pipelineGrouperServiceList.add((PipelineGrouperService) taskRunner);
+        }
         return this;
     }
 
@@ -62,6 +66,9 @@ public class Pipeline<T, R> {
         executorServices[0].submit(() -> {
             try {
                 taskList.get(0).execute(context, input, nextList[0], errorHandler);
+                for (PipelineGrouperService pipelineGrouperService: pipelineGrouperServiceList) {
+                    pipelineGrouperService.beforeTaskFinished();
+                }
             } catch (Exception e) {
                 errorHandler.accept(e);
             }
