@@ -14,7 +14,9 @@ public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, 
     @Override
     public synchronized void execute(Object context, I input, Consumer<List<I>> next, Consumer<Exception> errorHandler) throws Exception {
         this.next = next;
-        list.add(input);
+        if (input != null) {
+            list.add(input);
+        }
         if (list.size() >= CHUNK_SIZE || beforeTaskFinished) {
             next.accept(new ArrayList<>(list));
             list.clear();

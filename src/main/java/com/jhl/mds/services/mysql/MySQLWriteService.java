@@ -52,7 +52,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, L
             Statement st = conn.createStatement();
 
             String sql = String.format("INSERT INTO %s(%s) VALUES %s;", tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
-            logger.info("Run query: " + sql);
+//            logger.info("Run query: " + sql);
 
             st.execute(sql);
             st.close();
