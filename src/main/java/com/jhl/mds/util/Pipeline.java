@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
@@ -27,15 +28,11 @@ public class Pipeline<T, R> {
     };
     @Setter
     private boolean threadEnable = true;
-    private List<PipelineGrouperService> pipelineGrouperServiceList = new ArrayList<>();
     private int[] invokeCount;
 
     public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
         taskList.add(taskRunner);
         taskFinished.add(false);
-        if (taskRunner instanceof PipelineGrouperService) {
-            pipelineGrouperServiceList.add((PipelineGrouperService) taskRunner);
-        }
         return this;
     }
 
@@ -43,6 +40,7 @@ public class Pipeline<T, R> {
         return execute(null);
     }
 
+    // TODO: fix data race
     @SuppressWarnings("unchecked")
     public Pipeline<T, R> execute(Object input) {
         ExecutorService[] executorServices = new ExecutorService[taskList.size() + 1];
