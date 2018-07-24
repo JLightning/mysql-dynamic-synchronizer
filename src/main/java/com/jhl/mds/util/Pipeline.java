@@ -118,19 +118,15 @@ public class Pipeline<T, R> {
     }
 
     private void updateTaskFinish(int index) {
-        if (taskList.get(index) instanceof PipelineGrouperService) {
-            System.out.println("index = " + index);
-        }
         System.out.println("task " + index + " finished: " + taskList.get(index).getClass());
-        taskFinished.set(index, true);
         synchronized (taskFinished) {
+            taskFinished.set(index, true);
             taskFinished.notify();
         }
     }
 
     public void waitForFinish() throws InterruptedException {
         while (!taskFinished.get(taskFinished.size() - 1)) {
-            System.out.println("taskFinished = " + taskFinished.get(taskFinished.size() - 1));
             synchronized (taskFinished) {
                 taskFinished.wait();
             }

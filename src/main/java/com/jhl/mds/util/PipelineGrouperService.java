@@ -6,10 +6,14 @@ import java.util.function.Consumer;
 
 public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, List<I>> {
 
-    private static final int CHUNK_SIZE = 1234;
+    private final int chunkSize;
     private List<I> list = new ArrayList<>();
     private boolean beforeTaskFinished;
     private Consumer<List<I>> next;
+
+    public PipelineGrouperService(int chunkSize) {
+        this.chunkSize = chunkSize;
+    }
 
     @Override
     public synchronized void execute(Object context, I input, Consumer<List<I>> next, Consumer<Exception> errorHandler) throws Exception {
@@ -17,7 +21,7 @@ public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, 
         if (input != null) {
             list.add(input);
         }
-        if (list.size() >= CHUNK_SIZE || beforeTaskFinished) {
+        if (list.size() >= chunkSize || beforeTaskFinished) {
             next.accept(new ArrayList<>(list));
             list.clear();
         }

@@ -62,7 +62,7 @@ public class FullMigrationService {
             pipeline.append(mySQLReadService)
                     .append(customFilterService)
                     .append(mapperService)
-                    .append(new PipelineGrouperService<String>())
+                    .append(new PipelineGrouperService<String>(1234))
                     .append(mySQLWriteService)
                     .execute()
                     .waitForFinish();

@@ -27,11 +27,11 @@ public class CustomMappingPool {
 
     public Future<String> resolve(String input, Map<String, Object> data) {
         final int tmpRoundRobin;
-        synchronized (roundRobin) {
-            roundRobin++;
-            if (roundRobin >= POOL_SIZE) roundRobin = 0;
-            tmpRoundRobin = roundRobin;
-        }
+
+        roundRobin++;
+        if (roundRobin >= POOL_SIZE) roundRobin = 0;
+        tmpRoundRobin = roundRobin % POOL_SIZE;
+
         return executor.submit(() -> customMappingList.get(tmpRoundRobin).resolve(input, data));
     }
 }

@@ -18,7 +18,7 @@ public class CustomFilterPool {
     private static final int POOL_SIZE = 4;
     private ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);
     private List<CustomMapping> customMappingList = new ArrayList<>();
-    private Integer roundRobin = 0;
+    private int roundRobin = 0;
 
     @PostConstruct
     private void init() {
@@ -29,11 +29,9 @@ public class CustomFilterPool {
 
     public Future<Boolean> resolve(String input, Map<String, Object> data) {
         final int tmpRoundRobin;
-        synchronized (roundRobin) {
-            roundRobin++;
-            if (roundRobin >= POOL_SIZE) roundRobin = 0;
-            tmpRoundRobin = roundRobin;
-        }
+        roundRobin++;
+        if (roundRobin >= POOL_SIZE) roundRobin = 0;
+        tmpRoundRobin = roundRobin % POOL_SIZE;
         return executor.submit(() -> {
             try {
                 String str = customMappingList.get(tmpRoundRobin).resolve(input, data);

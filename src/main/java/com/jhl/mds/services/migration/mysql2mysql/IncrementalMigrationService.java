@@ -106,7 +106,7 @@ public class IncrementalMigrationService {
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append(migrationMapperService)
-                    .append(new PipelineGrouperService<String>())
+                    .append(new PipelineGrouperService<String>(1234))
                     .append(mySQLWriteService)
                     .execute(eventData);
         } catch (SQLException e) {
