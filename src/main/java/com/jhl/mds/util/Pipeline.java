@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
@@ -61,26 +60,32 @@ public class Pipeline<T, R> {
                     errorHappened = true;
                     errorHandler.accept(e);
                 } finally {
+                    boolean thisTaskFinished = false;
                     synchronized (invokeCount) {
                         invokeCount[finalI + 1]--;
                         if (invokeCount[finalI + 1] == 0 && taskFinished.get(finalI)) {
+                            thisTaskFinished = true;
                             updateTaskFinish(finalI + 1);
+                        }
+                    }
 
-                            if (taskList.get(finalI + 2) instanceof PipelineGrouperService) {
-                                ((PipelineGrouperService) taskList.get(finalI + 2)).beforeTaskFinished();
+                    if (thisTaskFinished && taskList.get(finalI + 2) instanceof PipelineGrouperService) {
+                        ((PipelineGrouperService) taskList.get(finalI + 2)).beforeTaskFinished();
+                    }
+
+                    if (errorHappened && thisTaskFinished) {
+                        for (int j = finalI + 2; j < taskList.size(); j++) {
+                            int _invokeCount;
+                            synchronized (invokeCount) {
+                                _invokeCount = invokeCount[j];
                             }
+                            if (_invokeCount == 0) {
+                                updateTaskFinish(j);
 
-                            if (errorHappened) {
-                                for (int j = finalI + 2; j < taskList.size(); j++) {
-                                    if (invokeCount[j] == 0) {
-                                        updateTaskFinish(j);
-
-                                        if (taskList.get(j + 1) instanceof PipelineGrouperService) {
-                                            ((PipelineGrouperService) taskList.get(j + 1)).beforeTaskFinished();
-                                        }
-                                    } else break;
+                                if (taskList.get(j + 1) instanceof PipelineGrouperService) {
+                                    ((PipelineGrouperService) taskList.get(j + 1)).beforeTaskFinished();
                                 }
-                            }
+                            } else break;
                         }
                     }
                 }
