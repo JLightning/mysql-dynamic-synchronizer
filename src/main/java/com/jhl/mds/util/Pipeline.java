@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,6 +17,7 @@ public class Pipeline<T, R> {
     @NonNull
     private T context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
+    private List<Boolean> taskFinished = new ArrayList<>();
     @Setter
     private Consumer<R> finalNext = System.out::println;
     @Setter
@@ -26,6 +28,7 @@ public class Pipeline<T, R> {
 
     public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
         taskList.add(taskRunner);
+        taskFinished.add(false);
         if (taskRunner instanceof PipelineGrouperService) {
             pipelineGrouperServiceList.add((PipelineGrouperService) taskRunner);
         }
@@ -43,6 +46,7 @@ public class Pipeline<T, R> {
             executorServices[i] = Executors.newFixedThreadPool(4);
         }
         Consumer[] nextList = new Consumer[taskList.size()];
+        int[] invokeCount = new int[taskList.size()];
         nextList[taskList.size() - 1] = finalNext;
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
@@ -52,12 +56,30 @@ public class Pipeline<T, R> {
                     taskList.get(finalI + 1).execute(context, o, nextList[finalI + 1], errorHandler);
                 } catch (Exception e) {
                     errorHandler.accept(e);
+                } finally {
+                    synchronized (invokeCount) {
+                        invokeCount[finalI + 1]--;
+                        System.out.println("invokeCount = " + Arrays.toString(invokeCount));
+                        if (invokeCount[finalI + 1] == 0 && taskFinished.get(finalI)) {
+                            System.out.println("task " + (finalI + 1) + " finished: " + taskList.get(finalI + 1).getClass());
+                            taskFinished.set(finalI + 1, true);
+
+                            if (taskList.get(finalI + 2) instanceof PipelineGrouperService) {
+                                ((PipelineGrouperService) taskList.get(finalI + 2)).beforeTaskFinished();
+                            }
+                        }
+                    }
                 }
             };
 
             if (!(taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread) && threadEnable) {
                 Consumer tmpNext = next;
-                next = o -> executorServices[finalI + 1].submit(() -> tmpNext.accept(o));
+                next = o -> {
+                    synchronized (invokeCount) {
+                        invokeCount[finalI + 1]++;
+                    }
+                    executorServices[finalI + 1].submit(() -> tmpNext.accept(o));
+                };
             }
 
             nextList[i] = next;
@@ -66,11 +88,10 @@ public class Pipeline<T, R> {
         executorServices[0].submit(() -> {
             try {
                 taskList.get(0).execute(context, input, nextList[0], errorHandler);
-                for (PipelineGrouperService pipelineGrouperService: pipelineGrouperServiceList) {
-                    pipelineGrouperService.beforeTaskFinished();
-                }
             } catch (Exception e) {
                 errorHandler.accept(e);
+            } finally {
+                taskFinished.set(0, true);
             }
         });
     }
