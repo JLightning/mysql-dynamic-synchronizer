@@ -4,7 +4,7 @@ import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
-import com.jhl.mds.util.PipeLineTaskRunner;
+import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

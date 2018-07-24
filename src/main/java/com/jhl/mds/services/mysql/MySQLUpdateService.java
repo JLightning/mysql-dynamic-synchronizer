@@ -2,7 +2,7 @@ package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.util.PipeLineTaskRunner;
+import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Pair;

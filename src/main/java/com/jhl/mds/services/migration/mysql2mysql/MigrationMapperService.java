@@ -8,7 +8,7 @@ import com.jhl.mds.services.custommapping.CustomMappingPool;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.services.mysql.MySQLFieldDefaultValueService;
 import com.jhl.mds.util.MySQLStringUtil;
-import com.jhl.mds.util.PipeLineTaskRunner;
+import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

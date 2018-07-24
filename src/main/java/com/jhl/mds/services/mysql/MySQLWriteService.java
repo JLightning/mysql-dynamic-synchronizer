@@ -3,7 +3,7 @@ package com.jhl.mds.services.mysql;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
-import com.jhl.mds.util.PipeLineTaskRunner;
+import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,11 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
 @Service

@@ -1,4 +1,4 @@
-package com.jhl.mds.util;
+package com.jhl.mds.util.pipeline;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

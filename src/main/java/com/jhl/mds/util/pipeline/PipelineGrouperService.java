@@ -1,4 +1,4 @@
-package com.jhl.mds.util;
+package com.jhl.mds.util.pipeline;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +27,7 @@ public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, 
         }
     }
 
-    public synchronized void beforeTaskFinished() {
+    synchronized void beforeTaskFinished() {
         this.beforeTaskFinished = true;
         next.accept(new ArrayList<>(list));
         list.clear();

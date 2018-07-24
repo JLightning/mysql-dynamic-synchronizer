@@ -6,8 +6,8 @@ import com.jhl.mds.events.MigrationProgressUpdateEvent;
 import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
-import com.jhl.mds.util.Pipeline;
-import com.jhl.mds.util.PipelineGrouperService;
+import com.jhl.mds.util.pipeline.Pipeline;
+import com.jhl.mds.util.pipeline.PipelineGrouperService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 

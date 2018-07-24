@@ -11,9 +11,9 @@ import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogUpdateMapperService;
-import com.jhl.mds.util.PipeLineTaskRunner;
-import com.jhl.mds.util.Pipeline;
-import com.jhl.mds.util.PipelineGrouperService;
+import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
+import com.jhl.mds.util.pipeline.Pipeline;
+import com.jhl.mds.util.pipeline.PipelineGrouperService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,6 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
 
 @Service
 public class IncrementalMigrationService {

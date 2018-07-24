@@ -3,7 +3,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
-import com.jhl.mds.util.PipeLineTaskRunner;
+import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
