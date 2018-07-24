@@ -52,20 +52,35 @@ public class Pipeline<T, R> {
             int finalI = i;
 
             Consumer next = o -> {
+                boolean errorHappened = false;
                 try {
                     taskList.get(finalI + 1).execute(context, o, nextList[finalI + 1], errorHandler);
                 } catch (Exception e) {
+                    errorHappened = true;
                     errorHandler.accept(e);
                 } finally {
                     synchronized (invokeCount) {
                         invokeCount[finalI + 1]--;
-                        System.out.println("invokeCount = " + Arrays.toString(invokeCount));
+//                        System.out.println("invokeCount = " + Arrays.toString(invokeCount));
                         if (invokeCount[finalI + 1] == 0 && taskFinished.get(finalI)) {
                             System.out.println("task " + (finalI + 1) + " finished: " + taskList.get(finalI + 1).getClass());
                             taskFinished.set(finalI + 1, true);
 
                             if (taskList.get(finalI + 2) instanceof PipelineGrouperService) {
                                 ((PipelineGrouperService) taskList.get(finalI + 2)).beforeTaskFinished();
+                            }
+
+                            if (errorHappened) {
+                                for (int j = finalI + 2; j < taskList.size(); j++) {
+                                    if (invokeCount[j] == 0) {
+                                        System.out.println("task " + j + " finished: " + taskList.get(j).getClass());
+                                        taskFinished.set(finalI + 1, true);
+
+                                        if (taskList.get(j + 1) instanceof PipelineGrouperService) {
+                                            ((PipelineGrouperService) taskList.get(j + 1)).beforeTaskFinished();
+                                        }
+                                    } else break;
+                                }
                             }
                         }
                     }

@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, List<I>> {
 
-    private static final int CHUNK_SIZE = 123;
+    private static final int CHUNK_SIZE = 1234;
     private List<I> list = new ArrayList<>();
     private boolean beforeTaskFinished;
     private Consumer<List<I>> next;
