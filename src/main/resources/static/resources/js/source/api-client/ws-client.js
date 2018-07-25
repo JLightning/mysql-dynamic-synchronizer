@@ -1,5 +1,3 @@
-const SockJS = require('../lib/sockjs.min');
-// const Stomp = require('../lib/stomp.min').Stomp;
 const Stomp = require('@stomp/stompjs');
 
 class WsClient {
