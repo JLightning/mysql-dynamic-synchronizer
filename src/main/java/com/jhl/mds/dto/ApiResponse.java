@@ -6,6 +6,7 @@ import lombok.Getter;
 public class ApiResponse<T> {
 
     private boolean success;
+    private int errorCode;
     private String errorMessage;
     private T data;
 
@@ -21,6 +22,10 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> error(Exception e) {
+        return error(e, 0);
+    }
+
+    public static <T> ApiResponse<T> error(Exception e, int errorCode) {
         ApiResponse<T> response = new ApiResponse<>();
         response.success = false;
         response.errorMessage = e.getMessage();
@@ -28,6 +33,10 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> error(String errorMessage) {
+        return error(errorMessage, 0);
+    }
+
+    public static <T> ApiResponse<T> error(String errorMessage, int errorCode) {
         ApiResponse<T> response = new ApiResponse<>();
         response.success = false;
         response.errorMessage = errorMessage;
