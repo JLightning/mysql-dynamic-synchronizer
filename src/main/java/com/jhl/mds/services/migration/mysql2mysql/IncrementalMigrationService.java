@@ -2,6 +2,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
+import com.jhl.mds.consts.MySQLConstants;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
@@ -112,7 +113,7 @@ public class IncrementalMigrationService {
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append(migrationMapperService)
-                    .append(new PipelineGrouperService<String>(1234))
+                    .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLWriteService)
                     .execute(eventData);
         } catch (SQLException e) {

@@ -1,5 +1,6 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
+import com.jhl.mds.consts.MySQLConstants;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
@@ -80,7 +81,7 @@ public class FullMigrationService {
             pipeline.append(mySQLReadService)
                     .append(customFilterService)
                     .append(mapperService)
-                    .append(new PipelineGrouperService<String>(1234))
+                    .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLWriteService)
                     .execute()
                     .waitForFinish();
