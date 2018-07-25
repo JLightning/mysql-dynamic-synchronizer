@@ -2,7 +2,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.events.MigrationProgressUpdateEvent;
+import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
 import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLReadService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
@@ -22,28 +22,28 @@ import java.util.function.Consumer;
 public class FullMigrationService {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+    private ApplicationEventPublisher eventPublisher;
     private MySQLReadService mySQLReadService;
     private CustomFilterService customFilterService;
     private MySQLWriteService mySQLWriteService;
     private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
-    private ApplicationEventPublisher eventPublisher;
     private Set<Integer> runningTask = new HashSet<>();
 
     public FullMigrationService(
+            ApplicationEventPublisher eventPublisher,
             MySQLReadService mySQLReadService,
             CustomFilterService customFilterService,
             MySQLWriteService mySQLWriteService,
             TaskRepository taskRepository,
-            MigrationMapperService.Factory migrationMapperServiceFactory,
-            ApplicationEventPublisher eventPublisher
+            MigrationMapperService.Factory migrationMapperServiceFactory
     ) {
+        this.eventPublisher = eventPublisher;
         this.mySQLReadService = mySQLReadService;
         this.customFilterService = customFilterService;
         this.mySQLWriteService = mySQLWriteService;
         this.taskRepository = taskRepository;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
-        this.eventPublisher = eventPublisher;
     }
 
     public void queue(FullMigrationDTO dto) {
@@ -94,7 +94,7 @@ public class FullMigrationService {
     }
 
     private void saveFullMigrationProgress(FullMigrationDTO dto, double progress, boolean async) {
-        eventPublisher.publishEvent(new MigrationProgressUpdateEvent(dto, progress, progress != 100));
+        eventPublisher.publishEvent(new FullMigrationProgressUpdateEvent(dto, progress, progress != 100));
 
         Runnable runnable = () -> taskRepository.updateFullMigrationProgress(dto.getTaskId(), Math.round(progress));
         if (async) executorService.submit(runnable);

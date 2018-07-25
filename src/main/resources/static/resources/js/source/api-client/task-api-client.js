@@ -14,6 +14,10 @@ class TaskApiClient extends AbstractClient {
         return this.subscribe('/app/channel/task/full-migration-progress/' + taskId + '', callback);
     }
 
+    getIncrementalMigrationProgressWs(taskId, callback) {
+        return this.subscribe('/app/channel/task/incremental-migration-progress/' + taskId + '', callback);
+    }
+
     getTaskAction(taskId) {
         return this.get('/api/task/detail/' + taskId + '', {});
     }

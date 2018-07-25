@@ -6,7 +6,7 @@ class TaskDetail extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fullMigrationProgress: 0, fullMigrationRunning: false};
+        this.state = {fullMigrationProgress: 0, fullMigrationRunning: false, incrementalMigrationRunning: false};
     }
 
     componentDidMount() {
@@ -18,6 +18,11 @@ class TaskDetail extends React.Component {
                 this.setState({fullMigrationRunning: event.running})
             }
         });
+
+        taskApiClient.getIncrementalMigrationProgressWs(taskId, event => {
+            this.setState({incrementalMigrationRunning: event.running});
+        });
+
         taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));
     }
 
@@ -85,13 +90,23 @@ class TaskDetail extends React.Component {
                                 <p className="h4">Incremental migration:</p>
                             </div>
                             <div className="col-6">
-                                <button type="button" className="float-right btn btn-primary btn-sm ml-1"
-                                        onClick={() => taskApiClient.stopIncrementalMigrationTask(taskId)}>Stop
-                                </button>
-                                <button type="button" className="float-right btn btn-primary btn-sm"
-                                        onClick={() => taskApiClient.startIncrementalMigrationTask(taskId)}>
-                                    Start
-                                </button>
+                                {
+                                    (() => {
+                                        if (this.state.incrementalMigrationRunning)
+                                            return (
+                                                <button type="button"
+                                                        className="float-right btn btn-primary btn-sm ml-1"
+                                                        onClick={() => taskApiClient.stopIncrementalMigrationTask(taskId)}>Stop
+                                                </button>
+                                            );
+                                        return (
+                                            <button type="button" className="float-right btn btn-primary btn-sm"
+                                                    onClick={() => taskApiClient.startIncrementalMigrationTask(taskId)}>
+                                                Start
+                                            </button>
+                                        )
+                                    })()
+                                }
                             </div>
                         </div>
                         <table className="table">

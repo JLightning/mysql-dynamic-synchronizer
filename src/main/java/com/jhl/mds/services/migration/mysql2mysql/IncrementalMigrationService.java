@@ -5,6 +5,7 @@ import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.services.mysql.MySQLUpdateService;
 import com.jhl.mds.services.mysql.MySQLWriteService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
@@ -17,6 +18,7 @@ import com.jhl.mds.util.pipeline.PipelineGrouperService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,7 @@ public class IncrementalMigrationService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private static ExecutorService executor = Executors.newFixedThreadPool(4);
+    private ApplicationEventPublisher eventPublisher;
     private TaskRepository taskRepository;
     private MySQLBinLogPool mySQLBinLogPool;
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
@@ -44,6 +47,7 @@ public class IncrementalMigrationService {
 
     @Autowired
     public IncrementalMigrationService(
+            ApplicationEventPublisher eventPublisher,
             TaskRepository taskRepository,
             MySQLBinLogPool mySQLBinLogPool,
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
@@ -53,6 +57,7 @@ public class IncrementalMigrationService {
             MySQLUpdateService mySQLUpdateService,
             FullMigrationDTO.Converter fullMigrationDTOConverter
     ) {
+        this.eventPublisher = eventPublisher;
         this.taskRepository = taskRepository;
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
@@ -78,6 +83,8 @@ public class IncrementalMigrationService {
             throw new RuntimeException("Task has already been running");
         }
         runningTask.add(dto.getTaskId());
+
+        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true));
 
         MySQLBinLogListener listener = new MySQLBinLogListener() {
             @Override
@@ -139,5 +146,13 @@ public class IncrementalMigrationService {
     public synchronized void stop(FullMigrationDTO dto) {
         mySQLBinLogPool.removeListener(dto.getSource(), listenerMap.get(dto.getTaskId()));
         listenerMap.remove(dto.getTaskId());
+
+        runningTask.remove(dto.getTaskId());
+
+        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), false));
+    }
+
+    public boolean isTaskRunning(int taskId) {
+        return runningTask.contains(taskId);
     }
 }

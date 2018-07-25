@@ -5,6 +5,7 @@ import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.*;
+import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.events.ProgressUpdateEvent;
 import com.jhl.mds.jsclientgenerator.JsClientController;
 import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
@@ -118,14 +119,6 @@ public class TaskApiController {
         return new FullMigrationProgressDTO(fullMigrationService.isTaskRunning(taskId), fullMigrationService.getProgress(taskId));
     }
 
-    @EventListener
-    @Async
-    public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<FullMigrationDTO> event) {
-        FullMigrationDTO dto = event.getDto();
-        FullMigrationProgressDTO fullMigrationProgressDTO = new FullMigrationProgressDTO(event.isRunning(), Math.round(event.getProgress()));
-        simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + dto.getTaskId(), fullMigrationProgressDTO);
-    }
-
     @GetMapping("/detail/{taskId}/start-full-migration")
     public ApiResponse<Boolean> startFullMigrationTask(@PathVariable int taskId) {
         try {
@@ -156,5 +149,25 @@ public class TaskApiController {
         taskRepository.updateIncrementalMigrationActive(taskId, false);
 
         return ApiResponse.success(true);
+    }
+
+    @SubscribeMapping("/channel/task/incremental-migration-progress/{taskId}")
+    public FullMigrationProgressDTO getIncrementalMigrationProgressWs(@DestinationVariable int taskId) {
+        return new FullMigrationProgressDTO(incrementalMigrationService.isTaskRunning(taskId), 0);
+    }
+
+    @EventListener
+    @Async
+    public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<FullMigrationDTO> event) {
+        FullMigrationDTO dto = event.getDto();
+        FullMigrationProgressDTO fullMigrationProgressDTO = new FullMigrationProgressDTO(event.isRunning(), Math.round(event.getProgress()));
+        simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + dto.getTaskId(), fullMigrationProgressDTO);
+    }
+
+    @EventListener
+    @Async
+    public void onIncrementalMigrationTaskStatusUpdate(IncrementalStatusUpdateEvent event) {
+        FullMigrationProgressDTO fullMigrationProgressDTO = new FullMigrationProgressDTO(event.isRunning(), 0);
+        simpMessagingTemplate.convertAndSend("/app/channel/task/incremental-migration-progress/" + event.getTaskId(), fullMigrationProgressDTO);
     }
 }
