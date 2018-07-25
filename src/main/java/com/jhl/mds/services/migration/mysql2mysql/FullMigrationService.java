@@ -94,7 +94,7 @@ public class FullMigrationService {
     }
 
     private void saveFullMigrationProgress(FullMigrationDTO dto, double progress, boolean async) {
-        eventPublisher.publishEvent(new MigrationProgressUpdateEvent(dto, progress));
+        eventPublisher.publishEvent(new MigrationProgressUpdateEvent(dto, progress, progress != 100));
 
         Runnable runnable = () -> taskRepository.updateFullMigrationProgress(dto.getTaskId(), Math.round(progress));
         if (async) executorService.submit(runnable);
@@ -103,5 +103,9 @@ public class FullMigrationService {
 
     public double getProgress(int taskId) {
         return taskRepository.getOne(taskId).getFullMigrationProgress();
+    }
+
+    public boolean isTaskRunning(int taskId) {
+        return runningTask.contains(taskId);
     }
 }

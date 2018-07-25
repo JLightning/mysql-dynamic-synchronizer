@@ -6,12 +6,17 @@ class TaskDetail extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fullMigrationProgress: 0};
+        this.state = {fullMigrationProgress: 0, fullMigrationRunning: false};
     }
 
     componentDidMount() {
-        taskApiClient.getFullMigrationTaskProgressWs(taskId, progress => {
-            if (this.state.fullMigrationProgress !== progress) this.setState({fullMigrationProgress: progress})
+        taskApiClient.getFullMigrationTaskProgressWs(taskId, event => {
+            if (this.state.fullMigrationProgress !== event.progress) {
+                this.setState({fullMigrationProgress: event.progress})
+            }
+            if (this.state.fullMigrationRunning !== event.running) {
+                this.setState({fullMigrationRunning: event.running})
+            }
         });
         taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));
     }
@@ -39,11 +44,19 @@ class TaskDetail extends React.Component {
                         </div>
                     </div>
                     <div className="col-1 vertial-center">
-                        <button type="button" className="float-right btn btn-primary btn-sm ml-1">Stop</button>
-                        <button type="button" className="float-right btn btn-primary btn-sm"
-                                onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
-                            Start
-                        </button>
+                        {
+                            (() => {
+                                if (this.state.fullMigrationRunning)
+                                    return <button type="button"
+                                                   className="float-right btn btn-primary btn-sm ml-1">Stop</button>;
+                                return (
+                                    <button type="button" className="float-right btn btn-primary btn-sm"
+                                            onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
+                                        Start
+                                    </button>
+                                );
+                            })()
+                        }
                     </div>
                 </div>
                 <div className="row mt-3">

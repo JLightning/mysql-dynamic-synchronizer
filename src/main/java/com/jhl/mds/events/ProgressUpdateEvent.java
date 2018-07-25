@@ -9,4 +9,5 @@ public class ProgressUpdateEvent<T> {
 
     private T dto;
     private double progress;
+    private boolean running;
 }

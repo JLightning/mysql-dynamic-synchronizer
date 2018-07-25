@@ -113,21 +113,17 @@ public class TaskApiController {
         return ApiResponse.success(taskDTOConverter.from(task, taskMapping));
     }
 
-    @GetMapping("/detail/{taskId}/full-migration-progress")
-    public ApiResponse<Double> getFullMigrationTaskProgress(@PathVariable int taskId) {
-        return ApiResponse.success(fullMigrationService.getProgress(taskId));
-    }
-
     @SubscribeMapping("/channel/task/full-migration-progress/{taskId}")
-    public Double getFullMigrationTaskProgressWs(@DestinationVariable int taskId) {
-        return fullMigrationService.getProgress(taskId);
+    public FullMigrationProgressDTO getFullMigrationTaskProgressWs(@DestinationVariable int taskId) {
+        return new FullMigrationProgressDTO(fullMigrationService.isTaskRunning(taskId), fullMigrationService.getProgress(taskId));
     }
 
     @EventListener
     @Async
     public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<FullMigrationDTO> event) {
         FullMigrationDTO dto = event.getDto();
-        simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + dto.getTaskId(), Math.round(event.getProgress()));
+        FullMigrationProgressDTO fullMigrationProgressDTO = new FullMigrationProgressDTO(event.isRunning(), Math.round(event.getProgress()));
+        simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + dto.getTaskId(), fullMigrationProgressDTO);
     }
 
     @GetMapping("/detail/{taskId}/start-full-migration")
