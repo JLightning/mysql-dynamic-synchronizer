@@ -19,6 +19,7 @@ import com.jhl.mds.util.pipeline.PipelineGrouperService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,8 @@ public class IncrementalMigrationService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private static ExecutorService executor = Executors.newFixedThreadPool(4);
+    @Value("${mds.incremental.autostart:true}")
+    private boolean enableAutoStart;
     private ApplicationEventPublisher eventPublisher;
     private TaskRepository taskRepository;
     private MySQLBinLogPool mySQLBinLogPool;
@@ -71,10 +74,12 @@ public class IncrementalMigrationService {
 
     @PostConstruct
     private void init() {
-        logger.info("Start incremental migration service");
-        List<Task> tasks = taskRepository.findByIncrementalMigrationActive(true);
-        for (Task task : tasks) {
-            run(fullMigrationDTOConverter.from(task));
+        if (enableAutoStart) {
+            logger.info("Start incremental migration service");
+            List<Task> tasks = taskRepository.findByIncrementalMigrationActive(true);
+            for (Task task : tasks) {
+                run(fullMigrationDTOConverter.from(task));
+            }
         }
     }
 
