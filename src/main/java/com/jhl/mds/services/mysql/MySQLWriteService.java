@@ -7,6 +7,7 @@ import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
 import java.sql.Statement;
-import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 @Service
@@ -50,6 +51,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, L
 
             String sql = String.format("INSERT INTO %s(%s) VALUES %s;", tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
 //            logger.info("Run query: " + sql);
+            logger.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
 
             st.execute(sql);
             st.close();
@@ -57,6 +59,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, L
             next.accept((long) input.size());
 
         } catch (Exception e) {
+            logger.error(String.format("Error when inserting %d rows to %s.%s: %s", input.size(), tableInfo.getDatabase(), tableInfo.getTable(), ExceptionUtils.getStackTrace(e)));
             errorHandler.accept(new WriteServiceException(e, input.size()));
         }
     }
