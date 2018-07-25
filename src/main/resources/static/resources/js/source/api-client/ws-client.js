@@ -1,18 +1,21 @@
 const SockJS = require('../lib/sockjs.min');
-const Stomp = require('../lib/stomp.min').Stomp;
+// const Stomp = require('../lib/stomp.min').Stomp;
+const Stomp = require('@stomp/stompjs');
 
 class WsClient {
 
     constructor() {
-        const socket = new SockJS('/ws');
         this.successCallback = [];
         this.errorCallback = [];
         this.connected = false;
-        this.stompClient = Stomp.over(socket);
+        this.stompClient = Stomp.client('ws://localhost:8080/ws');
+
         this.stompClient.connect('guest', 'guest', this.onWsConnected.bind(this), this.onWsError.bind(this));
+        this.stompClient.reconnect_delay = 5000;
     }
 
     onWsConnected() {
+        console.log("WS connected");
         this.connected = true;
         this.successCallback.forEach(cb => cb());
     }
@@ -37,9 +40,9 @@ class WsClient {
         });
         if (this.connected) {
             r();
-        } else {
-            this.successCallback.push(r);
         }
+
+        this.successCallback.push(r);
     }
 
     send(channel, body1, body2) {
