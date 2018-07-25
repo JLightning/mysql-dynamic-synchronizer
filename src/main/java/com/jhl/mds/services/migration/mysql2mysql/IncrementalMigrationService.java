@@ -33,7 +33,7 @@ import java.util.concurrent.Executors;
 public class IncrementalMigrationService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private static ExecutorService executor = Executors.newFixedThreadPool(4);
+    private Map<Integer, ExecutorService> executorServiceMap = new HashMap<>();
     @Value("${mds.incremental.autostart:true}")
     private boolean enableAutoStart;
     private ApplicationEventPublisher eventPublisher;
@@ -89,6 +89,8 @@ public class IncrementalMigrationService {
         }
         runningTask.add(dto.getTaskId());
 
+        ExecutorService executor = getExecutorServiceForTaskId(dto.getTaskId());
+
         eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true));
 
         MySQLBinLogListener listener = new MySQLBinLogListener() {
@@ -106,6 +108,12 @@ public class IncrementalMigrationService {
         listenerMap.put(dto.getTaskId(), listener);
 
         mySQLBinLogPool.addListener(dto.getSource(), listener);
+    }
+
+    private synchronized ExecutorService getExecutorServiceForTaskId(int taskId) {
+        if (!executorServiceMap.containsKey(taskId))
+            executorServiceMap.put(taskId, Executors.newSingleThreadExecutor());
+        return executorServiceMap.get(taskId);
     }
 
     @SuppressWarnings("unchecked")

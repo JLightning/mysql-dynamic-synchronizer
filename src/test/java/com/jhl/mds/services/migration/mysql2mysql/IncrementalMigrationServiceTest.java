@@ -67,10 +67,9 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         incrementalMigrationService.run(dto);
 
         getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (2)");
-        Thread.sleep(200);
         getStatement().execute("UPDATE mds.tablea SET random_number = 8");
 
-        Thread.sleep(2000);
+        Thread.sleep(500);
 
         ResultSet result = getStatement().executeQuery("SELECT * FROM mds.tableb");
         result.next();

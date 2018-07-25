@@ -14,10 +14,9 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,6 +26,8 @@ import java.util.Map;
 public class MySQLBinLogConnection {
 
     private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
+    @Value("${mds.incremental.ignoreBinlogPositionFile:false}")
+    private boolean ignoreBinlogPositionFile;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final String BINLOG_POSITION_FILENAME;
@@ -106,6 +107,7 @@ public class MySQLBinLogConnection {
     }
 
     private void writeBinlogPosition(String binlogFilename, long position) {
+        if (ignoreBinlogPositionFile) return;
         try {
             FileUtils.writeStringToFile(new File(BINLOG_POSITION_FILENAME), jacksonObjectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)), "utf-8");
         } catch (Exception e) {
@@ -115,6 +117,7 @@ public class MySQLBinLogConnection {
 
     private BinlogPosition readBinlogPosition() {
         BinlogPosition binlogPosition = null;
+        if (ignoreBinlogPositionFile) return null;
         try {
             String value = FileUtils.readFileToString(new File(BINLOG_POSITION_FILENAME), "utf-8");
             binlogPosition = jacksonObjectMapper.readValue(value, BinlogPosition.class);
