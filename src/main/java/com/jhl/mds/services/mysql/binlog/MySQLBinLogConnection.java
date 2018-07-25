@@ -11,10 +11,14 @@ import com.jhl.mds.util.Md5;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -102,18 +106,20 @@ public class MySQLBinLogConnection {
     }
 
     private void writeBinlogPosition(String binlogFilename, long position) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(BINLOG_POSITION_FILENAME))) {
-            bw.write(jacksonObjectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        try {
+            FileUtils.writeStringToFile(new File(BINLOG_POSITION_FILENAME), jacksonObjectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)), "utf-8");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     private BinlogPosition readBinlogPosition() {
         BinlogPosition binlogPosition = null;
-        try (BufferedReader br = new BufferedReader(new FileReader(BINLOG_POSITION_FILENAME))) {
-            String value = br.readLine().trim();
+        try {
+            String value = FileUtils.readFileToString(new File(BINLOG_POSITION_FILENAME), "utf-8");
             binlogPosition = jacksonObjectMapper.readValue(value, BinlogPosition.class);
+        } catch (IOException e) {
+            e.printStackTrace();
         } finally {
             return binlogPosition;
         }
