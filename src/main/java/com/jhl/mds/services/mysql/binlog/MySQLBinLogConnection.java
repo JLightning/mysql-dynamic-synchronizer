@@ -84,7 +84,7 @@ public class MySQLBinLogConnection {
     }
 
     private String getBinlogPositionFilename(MySQLServerDTO server) {
-        return "binlog_" + server.getHost().replaceAll("\\.", "_") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
+        return "./store/binlog/binlog_" + server.getHost().replaceAll("\\.", "_") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
     }
 
     private void putTableMap(MySQLServerDTO server, TableMapEventData data) {

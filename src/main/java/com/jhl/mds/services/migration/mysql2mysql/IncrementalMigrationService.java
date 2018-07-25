@@ -25,7 +25,6 @@ import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,8 +119,9 @@ public class IncrementalMigrationService {
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLWriteService)
-                    .execute(eventData);
-        } catch (SQLException e) {
+                    .execute(eventData)
+                    .waitForFinish();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -143,8 +143,9 @@ public class IncrementalMigrationService {
                         next.accept(Pair.of(key, value));
                     })
                     .append(mySQLUpdateService)
-                    .execute(eventData);
-        } catch (SQLException e) {
+                    .execute(eventData)
+                    .waitForFinish();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

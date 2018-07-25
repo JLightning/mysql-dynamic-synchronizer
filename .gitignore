@@ -36,5 +36,5 @@ data/*
 .idea
 mds.db
 db_migration.txt
-binlog_*
+store/*
 mysql-dynamic-synchronizer.iml
