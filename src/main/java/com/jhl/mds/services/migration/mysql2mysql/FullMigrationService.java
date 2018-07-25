@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 @Service
 public class FullMigrationService {
@@ -58,7 +60,23 @@ public class FullMigrationService {
             MigrationMapperService mapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(mapperService.getColumns());
 
+            long count = mySQLReadService.count(dto.getSource());
+            AtomicLong finished = new AtomicLong();
+
+            final Consumer<Long> finishCallback = size -> saveFullMigrationProgress(dto, (double) (finished.addAndGet(size) * 100) / count, true);
+
+
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
+            pipeline.setFinalNext(finishCallback);
+            pipeline.setErrorHandler(e -> {
+                if (e instanceof MySQLWriteService.WriteServiceException) {
+                    finishCallback.accept(((MySQLWriteService.WriteServiceException) e).getCount());
+                } else {
+                    finishCallback.accept(1L);
+                }
+                saveFullMigrationProgress(dto, (double) (finished.get() * 100) / count, true);
+            });
+
             pipeline.append(mySQLReadService)
                     .append(customFilterService)
                     .append(mapperService)
