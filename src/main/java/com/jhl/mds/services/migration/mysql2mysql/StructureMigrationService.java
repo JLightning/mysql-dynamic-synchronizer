@@ -18,13 +18,13 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class StrutureMigrationService implements PipeLineTaskRunner<FullMigrationDTO, Object, Void> {
+public class StructureMigrationService implements PipeLineTaskRunner<FullMigrationDTO, Object, Void> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
     private MySQLDescribeService mySQLDescribeService;
 
-    public StrutureMigrationService(
+    public StructureMigrationService(
             MySQLConnectionPool mySQLConnectionPool,
             MySQLDescribeService mySQLDescribeService
     ) {
@@ -93,9 +93,9 @@ public class StrutureMigrationService implements PipeLineTaskRunner<FullMigratio
         return String.format("INDEX `%s` (`%s` %s)", indexDTO.getKeyName(), mappedColumn, indexDTO.getCollation().equals("A") ? "ASC" : "DESC");
     }
 
-    public String fieldToCreateTableString(MySQLFieldDTO fieldDTO, Map<String, String> mapping) {
+    private String fieldToCreateTableString(MySQLFieldDTO fieldDTO, Map<String, String> mapping) {
         String defaultStr = fieldDTO.getDefaultValue() != null ? "DEFAULT " + fieldDTO.getDefaultValue() : "";
         String commentStr = fieldDTO.getComment() != null ? "COMMENT '" + fieldDTO.getComment() + "'" : "";
-        return String.format("`%s` %s %s %s %s %s", mapping.get(fieldDTO.getField()), fieldDTO.getType(), fieldDTO.isNullable() ? "NULLABLE" : "NOT NULL", defaultStr, fieldDTO.getExtra(), commentStr);
+        return String.format("`%s` %s %s %s %s %s", mapping.get(fieldDTO.getField()), fieldDTO.getType(), fieldDTO.isNullable() ? "" : "NOT NULL", defaultStr, fieldDTO.getExtra(), commentStr);
     }
 }

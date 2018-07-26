@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class StructureMigrationServiceTest extends BaseTest {
 
     @Autowired
-    private StrutureMigrationService strutureMigrationService;
+    private StructureMigrationService structureMigrationService;
 
     @Test
     public void executeTest() throws Exception {
@@ -31,6 +31,6 @@ public class StructureMigrationServiceTest extends BaseTest {
                 ))
                 .build();
 
-        strutureMigrationService.execute(dto, null, null, null);
+        structureMigrationService.execute(dto, null, null, null);
     }
 }

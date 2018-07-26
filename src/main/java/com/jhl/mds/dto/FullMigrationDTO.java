@@ -73,5 +73,19 @@ public class FullMigrationDTO {
                     .target(targetTableInfoDTO)
                     .build();
         }
+
+        public FullMigrationDTO from(TaskDTO taskDTO) {
+            MySQLServer sourceServer = mySQLServerRepository.findByServerId(taskDTO.getSource().getServerId());
+            MySQLServer targetServer = mySQLServerRepository.findByServerId(taskDTO.getTarget().getServerId());
+
+            TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), taskDTO.getSource().getDatabase(), taskDTO.getSource().getTable());
+            TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable());
+
+            return FullMigrationDTO.builder()
+                    .mapping(taskDTO.getMapping())
+                    .source(sourceTableInfoDTO)
+                    .target(targetTableInfoDTO)
+                    .build();
+        }
     }
 }
