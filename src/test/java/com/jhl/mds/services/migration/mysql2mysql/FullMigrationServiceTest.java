@@ -1,10 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
-import com.jhl.mds.dto.FullMigrationDTO;
-import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.SimpleFieldMappingDTO;
-import com.jhl.mds.dto.TableInfoDTO;
+import com.jhl.mds.dto.*;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Assert;
 import org.junit.Test;
@@ -79,6 +76,7 @@ public class FullMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("random_number * 10", "random_number")
                 ))
                 .filters(Collections.singletonList("id % 2 == 1"))
+                .migrationMode(MySQLMigrationMode.REPLACE)
                 .build();
 
         checkTime("full_migration", () -> {

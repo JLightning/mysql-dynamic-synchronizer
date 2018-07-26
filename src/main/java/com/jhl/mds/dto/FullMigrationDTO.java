@@ -26,6 +26,7 @@ public class FullMigrationDTO {
     private TableInfoDTO source;
     private TableInfoDTO target;
     private List<SimpleFieldMappingDTO> mapping;
+    private MySQLMigrationMode migrationMode;
     private List<String> filters;
     private List<String> targetColumns;
 
@@ -71,6 +72,7 @@ public class FullMigrationDTO {
                     .mapping(mappingDTOs)
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
+                    .migrationMode(MySQLMigrationMode.REPLACE)
                     .build();
         }
 
@@ -85,6 +87,7 @@ public class FullMigrationDTO {
                     .mapping(taskDTO.getMapping())
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
+                    .migrationMode(MySQLMigrationMode.REPLACE)
                     .build();
         }
     }
