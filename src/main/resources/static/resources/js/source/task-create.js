@@ -10,7 +10,7 @@ class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false, filters: [], taskTypes: [], insertModes: []};
+        this.state = {taskName: '', fields: [], table: {}, filters: [], taskTypes: [], insertModes: []};
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
@@ -26,9 +26,8 @@ class TaskCreate extends React.Component {
         taskApiClient.getInsertModes().done(insertModes => this.setState({insertModes}));
     }
 
-    recalculateReadyForSubmit() {
-        const readyForSubmit = this.state.fields.length > 0 && this.state.taskName !== '';
-        this.setState({readyForSubmit: readyForSubmit});
+    getReadyToSubmit() {
+        return this.state.fields.length > 0 && this.state.taskName !== '';
     }
 
     tableSelected(params, isSource) {
@@ -117,6 +116,7 @@ class TaskCreate extends React.Component {
     }
 
     render() {
+        const readyToSubmit = this.getReadyToSubmit();
         const state = this.state;
         return (
             <div className="container mt-3">
@@ -189,7 +189,7 @@ class TaskCreate extends React.Component {
                                 }}/>
 
                     <button type="button" className="btn btn-primary float-right mt-3"
-                            disabled={!this.state.readyForSubmit}
+                            disabled={!readyToSubmit}
                             onClick={() => this.submit()}>
                         Submit
                     </button>
