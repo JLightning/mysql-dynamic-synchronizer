@@ -5,7 +5,7 @@ import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.consts.MySQLConstants;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.repositories.TaskRepository;
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.services.mysql.MySQLUpdateService;
 import com.jhl.mds.services.mysql.MySQLInsertService;
@@ -44,7 +44,7 @@ public class IncrementalMigrationService {
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
-    private FullMigrationDTO.Converter fullMigrationDTOConverter;
+    private MigrationDTO.Converter fullMigrationDTOConverter;
     private Set<Integer> runningTask = new HashSet<>();
     private Map<Integer, MySQLBinLogListener> listenerMap = new HashMap<>();
 
@@ -58,7 +58,7 @@ public class IncrementalMigrationService {
             MigrationMapperService.Factory migrationMapperServiceFactory,
             MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
-            FullMigrationDTO.Converter fullMigrationDTOConverter
+            MigrationDTO.Converter fullMigrationDTOConverter
     ) {
         this.eventPublisher = eventPublisher;
         this.taskRepository = taskRepository;
@@ -82,7 +82,7 @@ public class IncrementalMigrationService {
         }
     }
 
-    public synchronized void run(FullMigrationDTO dto) {
+    public synchronized void run(MigrationDTO dto) {
         logger.info("Run incremental migration for: " + dto);
         if (runningTask.contains(dto.getTaskId())) {
             throw new RuntimeException("Task has already been running");
@@ -117,12 +117,12 @@ public class IncrementalMigrationService {
     }
 
     @SuppressWarnings("unchecked")
-    private void insert(FullMigrationDTO dto, WriteRowsEventData eventData) {
+    private void insert(MigrationDTO dto, WriteRowsEventData eventData) {
         try {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
-            Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
+            Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
@@ -135,14 +135,14 @@ public class IncrementalMigrationService {
     }
 
     // TODO: make sure update run after insert
-    private void update(FullMigrationDTO dto, UpdateRowsEventData eventData) {
+    private void update(MigrationDTO dto, UpdateRowsEventData eventData) {
         try {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
-            Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
+            Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogUpdateMapperService)
-                    .append((PipeLineTaskRunner<FullMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                    .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();
                         key = migrationMapperService.map(key, false);
@@ -158,7 +158,7 @@ public class IncrementalMigrationService {
         }
     }
 
-    public synchronized void stop(FullMigrationDTO dto) {
+    public synchronized void stop(MigrationDTO dto) {
         mySQLBinLogPool.removeListener(dto.getSource(), listenerMap.get(dto.getTaskId()));
         listenerMap.remove(dto.getTaskId());
 

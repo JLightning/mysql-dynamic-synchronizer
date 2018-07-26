@@ -1,6 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
+import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Assert;
@@ -68,7 +69,7 @@ public class FullMigrationServiceTest extends BaseTest {
 
         prepareData(conn, st);
 
-        FullMigrationDTO dto = FullMigrationDTO.builder()
+        MigrationDTO dto = MigrationDTO.builder()
                 .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
                 .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
                 .mapping(Arrays.asList(
@@ -76,7 +77,7 @@ public class FullMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("random_number * 10", "random_number")
                 ))
                 .filters(Collections.singletonList("id % 2 == 1"))
-                .migrationMode(MySQLInsertMode.REPLACE)
+                .insertMode(MySQLInsertMode.REPLACE)
                 .build();
 
         checkTime("full_migration", () -> {

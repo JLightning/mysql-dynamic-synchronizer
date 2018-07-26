@@ -1,5 +1,7 @@
 package com.jhl.mds.controllers.api;
 
+import com.jhl.mds.consts.MySQLInsertMode;
+import com.jhl.mds.consts.TaskType;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
@@ -37,7 +39,7 @@ public class TaskApiController {
     private FullMigrationService fullMigrationService;
     private IncrementalMigrationService incrementalMigrationService;
     private TaskDTO.Converter taskDTOConverter;
-    private FullMigrationDTO.Converter fullMigrationDTOConverter;
+    private MigrationDTO.Converter fullMigrationDTOConverter;
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
@@ -47,7 +49,7 @@ public class TaskApiController {
             FullMigrationService fullMigrationService,
             IncrementalMigrationService incrementalMigrationService,
             TaskDTO.Converter taskDTOConverter,
-            FullMigrationDTO.Converter fullMigrationDTOConverter,
+            MigrationDTO.Converter fullMigrationDTOConverter,
             SimpMessagingTemplate simpMessagingTemplate
     ) {
         this.taskRepository = taskRepository;
@@ -123,8 +125,8 @@ public class TaskApiController {
     @GetMapping("/detail/{taskId}/start-full-migration")
     public ApiResponse<Boolean> startFullMigrationTask(@PathVariable int taskId) {
         try {
-            FullMigrationDTO fullMigrationDTO = fullMigrationDTOConverter.from(taskId);
-            fullMigrationService.queue(fullMigrationDTO);
+            MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
+            fullMigrationService.queue(migrationDTO);
         } catch (Exception e) {
             return ApiResponse.error(e);
         }
@@ -134,8 +136,8 @@ public class TaskApiController {
 
     @GetMapping("/detail/{taskId}/start-incremental-migration")
     public ApiResponse<Boolean> startIncrementalMigrationTask(@PathVariable int taskId) {
-        FullMigrationDTO fullMigrationDTO = fullMigrationDTOConverter.from(taskId);
-        incrementalMigrationService.run(fullMigrationDTO);
+        MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
+        incrementalMigrationService.run(migrationDTO);
 
         taskRepository.updateIncrementalMigrationActive(taskId, true);
 
@@ -144,8 +146,8 @@ public class TaskApiController {
 
     @GetMapping("/detail/{taskId}/stop-incremental-migration")
     public ApiResponse<Boolean> stopIncrementalMigrationTask(@PathVariable int taskId) {
-        FullMigrationDTO fullMigrationDTO = fullMigrationDTOConverter.from(taskId);
-        incrementalMigrationService.stop(fullMigrationDTO);
+        MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
+        incrementalMigrationService.stop(migrationDTO);
 
         taskRepository.updateIncrementalMigrationActive(taskId, false);
 
@@ -169,8 +171,8 @@ public class TaskApiController {
 
     @EventListener
     @Async
-    public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<FullMigrationDTO> event) {
-        FullMigrationDTO dto = event.getDto();
+    public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<MigrationDTO> event) {
+        MigrationDTO dto = event.getDto();
         FullMigrationProgressDTO fullMigrationProgressDTO = new FullMigrationProgressDTO(event.isRunning(), Math.round(event.getProgress()));
         simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + dto.getTaskId(), fullMigrationProgressDTO);
     }

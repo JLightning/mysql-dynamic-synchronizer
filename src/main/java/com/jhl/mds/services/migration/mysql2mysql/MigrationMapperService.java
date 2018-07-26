@@ -1,6 +1,6 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationDTO, Map<String, Object>, String> {
+public class MigrationMapperService implements PipeLineTaskRunner<MigrationDTO, Map<String, Object>, String> {
 
     private final Map<String, MySQLFieldDTO> targetFieldMap;
     @Getter
@@ -75,7 +75,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<FullMigrationD
 
     @Override
     @SuppressWarnings("unchecked")
-    public void execute(FullMigrationDTO context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(MigrationDTO context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
         next.accept(mapToString(input));
     }
 

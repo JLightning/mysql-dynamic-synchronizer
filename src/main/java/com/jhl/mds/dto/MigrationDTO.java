@@ -1,5 +1,6 @@
 package com.jhl.mds.dto;
 
+import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FullMigrationDTO {
+public class MigrationDTO {
 
     private int taskId;
     private TableInfoDTO source;
@@ -52,11 +53,11 @@ public class FullMigrationDTO {
             this.serverDTOConverter = serverDTOConverter;
         }
 
-        public FullMigrationDTO from(int taskId) {
+        public MigrationDTO from(int taskId) {
             return from(taskRepository.getOne(taskId));
         }
 
-        public FullMigrationDTO from(Task task) {
+        public MigrationDTO from(Task task) {
             List<TaskFieldMapping> mapping = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
 
             List<SimpleFieldMappingDTO> mappingDTOs = mapping.stream().map(m -> new SimpleFieldMappingDTO(m.getSourceField(), m.getTargetField())).collect(Collectors.toList());
@@ -67,7 +68,7 @@ public class FullMigrationDTO {
             TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), task.getSourceDatabase(), task.getSourceTable());
             TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), task.getTargetDatabase(), task.getTargetTable());
 
-            return FullMigrationDTO.builder()
+            return MigrationDTO.builder()
                     .taskId(task.getTaskId())
                     .mapping(mappingDTOs)
                     .source(sourceTableInfoDTO)
@@ -76,14 +77,14 @@ public class FullMigrationDTO {
                     .build();
         }
 
-        public FullMigrationDTO from(TaskDTO taskDTO) {
+        public MigrationDTO from(TaskDTO taskDTO) {
             MySQLServer sourceServer = mySQLServerRepository.findByServerId(taskDTO.getSource().getServerId());
             MySQLServer targetServer = mySQLServerRepository.findByServerId(taskDTO.getTarget().getServerId());
 
             TableInfoDTO sourceTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(sourceServer), taskDTO.getSource().getDatabase(), taskDTO.getSource().getTable());
             TableInfoDTO targetTableInfoDTO = new TableInfoDTO(serverDTOConverter.from(targetServer), taskDTO.getTarget().getDatabase(), taskDTO.getTarget().getTable());
 
-            return FullMigrationDTO.builder()
+            return MigrationDTO.builder()
                     .mapping(taskDTO.getMapping())
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)

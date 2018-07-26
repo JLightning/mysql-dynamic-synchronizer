@@ -1,7 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import org.junit.Test;
@@ -19,7 +19,7 @@ public class StructureMigrationServiceTest extends BaseTest {
         getStatement().execute("USE mds");
         getStatement().execute("DROP TABLE IF EXISTS task_tmp");
 
-        FullMigrationDTO dto = FullMigrationDTO.builder()
+        MigrationDTO dto = MigrationDTO.builder()
                 .source(new TableInfoDTO(getSourceServerDTO(), "mds", "task"))
                 .target(new TableInfoDTO(getSourceServerDTO(), "mds", "task_tmp"))
                 .mapping(Arrays.asList(

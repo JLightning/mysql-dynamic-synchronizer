@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class StructureMigrationService implements PipeLineTaskRunner<FullMigrationDTO, Object, Void> {
+public class StructureMigrationService implements PipeLineTaskRunner<MigrationDTO, Object, Void> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
@@ -47,7 +47,7 @@ public class StructureMigrationService implements PipeLineTaskRunner<FullMigrati
 
     // TODO: support more indexes
     @Override
-    public void execute(FullMigrationDTO context, Object input, Consumer<Void> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(MigrationDTO context, Object input, Consumer<Void> next, Consumer<Exception> errorHandler) throws Exception {
         TableInfoDTO targetTableInfo = context.getTarget();
         Connection targetConn = mySQLConnectionPool.getConnection(targetTableInfo.getServer());
         Statement st = targetConn.createStatement();

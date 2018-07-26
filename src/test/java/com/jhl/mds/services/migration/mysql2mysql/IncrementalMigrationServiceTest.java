@@ -1,7 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -29,7 +29,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
-        FullMigrationDTO dto = FullMigrationDTO.builder()
+        MigrationDTO dto = MigrationDTO.builder()
                 .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
                 .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
                 .mapping(Arrays.asList(
@@ -55,7 +55,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
     public void updateTest() throws Exception {
         prepareData();
 
-        FullMigrationDTO dto = FullMigrationDTO.builder()
+        MigrationDTO dto = MigrationDTO.builder()
                 .source(new TableInfoDTO(getSourceServerDTO(), "mds", "tablea"))
                 .target(new TableInfoDTO(getSourceServerDTO(), "mds", "tableb"))
                 .mapping(Arrays.asList(

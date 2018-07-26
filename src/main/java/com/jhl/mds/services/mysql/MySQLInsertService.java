@@ -1,6 +1,6 @@
 package com.jhl.mds.services.mysql;
 
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLInsertService implements PipeLineTaskRunner<FullMigrationDTO, List<String>, Long> {
+public class MySQLInsertService implements PipeLineTaskRunner<MigrationDTO, List<String>, Long> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
@@ -30,11 +30,11 @@ public class MySQLInsertService implements PipeLineTaskRunner<FullMigrationDTO, 
     }
 
     @Override
-    public void execute(FullMigrationDTO context, List<String> input, Consumer<Long> next, Consumer<Exception> errorHandler) {
+    public void execute(MigrationDTO context, List<String> input, Consumer<Long> next, Consumer<Exception> errorHandler) {
         this.run(context, next, errorHandler, input);
     }
 
-    private void run(FullMigrationDTO context, Consumer<Long> next, Consumer<Exception> errorHandler, List<String> input) {
+    private void run(MigrationDTO context, Consumer<Long> next, Consumer<Exception> errorHandler, List<String> input) {
         TableInfoDTO tableInfo = context.getTarget();
 
         List<String> columns = context.getTargetColumns();

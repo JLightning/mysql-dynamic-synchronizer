@@ -1,6 +1,6 @@
 package com.jhl.mds.services.mysql;
 
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Object, Map<String, Object>> {
+public class MySQLReadService implements PipeLineTaskRunner<MigrationDTO, Object, Map<String, Object>> {
 
     private MySQLConnectionPool mySQLConnectionPool;
     private MySQLDescribeService mySQLDescribeService;
@@ -31,7 +31,7 @@ public class MySQLReadService implements PipeLineTaskRunner<FullMigrationDTO, Ob
     }
 
     @Override
-    public void execute(FullMigrationDTO context, Object input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws SQLException {
+    public void execute(MigrationDTO context, Object input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws SQLException {
         run(context.getSource(), next);
     }
 

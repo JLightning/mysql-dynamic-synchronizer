@@ -1,10 +1,10 @@
 package com.jhl.mds.events;
 
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 
-public class FullMigrationProgressUpdateEvent extends ProgressUpdateEvent<FullMigrationDTO> {
+public class FullMigrationProgressUpdateEvent extends ProgressUpdateEvent<MigrationDTO> {
 
-    public FullMigrationProgressUpdateEvent(FullMigrationDTO dto, double progress, boolean running) {
+    public FullMigrationProgressUpdateEvent(MigrationDTO dto, double progress, boolean running) {
         super(dto, progress, running);
     }
 }

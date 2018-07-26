@@ -1,4 +1,4 @@
-package com.jhl.mds.dto;
+package com.jhl.mds.consts;
 
 import lombok.Getter;
 

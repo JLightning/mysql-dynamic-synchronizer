@@ -1,5 +1,7 @@
 package com.jhl.mds.dto;
 
+import com.jhl.mds.consts.MySQLInsertMode;
+import com.jhl.mds.consts.TaskType;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
 import lombok.AllArgsConstructor;

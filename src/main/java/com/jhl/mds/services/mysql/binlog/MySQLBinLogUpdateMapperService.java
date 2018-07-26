@@ -1,7 +1,7 @@
 package com.jhl.mds.services.mysql.binlog;
 
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
-import com.jhl.mds.dto.FullMigrationDTO;
+import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<FullMigrationDTO, UpdateRowsEventData, Pair<Map<String, Object>, Map<String, Object>>> {
+public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<MigrationDTO, UpdateRowsEventData, Pair<Map<String, Object>, Map<String, Object>>> {
 
     private MySQLDescribeService mySQLDescribeService;
 
@@ -24,7 +24,7 @@ public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<FullMi
     }
 
     @Override
-    public void execute(FullMigrationDTO context, UpdateRowsEventData eventData, Consumer<Pair<Map<String, Object>, Map<String, Object>>> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(MigrationDTO context, UpdateRowsEventData eventData, Consumer<Pair<Map<String, Object>, Map<String, Object>>> next, Consumer<Exception> errorHandler) throws Exception {
         List<Pair<Map<String, Object>, Map<String, Object>>> list = mapUpdateDataToField(context.getSource(), eventData);
         for (Pair<Map<String, Object>, Map<String, Object>> item : list) {
             next.accept(item);
