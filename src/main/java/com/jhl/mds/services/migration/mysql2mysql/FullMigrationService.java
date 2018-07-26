@@ -6,7 +6,7 @@ import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
 import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLReadService;
-import com.jhl.mds.services.mysql.MySQLWriteService;
+import com.jhl.mds.services.mysql.MySQLInsertService;
 import com.jhl.mds.util.pipeline.Pipeline;
 import com.jhl.mds.util.pipeline.PipelineGrouperService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,7 +26,7 @@ public class FullMigrationService {
     private ApplicationEventPublisher eventPublisher;
     private MySQLReadService mySQLReadService;
     private CustomFilterService customFilterService;
-    private MySQLWriteService mySQLWriteService;
+    private MySQLInsertService mySQLInsertService;
     private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private Set<Integer> runningTask = new HashSet<>();
@@ -35,14 +35,14 @@ public class FullMigrationService {
             ApplicationEventPublisher eventPublisher,
             MySQLReadService mySQLReadService,
             CustomFilterService customFilterService,
-            MySQLWriteService mySQLWriteService,
+            MySQLInsertService mySQLInsertService,
             TaskRepository taskRepository,
             MigrationMapperService.Factory migrationMapperServiceFactory
     ) {
         this.eventPublisher = eventPublisher;
         this.mySQLReadService = mySQLReadService;
         this.customFilterService = customFilterService;
-        this.mySQLWriteService = mySQLWriteService;
+        this.mySQLInsertService = mySQLInsertService;
         this.taskRepository = taskRepository;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
     }
@@ -70,8 +70,8 @@ public class FullMigrationService {
             Pipeline<FullMigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.setFinalNext(finishCallback);
             pipeline.setErrorHandler(e -> {
-                if (e instanceof MySQLWriteService.WriteServiceException) {
-                    finishCallback.accept(((MySQLWriteService.WriteServiceException) e).getCount());
+                if (e instanceof MySQLInsertService.WriteServiceException) {
+                    finishCallback.accept(((MySQLInsertService.WriteServiceException) e).getCount());
                 } else {
                     finishCallback.accept(1L);
                 }
@@ -82,7 +82,7 @@ public class FullMigrationService {
                     .append(customFilterService)
                     .append(mapperService)
                     .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
-                    .append(mySQLWriteService)
+                    .append(mySQLInsertService)
                     .execute()
                     .waitForFinish();
 

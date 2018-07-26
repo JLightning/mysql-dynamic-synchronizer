@@ -19,13 +19,13 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, List<String>, Long> {
+public class MySQLInsertService implements PipeLineTaskRunner<FullMigrationDTO, List<String>, Long> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
 
     @Autowired
-    public MySQLWriteService(MySQLConnectionPool mySQLConnectionPool) {
+    public MySQLInsertService(MySQLConnectionPool mySQLConnectionPool) {
         this.mySQLConnectionPool = mySQLConnectionPool;
     }
 
@@ -49,7 +49,7 @@ public class MySQLWriteService implements PipeLineTaskRunner<FullMigrationDTO, L
             Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
             Statement st = conn.createStatement();
 
-            String sql = String.format("INSERT INTO %s(%s) VALUES %s;", tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
+            String sql = String.format("INSERT IGNORE INTO %s(%s) VALUES %s;", tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
 //            logger.info("Run query: " + sql);
             logger.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
 

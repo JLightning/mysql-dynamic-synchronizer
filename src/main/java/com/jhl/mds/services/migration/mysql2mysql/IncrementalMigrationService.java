@@ -8,7 +8,7 @@ import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.FullMigrationDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.services.mysql.MySQLUpdateService;
-import com.jhl.mds.services.mysql.MySQLWriteService;
+import com.jhl.mds.services.mysql.MySQLInsertService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
@@ -42,7 +42,7 @@ public class IncrementalMigrationService {
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
-    private MySQLWriteService mySQLWriteService;
+    private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
     private FullMigrationDTO.Converter fullMigrationDTOConverter;
     private Set<Integer> runningTask = new HashSet<>();
@@ -56,7 +56,7 @@ public class IncrementalMigrationService {
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
-            MySQLWriteService mySQLWriteService,
+            MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
             FullMigrationDTO.Converter fullMigrationDTOConverter
     ) {
@@ -66,7 +66,7 @@ public class IncrementalMigrationService {
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
-        this.mySQLWriteService = mySQLWriteService;
+        this.mySQLInsertService = mySQLInsertService;
         this.mySQLUpdateService = mySQLUpdateService;
         this.fullMigrationDTOConverter = fullMigrationDTOConverter;
     }
@@ -126,7 +126,7 @@ public class IncrementalMigrationService {
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
-                    .append(mySQLWriteService)
+                    .append(mySQLInsertService)
                     .execute(eventData)
                     .waitForFinish();
         } catch (Exception e) {
