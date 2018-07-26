@@ -2,8 +2,8 @@ import AbstractClient from "./abstract-client";
 
 class ToolApiClient extends AbstractClient {
 
-    syncStructureFlat(taskId, taskName, mapping, source, target) {
-        return this.postJson('/api/tool/sync-structure', {taskId, taskName, mapping, source, target});
+    syncStructureFlat(taskId, taskName, mapping, source, target, taskType, insertMode) {
+        return this.postJson('/api/tool/sync-structure', {taskId, taskName, mapping, source, target, taskType, insertMode});
     }
 
     syncStructure(dto) {

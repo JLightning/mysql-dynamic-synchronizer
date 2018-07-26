@@ -14,4 +14,13 @@ public enum TaskType {
     TaskType(int code) {
         this.code = code;
     }
+
+    public static TaskType getByCode(int taskTypeCode) {
+        for (TaskType taskType: TaskType.values()) {
+            if (taskType.code == taskTypeCode) {
+                return taskType;
+            }
+        }
+        throw new RuntimeException("Not found");
+    }
 }

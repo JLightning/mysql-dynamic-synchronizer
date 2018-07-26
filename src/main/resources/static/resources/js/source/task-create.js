@@ -10,7 +10,16 @@ class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {taskName: '', fields: [], table: {}, filters: [], taskTypes: [], insertModes: []};
+        this.state = {
+            taskName: '',
+            fields: [],
+            table: {},
+            filters: [],
+            taskTypes: [],
+            taskType: '',
+            insertModes: [],
+            insertMode: ''
+        };
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
@@ -27,7 +36,8 @@ class TaskCreate extends React.Component {
     }
 
     getReadyToSubmit() {
-        return this.state.fields.length > 0 && this.state.taskName !== '';
+        const state = this.state;
+        return state.fields.length > 0 && state.taskName !== '' && state.taskType !== '' && state.insertMode !== '';
     }
 
     tableSelected(params, isSource) {
@@ -64,10 +74,7 @@ class TaskCreate extends React.Component {
 
         const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
         mySQLApiClient.getMappingFor2TableFlat(sourceParam.serverId, sourceParam.database, sourceParam.table, targetParam.serverId, targetParam.database, targetParam.table, mapping)
-            .done(data => {
-                this.setState({fields: data});
-                this.recalculateReadyForSubmit();
-            });
+            .done(fields => this.setState({fields}));
     }
 
     handleMappableChange(e, idx) {
@@ -77,14 +84,17 @@ class TaskCreate extends React.Component {
     }
 
     submit() {
-        const mapping = this.state.fields.filter(field => field.mappable).map(field => {
+        const state = this.state;
+        const mapping = state.fields.filter(field => field.mappable).map(field => {
             return {sourceField: field.sourceField, targetField: field.targetField}
         });
         const postParams = {
-            taskName: this.state.taskName,
+            taskName: state.taskName,
             mapping: mapping,
-            source: this.state.table.source,
-            target: this.state.table.target
+            source: state.table.source,
+            target: state.table.target,
+            taskType: state.taskType,
+            insertMode: state.insertMode
         };
 
         taskApiClient.createTaskAction(postParams).done(data => {
@@ -125,11 +135,9 @@ class TaskCreate extends React.Component {
                     <h4>Choose Source and Target table</h4>
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
-                        <input type="text" className="form-control" id="name" name="name"
-                               defaultValue={this.state.taskName} onChange={e => {
-                            this.setState({taskName: e.target.value});
-                            this.recalculateReadyForSubmit();
-                        }} placeholder="Enter Task Name"/>
+                        <input type="text" className="form-control" id="name" name="name" placeholder="Enter Task Name"
+                               defaultValue={this.state.taskName}
+                               onChange={e => this.setState({taskName: e.target.value})}/>
                     </div>
 
                     <div className="row">
@@ -137,14 +145,16 @@ class TaskCreate extends React.Component {
                             <div className="form-group">
                                 <label htmlFor="name">Task Type</label>
                                 <Select className="fullWidth" btnTitle="Select Task Type"
-                                        options={this.state.taskTypes.map((type, idx) => new SelectOption(idx, type))}/>
+                                        options={this.state.taskTypes.map((type, idx) => new SelectOption(idx, type))}
+                                        onItemClick={o => this.setState({taskType: o.value})}/>
                             </div>
                         </div>
                         <div className="col">
                             <div className="form-group">
                                 <label htmlFor="name">Insert Mode</label>
                                 <Select className="fullWidth" btnTitle="Select Insert Mode"
-                                        options={this.state.insertModes.map((mode, idx) => new SelectOption(idx, mode))}/>
+                                        options={this.state.insertModes.map((mode, idx) => new SelectOption(idx, mode))}
+                                        onItemClick={o => this.setState({insertMode: o.value})}/>
                             </div>
                         </div>
                     </div>

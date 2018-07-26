@@ -21,6 +21,8 @@ public class TaskDTO {
     private List<SimpleFieldMappingDTO> mapping;
     private Table source;
     private Table target;
+    private TaskType taskType;
+    private MySQLInsertMode insertMode;
 
     @Data
     @Builder
@@ -51,6 +53,8 @@ public class TaskDTO {
                             .database(task.getTargetDatabase())
                             .table(task.getTargetTable())
                             .build())
+                    .taskType(TaskType.getByCode(task.getTaskType()))
+                    .insertMode(MySQLInsertMode.valueOf(task.getInsertType()))
                     .mapping(mapping)
                     .build();
         }

@@ -49,7 +49,7 @@ public class MySQLInsertService implements PipeLineTaskRunner<FullMigrationDTO, 
             Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
             Statement st = conn.createStatement();
 
-            String sql = String.format("%s INTO %s(%s) VALUES %s;", context.getMigrationMode().getSyntax(), tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
+            String sql = String.format("%s INTO %s(%s) VALUES %s;", context.getInsertMode().getSyntax(), tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
 //            logger.info("Run query: " + sql);
             logger.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
 
