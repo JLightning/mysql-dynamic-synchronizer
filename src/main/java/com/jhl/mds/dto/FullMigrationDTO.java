@@ -72,7 +72,7 @@ public class FullMigrationDTO {
                     .mapping(mappingDTOs)
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
-                    .migrationMode(MySQLMigrationMode.REPLACE)
+                    .migrationMode(MySQLMigrationMode.valueOf(task.getInsertType()))
                     .build();
         }
 

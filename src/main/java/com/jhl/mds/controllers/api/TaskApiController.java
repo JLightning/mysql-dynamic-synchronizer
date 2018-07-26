@@ -78,6 +78,7 @@ public class TaskApiController {
                     .targetDatabase(targetTaskDTOTable.getDatabase())
                     .targetTable(targetTaskDTOTable.getTable())
                     .taskType(TaskType.FULL_INCREMENTAL_MIGRATION.getCode())
+                    .insertType(MySQLMigrationMode.REPLACE.toString())
                     .fullMigrationProgress(0)
                     .createdAt(now)
                     .updatedAt(now)
