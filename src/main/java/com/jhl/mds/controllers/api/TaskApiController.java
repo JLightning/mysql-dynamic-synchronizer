@@ -80,7 +80,7 @@ public class TaskApiController {
                     .targetDatabase(targetTaskDTOTable.getDatabase())
                     .targetTable(targetTaskDTOTable.getTable())
                     .taskType(dto.getTaskType().getCode())
-                    .insertType(dto.getInsertMode().toString())
+                    .insertMode(dto.getInsertMode().toString())
                     .fullMigrationProgress(0)
                     .createdAt(now)
                     .updatedAt(now)

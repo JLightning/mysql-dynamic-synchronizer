@@ -28,7 +28,7 @@ public class Task {
     private String targetDatabase;
     private String targetTable;
     private int taskType;
-    private String insertType;
+    private String insertMode;
     private double fullMigrationProgress;
     private boolean incrementalMigrationActive;
     private Date createdAt;

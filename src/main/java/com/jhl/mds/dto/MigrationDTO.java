@@ -73,7 +73,7 @@ public class MigrationDTO {
                     .mapping(mappingDTOs)
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
-                    .insertMode(MySQLInsertMode.valueOf(task.getInsertType()))
+                    .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()))
                     .build();
         }
 

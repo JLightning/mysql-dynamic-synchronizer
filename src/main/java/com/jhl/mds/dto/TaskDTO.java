@@ -56,7 +56,7 @@ public class TaskDTO {
                             .table(task.getTargetTable())
                             .build())
                     .taskType(TaskType.getByCode(task.getTaskType()))
-                    .insertMode(MySQLInsertMode.valueOf(task.getInsertType()))
+                    .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()))
                     .mapping(mapping)
                     .build();
         }
