@@ -78,7 +78,7 @@ public class TaskApiController {
                     .targetDatabase(targetTaskDTOTable.getDatabase())
                     .targetTable(targetTaskDTOTable.getTable())
                     .taskType(TaskType.FULL_INCREMENTAL_MIGRATION.getCode())
-                    .insertType(MySQLMigrationMode.REPLACE.toString())
+                    .insertType(MySQLInsertMode.REPLACE.toString())
                     .fullMigrationProgress(0)
                     .createdAt(now)
                     .updatedAt(now)
@@ -155,6 +155,16 @@ public class TaskApiController {
     @SubscribeMapping("/channel/task/incremental-migration-progress/{taskId}")
     public FullMigrationProgressDTO getIncrementalMigrationProgressWs(@DestinationVariable int taskId) {
         return new FullMigrationProgressDTO(incrementalMigrationService.isTaskRunning(taskId), 0);
+    }
+
+    @GetMapping("/get-task-types")
+    public ApiResponse<TaskType[]> getTaskTypes() {
+        return ApiResponse.success(TaskType.values());
+    }
+
+    @GetMapping("/get-insert-modes")
+    public ApiResponse<MySQLInsertMode[]> getInsertModes() {
+        return ApiResponse.success(MySQLInsertMode.values());
     }
 
     @EventListener

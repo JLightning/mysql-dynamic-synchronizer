@@ -76,7 +76,7 @@ public class FullMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("random_number * 10", "random_number")
                 ))
                 .filters(Collections.singletonList("id % 2 == 1"))
-                .migrationMode(MySQLMigrationMode.REPLACE)
+                .migrationMode(MySQLInsertMode.REPLACE)
                 .build();
 
         checkTime("full_migration", () -> {

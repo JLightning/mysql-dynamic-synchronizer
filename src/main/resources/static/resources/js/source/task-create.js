@@ -4,12 +4,13 @@ import TableSelector from './common/table-selector';
 import mySQLApiClient from './api-client/mysql-api-client';
 import taskApiClient from "./api-client/task-api-client";
 import Table from "./common/table";
+import Select, {SelectOption} from "./common/select";
 
 class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false, filters: []};
+        this.state = {taskName: '', fields: [], table: {}, readyForSubmit: false, filters: [], taskTypes: [], insertModes: []};
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.state.taskName = taskDTO.taskName;
@@ -18,6 +19,11 @@ class TaskCreate extends React.Component {
 
             this.getMapping();
         }
+    }
+
+    componentDidMount() {
+        taskApiClient.getTaskTypes().done(taskTypes => this.setState({taskTypes}));
+        taskApiClient.getInsertModes().done(insertModes => this.setState({insertModes}));
     }
 
     recalculateReadyForSubmit() {
@@ -124,6 +130,23 @@ class TaskCreate extends React.Component {
                             this.setState({taskName: e.target.value});
                             this.recalculateReadyForSubmit();
                         }} placeholder="Enter Task Name"/>
+                    </div>
+
+                    <div className="row">
+                        <div className="col">
+                            <div className="form-group">
+                                <label htmlFor="name">Task Type</label>
+                                <Select className="fullWidth" btnTitle="Select Task Type"
+                                        options={this.state.taskTypes.map((type, idx) => new SelectOption(idx, type))}/>
+                            </div>
+                        </div>
+                        <div className="col">
+                            <div className="form-group">
+                                <label htmlFor="name">Insert Mode</label>
+                                <Select className="fullWidth" btnTitle="Select Insert Mode"
+                                        options={this.state.insertModes.map((mode, idx) => new SelectOption(idx, mode))}/>
+                            </div>
+                        </div>
                     </div>
 
                     <div className="row">

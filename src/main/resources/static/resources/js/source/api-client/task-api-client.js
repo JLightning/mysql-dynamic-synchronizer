@@ -18,8 +18,16 @@ class TaskApiClient extends AbstractClient {
         return this.subscribe('/app/channel/task/incremental-migration-progress/' + taskId + '', callback);
     }
 
+    getInsertModes() {
+        return this.get('/api/task/get-insert-modes', {});
+    }
+
     getTaskAction(taskId) {
         return this.get('/api/task/detail/' + taskId + '', {});
+    }
+
+    getTaskTypes() {
+        return this.get('/api/task/get-task-types', {});
     }
 
     startFullMigrationTask(taskId) {

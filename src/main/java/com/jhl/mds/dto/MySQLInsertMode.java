@@ -2,7 +2,7 @@ package com.jhl.mds.dto;
 
 import lombok.Getter;
 
-public enum MySQLMigrationMode {
+public enum MySQLInsertMode {
 
     INSERT("INSERT"),
     INSERT_IGNORE("INSERT IGNORE"),
@@ -11,7 +11,7 @@ public enum MySQLMigrationMode {
     @Getter
     private String syntax;
 
-    MySQLMigrationMode(String syntax) {
+    MySQLInsertMode(String syntax) {
         this.syntax = syntax;
     }
 }
