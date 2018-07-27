@@ -165,13 +165,22 @@ public class MySQLDescribeService {
     }
 
     public String beautifyFilter(String filter) {
-        String allOperatersRegex = "(\\+|-|\\*|/|%|==|!=|>|>=|<|<=|&&|\\|\\|)";
+        String allOperatersRegex = "(\\+|-|\\*|/|%|==|!=|<=|>=|&&|\\|\\|)";
         filter = filter.replaceAll(" {2,}", " ");
         filter = filter.replaceAll("([^ ])" + allOperatersRegex + "([^ ])", "$1 $2 $3");
         filter = filter.replaceAll("([^ ])" + allOperatersRegex, "$1 $2");
         filter = filter.replaceAll(allOperatersRegex + "([^ ])", "$1 $2");
-        filter = filter.replaceAll("\\( \\(", "((");
-        filter = filter.replaceAll("\\) \\)", "))");
+
+        filter = filter.replaceAll("([^ ])>([^ =])", "$1 > $2");
+        filter = filter.replaceAll("([^ ])>", "$1 >");
+        filter = filter.replaceAll(">([^ =])", "> $1");
+
+        filter = filter.replaceAll("([^ ])<([^ =])", "$1 < $2");
+        filter = filter.replaceAll("([^ ])<", "$1 <");
+        filter = filter.replaceAll("<([^ =])", "< $1");
+
+        filter = filter.replaceAll("\\( ", "(");
+        filter = filter.replaceAll(" \\)", ")");
         return filter;
     }
 }

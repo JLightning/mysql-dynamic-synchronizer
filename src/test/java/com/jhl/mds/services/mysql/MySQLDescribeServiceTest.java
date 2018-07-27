@@ -17,5 +17,8 @@ public class MySQLDescribeServiceTest extends BaseTest {
         Assert.assertEquals("id > 5", mySQLDescribeService.beautifyFilter("id >5"));
         Assert.assertEquals("id > 5 && random_number % 5 == 6", mySQLDescribeService.beautifyFilter("id>5&&random_number%5==6"));
         Assert.assertEquals("id > 5 && random_number % 5 != 6", mySQLDescribeService.beautifyFilter("id >5 &&random_number %5 !=6"));
+        Assert.assertEquals("(id + random_number) % 100 <= 5", mySQLDescribeService.beautifyFilter("(id+random_number)%100<=5"));
+        Assert.assertEquals("(id + random_number) % 100 > 5", mySQLDescribeService.beautifyFilter("(id+random_number)%100>5"));
+        Assert.assertEquals("(a + b) == 5", mySQLDescribeService.beautifyFilter("( a+b )==5"));
     }
 }
