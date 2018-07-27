@@ -7,10 +7,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 @SpringBootApplication
 @EnableAsync
+@EnableScheduling
 @ComponentScan(basePackages = "com.jhl.mds", excludeFilters = @ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = "com.jhl.mds.dbmigration.*"))
 public class Application {
 

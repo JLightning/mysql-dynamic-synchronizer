@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import taskApiClient from "./api-client/task-api-client";
+import Table from "./common/table";
 
 class TaskDetail extends React.Component {
 
@@ -67,22 +68,22 @@ class TaskDetail extends React.Component {
                 <div className="row mt-3">
                     <div className="col-6">
                         <p className="h4">Mapping:</p>
-                        <table className="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">Source</th>
-                                <th scope="col">Target</th>
-                            </tr>
-                            </thead>
-                            <tbody>
+                        <Table th={["Source", "Target"]}>
                             {this.state.task.mapping.map(o => (
                                 <tr>
                                     <td>{o.sourceField}</td>
                                     <td>{o.targetField}</td>
                                 </tr>
                             ))}
-                            </tbody>
-                        </table>
+                        </Table>
+                        <p className="h4">Filters:</p>
+                        <Table th={["Filter"]}>
+                            {this.state.task.filters.map(o => (
+                                <tr>
+                                    <td>{o}</td>
+                                </tr>
+                            ))}
+                        </Table>
                     </div>
                     <div className="col-6">
                         <div className="row">
@@ -109,22 +110,13 @@ class TaskDetail extends React.Component {
                                 }
                             </div>
                         </div>
-                        <table className="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">Insert</th>
-                                <th scope="col">Update</th>
-                                <th scope="col">Delete</th>
-                            </tr>
-                            </thead>
-                            <tbody>
+                        <Table th={["Insert", "Update", "Delete"]}>
                             <tr>
                                 <td>0</td>
                                 <td>0</td>
                                 <td>0</td>
                             </tr>
-                            </tbody>
-                        </table>
+                        </Table>
                     </div>
                 </div>
             </div>
