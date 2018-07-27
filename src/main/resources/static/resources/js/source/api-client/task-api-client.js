@@ -2,8 +2,8 @@ import AbstractClient from "./abstract-client";
 
 class TaskApiClient extends AbstractClient {
 
-    createTaskActionFlat(taskId, taskName, mapping, source, target, taskType, insertMode) {
-        return this.postJson('/api/task/create', {taskId, taskName, mapping, source, target, taskType, insertMode});
+    createTaskActionFlat(taskId, taskName, mapping, source, target, taskType, insertMode, filters) {
+        return this.postJson('/api/task/create', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
     }
 
     createTaskAction(dto) {

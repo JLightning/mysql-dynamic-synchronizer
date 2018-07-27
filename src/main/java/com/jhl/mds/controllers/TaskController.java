@@ -5,6 +5,7 @@ import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
+import com.jhl.mds.dao.repositories.TaskFilterRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.TaskDTO;
 import com.jhl.mds.services.common.FEMessageService;
@@ -29,6 +30,7 @@ public class TaskController {
 
     private TaskRepository taskRepository;
     private TaskFieldMappingRepository taskFieldMappingRepository;
+    private TaskFilterRepository taskFilterRepository;
     private MySQLServerRepository mySQLServerRepository;
     private TaskDTO.Converter taskDTOConverter;
     private FEMessageService feMessageService;
@@ -37,12 +39,14 @@ public class TaskController {
     public TaskController(
             TaskRepository taskRepository,
             TaskFieldMappingRepository taskFieldMappingRepository,
+            TaskFilterRepository taskFilterRepository,
             MySQLServerRepository mySQLServerRepository,
             TaskDTO.Converter taskDTOConverter,
             FEMessageService feMessageService
     ) {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
+        this.taskFilterRepository = taskFilterRepository;
         this.mySQLServerRepository = mySQLServerRepository;
         this.taskDTOConverter = taskDTOConverter;
         this.feMessageService = feMessageService;
@@ -93,7 +97,7 @@ public class TaskController {
         Task task = opt.get();
         List<TaskFieldMapping> taskFieldMappings = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
 
-        TaskDTO taskDTO = taskDTOConverter.from(task, taskFieldMappings);
+        TaskDTO taskDTO = taskDTOConverter.from(task, taskFieldMappings, taskFilterRepository.findByFkTaskId(task.getTaskId()));
         model.addAttribute("taskDTO", taskDTO);
 
         return "task/create";

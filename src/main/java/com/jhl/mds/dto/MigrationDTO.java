@@ -6,6 +6,7 @@ import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
+import com.jhl.mds.dao.repositories.TaskFilterRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,6 +37,7 @@ public class MigrationDTO {
 
         private TaskRepository taskRepository;
         private TaskFieldMappingRepository taskFieldMappingRepository;
+        private TaskFilterRepository taskFilterRepository;
         private MySQLServerRepository mySQLServerRepository;
         private MySQLServerDTO.Converter serverDTOConverter;
 
@@ -43,12 +45,14 @@ public class MigrationDTO {
         public Converter(
                 TaskRepository taskRepository,
                 TaskFieldMappingRepository taskFieldMappingRepository,
+                TaskFilterRepository taskFilterRepository,
                 MySQLServerRepository mySQLServerRepository,
                 MySQLServerDTO.Converter serverDTOConverter
         ) {
 
             this.taskRepository = taskRepository;
             this.taskFieldMappingRepository = taskFieldMappingRepository;
+            this.taskFilterRepository = taskFilterRepository;
             this.mySQLServerRepository = mySQLServerRepository;
             this.serverDTOConverter = serverDTOConverter;
         }
@@ -74,6 +78,7 @@ public class MigrationDTO {
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
                     .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()))
+                    .filters(taskFilterRepository.findFilterByTaskId(task.getTaskId()))
                     .build();
         }
 
@@ -89,6 +94,7 @@ public class MigrationDTO {
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
                     .insertMode(taskDTO.getInsertMode())
+                    .filters(taskDTO.getFilters())
                     .build();
         }
     }

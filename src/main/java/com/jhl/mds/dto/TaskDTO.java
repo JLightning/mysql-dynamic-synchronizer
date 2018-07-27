@@ -4,6 +4,7 @@ import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.consts.TaskType;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
+import com.jhl.mds.dao.entities.TaskFilter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,6 +26,7 @@ public class TaskDTO {
     private Table target;
     private TaskType taskType;
     private MySQLInsertMode insertMode;
+    private List<String> filters;
 
     @Data
     @Builder
@@ -39,9 +41,10 @@ public class TaskDTO {
     @Component
     public static class Converter {
 
-        public TaskDTO from(Task task, List<TaskFieldMapping> taskFieldMappings) {
+        public TaskDTO from(Task task, List<TaskFieldMapping> taskFieldMappings, List<TaskFilter> taskFilters) {
             List<SimpleFieldMappingDTO> mapping = taskFieldMappings.stream()
                     .map(o -> new SimpleFieldMappingDTO(o.getSourceField(), o.getTargetField())).collect(Collectors.toList());
+            List<String> filters = taskFilters.stream().map(TaskFilter::getFilter).collect(Collectors.toList());
             return TaskDTO.builder()
                     .taskId(task.getTaskId())
                     .taskName(task.getName())
@@ -58,6 +61,7 @@ public class TaskDTO {
                     .taskType(TaskType.getByCode(task.getTaskType()))
                     .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()))
                     .mapping(mapping)
+                    .filters(filters)
                     .build();
         }
     }

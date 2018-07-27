@@ -31,6 +31,7 @@ public class DatabaseMigrationRunner {
 
         try (Connection conn = dataSource.getConnection()) {
             new DatabaseMigration100().run(conn);
+            new DatabaseMigration101().run(conn);
         }
     }
 

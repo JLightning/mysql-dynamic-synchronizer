@@ -4,7 +4,9 @@ import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.consts.TaskType;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
+import com.jhl.mds.dao.entities.TaskFilter;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
+import com.jhl.mds.dao.repositories.TaskFilterRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
@@ -36,6 +38,7 @@ public class TaskApiController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private TaskRepository taskRepository;
     private TaskFieldMappingRepository taskFieldMappingRepository;
+    private TaskFilterRepository taskFilterRepository;
     private FullMigrationService fullMigrationService;
     private IncrementalMigrationService incrementalMigrationService;
     private TaskDTO.Converter taskDTOConverter;
@@ -46,6 +49,7 @@ public class TaskApiController {
     public TaskApiController(
             TaskRepository taskRepository,
             TaskFieldMappingRepository taskFieldMappingRepository,
+            TaskFilterRepository taskFilterRepository,
             FullMigrationService fullMigrationService,
             IncrementalMigrationService incrementalMigrationService,
             TaskDTO.Converter taskDTOConverter,
@@ -54,6 +58,7 @@ public class TaskApiController {
     ) {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
+        this.taskFilterRepository = taskFilterRepository;
         this.fullMigrationService = fullMigrationService;
         this.incrementalMigrationService = incrementalMigrationService;
         this.taskDTOConverter = taskDTOConverter;
@@ -109,6 +114,19 @@ public class TaskApiController {
                 }
             }
 
+            List<String> currentFilters = taskFilterRepository.findFilterByTaskId(task.getTaskId());
+            for (String filter : dto.getFilters()) {
+                if(currentFilters.contains(filter)) continue;
+                TaskFilter taskFilter = TaskFilter.builder()
+                        .fkTaskId(task.getTaskId())
+                        .filter(filter)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build();
+
+                taskFilterRepository.save(taskFilter);
+            }
+
             dto.setTaskId(task.getTaskId());
             return ApiResponse.success(dto);
         } catch (JpaSystemException e) {
@@ -123,7 +141,7 @@ public class TaskApiController {
         Task task = taskRepository.getOne(taskId);
         List<TaskFieldMapping> taskMapping = Util.defaultIfNull(taskFieldMappingRepository.findByFkTaskId(taskId), new ArrayList<>());
 
-        return ApiResponse.success(taskDTOConverter.from(task, taskMapping));
+        return ApiResponse.success(taskDTOConverter.from(task, taskMapping, taskFilterRepository.findByFkTaskId(taskId)));
     }
 
     @SubscribeMapping("/channel/task/full-migration-progress/{taskId}")

@@ -27,6 +27,7 @@ class TaskCreate extends React.Component {
             this.state.table.target = taskDTO.target;
             this.state.taskType = taskDTO.taskType;
             this.state.insertMode = taskDTO.insertMode;
+            this.state.filters = taskDTO.filters;
 
             this.getMapping();
         }
@@ -96,7 +97,8 @@ class TaskCreate extends React.Component {
             source: state.table.source,
             target: state.table.target,
             taskType: state.taskType,
-            insertMode: state.insertMode
+            insertMode: state.insertMode,
+            filters: this.state.filters
         };
 
         if (typeof taskDTO !== 'undefined') {
