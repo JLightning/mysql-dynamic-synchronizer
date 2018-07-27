@@ -13,6 +13,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"mappingId", "createdAt", "updatedAt"})
 public class TaskFieldMapping {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

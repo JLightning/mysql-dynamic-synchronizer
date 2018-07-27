@@ -57,7 +57,8 @@ public class DatabaseMigration100 extends AbstractDatabaseMigration {
                     "target_field VARCHAR(255)," +
                     "created_at TIMESTAMP," +
                     "updated_at TIMESTAMP," +
-                    "FOREIGN KEY(fk_task_id) REFERENCES task(task_id) ON DELETE CASCADE" +
+                    "FOREIGN KEY(fk_task_id) REFERENCES task(task_id) ON DELETE CASCADE," +
+                    "CONSTRAINT task_source_target_field UNIQUE (fk_task_id, source_field, target_field)" +
                     ");");
 
             writeVersion("1.0.0");

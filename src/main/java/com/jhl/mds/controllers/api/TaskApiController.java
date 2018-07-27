@@ -72,7 +72,12 @@ public class TaskApiController {
             Date now = new Date();
             TaskDTO.Table sourceTaskDTOTable = dto.getSource();
             TaskDTO.Table targetTaskDTOTable = dto.getTarget();
-            Task task = Task.builder().name(dto.getTaskName())
+            Task.TaskBuilder taskBuilder = Task.builder();
+            if (dto.getTaskId() != 0) {
+                taskBuilder = taskRepository.getOne(dto.getTaskId()).toBuilder();
+            }
+            Task task = taskBuilder
+                    .name(dto.getTaskName())
                     .fkSourceServer(sourceTaskDTOTable.getServerId())
                     .sourceDatabase(sourceTaskDTOTable.getDatabase())
                     .sourceTable(sourceTaskDTOTable.getTable())
@@ -88,6 +93,8 @@ public class TaskApiController {
 
             taskRepository.save(task);
 
+            List<TaskFieldMapping> currentMapping = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
+
             for (SimpleFieldMappingDTO mapping : dto.getMapping()) {
                 TaskFieldMapping fieldMapping = TaskFieldMapping.builder()
                         .fkTaskId(task.getTaskId())
@@ -97,7 +104,9 @@ public class TaskApiController {
                         .updatedAt(now)
                         .build();
 
-                taskFieldMappingRepository.save(fieldMapping);
+                if (!currentMapping.contains(fieldMapping)) {
+                    taskFieldMappingRepository.save(fieldMapping);
+                }
             }
 
             dto.setTaskId(task.getTaskId());

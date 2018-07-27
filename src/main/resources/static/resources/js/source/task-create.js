@@ -25,6 +25,8 @@ class TaskCreate extends React.Component {
             this.state.taskName = taskDTO.taskName;
             this.state.table.source = taskDTO.source;
             this.state.table.target = taskDTO.target;
+            this.state.taskType = taskDTO.taskType;
+            this.state.insertMode = taskDTO.insertMode;
 
             this.getMapping();
         }
@@ -97,6 +99,10 @@ class TaskCreate extends React.Component {
             insertMode: state.insertMode
         };
 
+        if (typeof taskDTO !== 'undefined') {
+            postParams.taskId = taskDTO.taskId;
+        }
+
         taskApiClient.createTaskAction(postParams).done(data => {
             location.href = DOMAIN + '/task/detail/?taskId=' + data.taskId;
         });
@@ -146,7 +152,8 @@ class TaskCreate extends React.Component {
                                 <label htmlFor="name">Task Type</label>
                                 <Select className="fullWidth" btnTitle="Select Task Type"
                                         options={this.state.taskTypes.map((type, idx) => new SelectOption(idx, type))}
-                                        onItemClick={o => this.setState({taskType: o.value})}/>
+                                        onItemClick={o => this.setState({taskType: o.value})}
+                                        value={this.state.taskTypes.indexOf(this.state.taskType)}/>
                             </div>
                         </div>
                         <div className="col">
@@ -154,7 +161,8 @@ class TaskCreate extends React.Component {
                                 <label htmlFor="name">Insert Mode</label>
                                 <Select className="fullWidth" btnTitle="Select Insert Mode"
                                         options={this.state.insertModes.map((mode, idx) => new SelectOption(idx, mode))}
-                                        onItemClick={o => this.setState({insertMode: o.value})}/>
+                                        onItemClick={o => this.setState({insertMode: o.value})}
+                                        value={this.state.insertModes.indexOf(this.state.insertMode)}/>
                             </div>
                         </div>
                     </div>
