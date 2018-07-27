@@ -158,9 +158,6 @@ public class MySQLDescribeService {
     }
 
     public void validateFilter(MySQLServerDTO dto, String database, String table, String filter) throws Exception {
-        filter = filter.replaceAll("&", "&&");
-        filter = filter.replaceAll("\\|", "||");
-
         List<MySQLFieldDTO> fields = getFields(dto, database, table);
         Map<String, Object> sampleData = fields.stream().map(field -> new Object[]{field, mySQLFieldDefaultValueService.getDefaultValue(field)}).collect(Collectors.toMap(o -> ((MySQLFieldDTO) o[0]).getField(), o -> (String) o[1]));
 
@@ -168,9 +165,7 @@ public class MySQLDescribeService {
     }
 
     public String beautifyFilter(String filter) {
-        filter = filter.replaceAll("&", "&&");
-        filter = filter.replaceAll("\\|", "||");
-        String allOperatersRegex = "(\\+|-|\\*|/|>|>=|<|<=|&&|\\|\\|)";
+        String allOperatersRegex = "(\\+|-|\\*|/|%|==|!=|>|>=|<|<=|&&|\\|\\|)";
         filter = filter.replaceAll(" {2,}", " ");
         filter = filter.replaceAll("([^ ])" + allOperatersRegex + "([^ ])", "$1 $2 $3");
         filter = filter.replaceAll("([^ ])" + allOperatersRegex, "$1 $2");
