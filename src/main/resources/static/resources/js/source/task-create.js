@@ -339,7 +339,7 @@ class FieldRow extends React.Component {
                 }
                 <td>
                     {<input type="checkbox" checked={field.mappable}
-                            onChange={e => this.props.handleMappableChange(e)}/>}
+                            onChange={e => this.props.handleMappableChange(e, this.props.idx)}/>}
                 </td>
                 {
                     field.targetField == null ? <td></td> :

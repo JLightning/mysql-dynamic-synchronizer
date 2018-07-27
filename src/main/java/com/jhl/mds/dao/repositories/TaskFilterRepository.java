@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 public interface TaskFilterRepository extends JpaRepository<TaskFilter, Integer> {
@@ -13,4 +14,7 @@ public interface TaskFilterRepository extends JpaRepository<TaskFilter, Integer>
 
     @Query("SELECT t.filter FROM TaskFilter t where t.fkTaskId = :id")
     List<String> findFilterByTaskId(@Param("id") int id);
+
+    @Transactional
+    long deleteByFkTaskId(int taskId);
 }

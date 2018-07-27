@@ -98,7 +98,7 @@ public class TaskApiController {
 
             taskRepository.save(task);
 
-            List<TaskFieldMapping> currentMapping = taskFieldMappingRepository.findByFkTaskId(task.getTaskId());
+            taskFieldMappingRepository.deleteByFkTaskId(task.getTaskId());
 
             for (SimpleFieldMappingDTO mapping : dto.getMapping()) {
                 TaskFieldMapping fieldMapping = TaskFieldMapping.builder()
@@ -109,14 +109,12 @@ public class TaskApiController {
                         .updatedAt(now)
                         .build();
 
-                if (!currentMapping.contains(fieldMapping)) {
-                    taskFieldMappingRepository.save(fieldMapping);
-                }
+                taskFieldMappingRepository.save(fieldMapping);
             }
 
-            List<String> currentFilters = taskFilterRepository.findFilterByTaskId(task.getTaskId());
+            taskFilterRepository.deleteByFkTaskId(task.getTaskId());
+
             for (String filter : dto.getFilters()) {
-                if(currentFilters.contains(filter)) continue;
                 TaskFilter taskFilter = TaskFilter.builder()
                         .fkTaskId(task.getTaskId())
                         .filter(filter)
