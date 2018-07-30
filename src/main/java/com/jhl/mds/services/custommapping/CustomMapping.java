@@ -30,7 +30,9 @@ public class CustomMapping {
         for (Map.Entry<String, Object> e : data.entrySet()) {
             bindings.put(e.getKey(), e.getValue());
         }
-        input = "var _row = " + objectMapper.writeValueAsString(data) + ";" + input;
+        if (input.contains("_row")) {
+            input = "var _row = " + objectMapper.writeValueAsString(data) + ";" + input;
+        }
         input = "var json = JSON.stringify;" + input;
 
 //        logger.info("Try to evaluation " + input);
