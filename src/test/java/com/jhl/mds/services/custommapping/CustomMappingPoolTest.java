@@ -21,4 +21,14 @@ public class CustomMappingPoolTest extends BaseTest {
         Assert.assertEquals("abc_xyz_5", customMappingPool.resolve("'abc_' + 'xyz_' + id", data).get());
         Assert.assertEquals("id_5", customMappingPool.resolve("'id_' + id", data).get());
     }
+
+    @Test
+    public void testResolveJson() throws Exception {
+        HashMap<String, Object> data = new HashMap<String, Object>() {{
+            put("id", 5);
+            put("name", "James");
+        }};
+
+        Assert.assertEquals("{\"test\":5,\"name\":\"James\"}", customMappingPool.resolve("json({test: id, name: name})", data).get());
+    }
 }

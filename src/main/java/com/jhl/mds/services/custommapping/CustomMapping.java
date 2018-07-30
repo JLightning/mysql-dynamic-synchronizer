@@ -17,7 +17,7 @@ public class CustomMapping {
 
     public CustomMapping() {
         ScriptEngineManager manager = new ScriptEngineManager();
-        this.jsEngine = manager.getEngineByName("js");
+        this.jsEngine = manager.getEngineByName("nashorn");
         this.bindings = jsEngine.createBindings();
     }
 
@@ -26,6 +26,8 @@ public class CustomMapping {
         for (Map.Entry<String, Object> e : data.entrySet()) {
             bindings.put(e.getKey(), e.getValue());
         }
+
+        input = "var json = JSON.stringify;" + input;
 
 //        logger.info("Try to evaluation " + input);
         Object result = jsEngine.eval(input, bindings);
