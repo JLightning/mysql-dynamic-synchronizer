@@ -83,6 +83,10 @@ public class MySQLDescribeService {
         return fields;
     }
 
+    public List<MySQLFieldDTO> getFields(TableInfoDTO tableInfoDTO) throws SQLException  {
+        return getFields(tableInfoDTO.getServer(), tableInfoDTO.getDatabase(), tableInfoDTO.getTable());
+    }
+
     public List<MySQLIndexDTO> getIndexes(MySQLServerDTO dto, String database, String table) throws SQLException {
         Connection conn = mySQLConnectionPool.getConnection(dto);
         Statement st = conn.createStatement();

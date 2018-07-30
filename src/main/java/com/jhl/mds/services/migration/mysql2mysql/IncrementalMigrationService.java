@@ -6,9 +6,12 @@ import com.jhl.mds.consts.MySQLConstants;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.MigrationDTO;
+import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
-import com.jhl.mds.services.mysql.MySQLUpdateService;
+import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.services.mysql.MySQLInsertService;
+import com.jhl.mds.services.mysql.MySQLPrimaryKeyService;
+import com.jhl.mds.services.mysql.MySQLUpdateService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
@@ -42,11 +45,14 @@ public class IncrementalMigrationService {
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
+    private MySQLPrimaryKeyService mySQLPrimaryKeyService;
     private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
+    private MySQLDescribeService mySQLDescribeService;
     private MigrationDTO.Converter fullMigrationDTOConverter;
     private Set<Integer> runningTask = new HashSet<>();
     private Map<Integer, MySQLBinLogListener> listenerMap = new HashMap<>();
+    private final Set insertingPrimaryKeys = new HashSet();
 
     @Autowired
     public IncrementalMigrationService(
@@ -56,8 +62,10 @@ public class IncrementalMigrationService {
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
+            MySQLPrimaryKeyService mySQLPrimaryKeyService,
             MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
+            MySQLDescribeService mySQLDescribeService,
             MigrationDTO.Converter fullMigrationDTOConverter
     ) {
         this.eventPublisher = eventPublisher;
@@ -66,8 +74,10 @@ public class IncrementalMigrationService {
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
+        this.mySQLPrimaryKeyService = mySQLPrimaryKeyService;
         this.mySQLInsertService = mySQLInsertService;
         this.mySQLUpdateService = mySQLUpdateService;
+        this.mySQLDescribeService = mySQLDescribeService;
         this.fullMigrationDTOConverter = fullMigrationDTOConverter;
     }
 
@@ -112,23 +122,40 @@ public class IncrementalMigrationService {
 
     private synchronized ExecutorService getExecutorServiceForTaskId(int taskId) {
         if (!executorServiceMap.containsKey(taskId))
-            executorServiceMap.put(taskId, Executors.newSingleThreadExecutor());
+            executorServiceMap.put(taskId, Executors.newFixedThreadPool(4));
         return executorServiceMap.get(taskId);
     }
 
     @SuppressWarnings("unchecked")
     private void insert(MigrationDTO dto, WriteRowsEventData eventData) {
         try {
+            List<MySQLFieldDTO> sourceFields = mySQLDescribeService.getFields(dto.getSource());
+
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
+            Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
+
             Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogInsertMapperService)
+                    .append((PipeLineTaskRunner<MigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
+                        synchronized (insertingPrimaryKeys) {
+                            Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(input, sourceFields);
+                            insertingPrimaryKeys.add(primaryKeyValue);
+                            tmpInsertingPrimaryKeys.add(primaryKeyValue);
+                        }
+                        next.accept(input);
+                    })
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
                     .execute(eventData)
                     .waitForFinish();
+
+            synchronized (insertingPrimaryKeys) {
+                insertingPrimaryKeys.removeAll(tmpInsertingPrimaryKeys);
+                insertingPrimaryKeys.notifyAll();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -137,11 +164,22 @@ public class IncrementalMigrationService {
     // TODO: make sure update run after insert
     private void update(MigrationDTO dto, UpdateRowsEventData eventData) {
         try {
+            List<MySQLFieldDTO> sourceFields = mySQLDescribeService.getFields(dto.getSource());
+
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
             Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogUpdateMapperService)
+                    .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                        Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(input.getFirst(), sourceFields);
+                        while (insertingPrimaryKeys.contains(primaryKeyValue)) {
+                            synchronized (insertingPrimaryKeys) {
+                                insertingPrimaryKeys.wait();
+                            }
+                        }
+                        next.accept(input);
+                    })
                     .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();

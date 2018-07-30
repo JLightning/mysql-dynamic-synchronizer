@@ -1,6 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
+import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
@@ -36,6 +37,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
                 ))
+                .insertMode(MySQLInsertMode.REPLACE)
                 .build();
 
         incrementalMigrationService.run(dto);
@@ -62,6 +64,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
                 ))
+                .insertMode(MySQLInsertMode.REPLACE)
                 .build();
 
         incrementalMigrationService.run(dto);
