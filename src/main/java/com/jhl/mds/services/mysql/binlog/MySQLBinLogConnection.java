@@ -26,7 +26,6 @@ import java.util.Map;
 public class MySQLBinLogConnection {
 
     private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
-    @Value("${mds.incremental.ignoreBinlogPositionFile:false}")
     private boolean ignoreBinlogPositionFile;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -35,7 +34,9 @@ public class MySQLBinLogConnection {
     private Map<Long, TableInfoDTO> tableMap = new HashMap<>();
     private Map<TableInfoDTO, List<MySQLBinLogListener>> listenerMap = new HashMap<>();
 
-    public MySQLBinLogConnection(MySQLServerDTO server) {
+    public MySQLBinLogConnection(MySQLServerDTO server, boolean ignoreBinlogPositionFile) {
+        this.ignoreBinlogPositionFile = ignoreBinlogPositionFile;
+
         BINLOG_POSITION_FILENAME = getBinlogPositionFilename(server);
 
         binlogClient = new BinaryLogClient(server.getHost(), Integer.valueOf(server.getPort()), server.getUsername(), server.getPassword());

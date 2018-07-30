@@ -4,6 +4,7 @@ import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -12,22 +13,13 @@ import java.util.Map;
 @Service
 public class MySQLBinLogPool {
 
-    private MySQLServerRepository mySQLServerRepository;
-    private MySQLServerDTO.Converter mySQLServerDTOConverter;
+    @Value("${mds.incremental.ignoreBinlogPositionFile:false}")
+    private boolean ignoreBinlogPositionFile;
     private Map<MySQLServerDTO, MySQLBinLogConnection> connectionMap = new HashMap<>();
-
-    @Autowired
-    public MySQLBinLogPool(
-            MySQLServerRepository mySQLServerRepository,
-            MySQLServerDTO.Converter mySQLServerDTOConverter
-    ) {
-        this.mySQLServerRepository = mySQLServerRepository;
-        this.mySQLServerDTOConverter = mySQLServerDTOConverter;
-    }
 
     public void openNewConnection(MySQLServerDTO serverDTO) {
         if (!connectionMap.containsKey(serverDTO)) {
-            connectionMap.put(serverDTO, new MySQLBinLogConnection(serverDTO));
+            connectionMap.put(serverDTO, new MySQLBinLogConnection(serverDTO, ignoreBinlogPositionFile));
         }
     }
 

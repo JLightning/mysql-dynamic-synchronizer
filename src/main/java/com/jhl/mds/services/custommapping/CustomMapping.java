@@ -18,11 +18,11 @@ public class CustomMapping {
     private final ObjectMapper objectMapper;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public CustomMapping() {
+    public CustomMapping(ObjectMapper objectMapper) {
         ScriptEngineManager manager = new ScriptEngineManager();
         this.jsEngine = manager.getEngineByName("nashorn");
         this.bindings = jsEngine.createBindings();
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = objectMapper;
     }
 
     public synchronized String resolve(String input, Map<String, Object> data) throws ScriptException, JsonProcessingException {

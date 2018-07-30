@@ -1,6 +1,8 @@
 package com.jhl.mds.services.customefilter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jhl.mds.services.custommapping.CustomMapping;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -19,11 +21,17 @@ public class CustomFilterPool {
     private ExecutorService executor = Executors.newFixedThreadPool(POOL_SIZE);
     private List<CustomMapping> customMappingList = new ArrayList<>();
     private int roundRobin = 0;
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    public CustomFilterPool(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @PostConstruct
     private void init() {
         for (int i = 0; i < POOL_SIZE; i++) {
-            customMappingList.add(new CustomMapping());
+            customMappingList.add(new CustomMapping(objectMapper));
         }
     }
 
