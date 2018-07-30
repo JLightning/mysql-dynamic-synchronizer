@@ -44,7 +44,7 @@ public class Pipeline<Context, FirstInput, Input> {
     }
 
     @SuppressWarnings("unchecked")
-    public <R> Pipeline<Context, FirstInput, R> append(PipeLineTaskRunner<? super Context, Input, R> taskRunner) {
+    public <R> Pipeline<Context, FirstInput, R> append(PipeLineTaskRunner<? super Context, ? super Input, R> taskRunner) {
         taskList.add(taskRunner);
         if (taskRunner instanceof PipelineGrouperService) {
             pipelineGrouperServiceList.add((PipelineGrouperService) taskRunner);
@@ -110,8 +110,8 @@ public class Pipeline<Context, FirstInput, Input> {
     private void checkInvokeCount() {
         if (invokeCount.get() == 0) {
             if (pipelineGrouperServiceList.size() == 0) {
-                finished.set(true);
                 synchronized (finished) {
+                    finished.set(true);
                     finished.notifyAll();
                 }
             } else {
