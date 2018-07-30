@@ -16,12 +16,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-@RequiredArgsConstructor
-public class Pipeline<T, I> {
+public class Pipeline<Context, FirstInput, Input> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @NonNull
-    private T context;
+    private Context context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
     @Setter
     private Consumer<Exception> errorHandler = e -> {
@@ -36,22 +35,30 @@ public class Pipeline<T, I> {
     private List<PipelineGrouperService> pipelineGrouperServiceList = new ArrayList<>();
     private Instant startTime;
 
+    private Pipeline(Context context){
+        this.context = context;
+    }
+
+    public static <C, I> Pipeline<C, I, I> of(C context, Class<I> firstInputClass){
+        return new Pipeline<>(context);
+    }
+
     @SuppressWarnings("unchecked")
-    public <R> Pipeline<T, R> append(PipeLineTaskRunner<? super T, I, R> taskRunner) {
+    public <R> Pipeline<Context, FirstInput, R> append(PipeLineTaskRunner<? super Context, Input, R> taskRunner) {
         taskList.add(taskRunner);
         if (taskRunner instanceof PipelineGrouperService) {
             pipelineGrouperServiceList.add((PipelineGrouperService) taskRunner);
         }
-        return (Pipeline<T, R>) this;
+        return (Pipeline<Context, FirstInput, R>) this;
     }
 
-    public Pipeline<T, I> execute() {
+    public Pipeline<Context, FirstInput, Input> execute() {
         return execute(null);
     }
 
     // TODO: fix data race
     @SuppressWarnings("unchecked")
-    public Pipeline<T, I> execute(I input) {
+    public Pipeline<Context, FirstInput, Input> execute(FirstInput input) {
         startTime = Instant.now();
 
         ExecutorService[] executorServices = new ExecutorService[taskList.size() + 1];

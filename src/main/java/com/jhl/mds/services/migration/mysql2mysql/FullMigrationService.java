@@ -75,8 +75,7 @@ public class FullMigrationService {
                 }
             };
 
-            Pipeline<MigrationDTO, Object> pipeline = new Pipeline<>(dto);
-//            pipeline.setFinalNext(finishCallback);
+            Pipeline<MigrationDTO, Object, Object> pipeline = Pipeline.of(dto, Object.class);
             pipeline.setErrorHandler(e -> {
                 if (e instanceof MySQLInsertService.WriteServiceException) {
                     finishCallback.accept(((MySQLInsertService.WriteServiceException) e).getCount());
@@ -90,9 +89,7 @@ public class FullMigrationService {
                     .append(mapperService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
-                    .append((context, input, next, errorHandler) -> {
-                        finishCallback.accept(input);
-                    })
+                    .append((context, input, next, errorHandler) -> finishCallback.accept(input))
                     .execute()
                     .waitForFinish();
 

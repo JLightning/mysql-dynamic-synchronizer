@@ -138,7 +138,7 @@ public class IncrementalMigrationService {
 
             Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
 
-            Pipeline<MigrationDTO, WriteRowsEventData> pipeline = new Pipeline<>(dto);
+            Pipeline<MigrationDTO, WriteRowsEventData, WriteRowsEventData> pipeline = Pipeline.of(dto, WriteRowsEventData.class);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append((PipeLineTaskRunner<MigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
                         synchronized (insertingPrimaryKeys) {
@@ -149,9 +149,9 @@ public class IncrementalMigrationService {
                         next.accept(input);
                     })
                     .append(migrationMapperService)
-                    .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
-                    .append(mySQLInsertService);
-            pipeline.execute(eventData)
+                    .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
+                    .append(mySQLInsertService)
+                    .execute(eventData)
                     .waitForFinish();
 
             synchronized (insertingPrimaryKeys) {
@@ -178,7 +178,7 @@ public class IncrementalMigrationService {
 
             Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
 
-            Pipeline<MigrationDTO, UpdateRowsEventData> pipeline = new Pipeline<>(dto);
+            Pipeline<MigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
             pipeline.append(mySQLBinLogUpdateMapperService)
                     .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
                         Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(input.getFirst(), sourceFields);
@@ -197,8 +197,8 @@ public class IncrementalMigrationService {
 
                         next.accept(Pair.of(key, value));
                     })
-                    .append(mySQLUpdateService);
-            pipeline.execute(eventData)
+                    .append(mySQLUpdateService)
+                    .execute(eventData)
                     .waitForFinish();
         } catch (Exception e) {
             e.printStackTrace();
