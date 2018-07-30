@@ -116,8 +116,8 @@ public class Pipeline<T, R> {
     }
 
     public void waitForFinish() throws InterruptedException {
-        while (!finished.get()) {
-            synchronized (finished) {
+        synchronized (finished) {
+            while (!finished.get()) {
                 finished.wait();
             }
         }
