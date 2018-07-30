@@ -29,6 +29,7 @@ public class CustomMappingPoolTest extends BaseTest {
             put("name", "James");
         }};
 
-        Assert.assertEquals("{\"test\":5,\"name\":\"James\"}", customMappingPool.resolve("json({test: id, name: name})", data).get());
+        Assert.assertEquals("{\"test\":6,\"name\":\"James\"}", customMappingPool.resolve("json({test: id + 1, name: name})", data).get());
+        Assert.assertEquals("{\"name\":\"James\",\"id\":5}", customMappingPool.resolve("json(_row)", data).get());
     }
 }
