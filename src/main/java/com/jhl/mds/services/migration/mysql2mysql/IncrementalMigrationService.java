@@ -52,7 +52,7 @@ public class IncrementalMigrationService {
     private MigrationDTO.Converter fullMigrationDTOConverter;
     private Set<Integer> runningTask = new HashSet<>();
     private Map<Integer, MySQLBinLogListener> listenerMap = new HashMap<>();
-    private final Set insertingPrimaryKeys = new HashSet();
+    private final Map<Integer, Set> insertingPrimaryKeyMap = new HashMap<>();
 
     @Autowired
     public IncrementalMigrationService(
@@ -136,6 +136,8 @@ public class IncrementalMigrationService {
 
             Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
 
+            Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
+
             Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append((PipeLineTaskRunner<MigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
@@ -161,6 +163,11 @@ public class IncrementalMigrationService {
         }
     }
 
+    private synchronized Set getInsertingPrimaryKeysForTask(int taskId) {
+        if (!insertingPrimaryKeyMap.containsKey(taskId)) insertingPrimaryKeyMap.put(taskId, new HashSet());
+        return insertingPrimaryKeyMap.get(taskId);
+    }
+
     // TODO: make sure update run after insert
     private void update(MigrationDTO dto, UpdateRowsEventData eventData) {
         try {
@@ -169,12 +176,14 @@ public class IncrementalMigrationService {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
+            Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
+
             Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogUpdateMapperService)
                     .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
                         Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(input.getFirst(), sourceFields);
-                        while (insertingPrimaryKeys.contains(primaryKeyValue)) {
-                            synchronized (insertingPrimaryKeys) {
+                        synchronized (insertingPrimaryKeys) {
+                            while (insertingPrimaryKeys.contains(primaryKeyValue)) {
                                 insertingPrimaryKeys.wait();
                             }
                         }
