@@ -17,14 +17,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
-public class Pipeline<T, R> {
+public class Pipeline<T, I> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @NonNull
     private T context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
-    @Setter
-    private Consumer<R> finalNext = System.out::println;
     @Setter
     private Consumer<Exception> errorHandler = e -> {
         if (!(e instanceof PipelineCancelException)) {
@@ -38,21 +36,22 @@ public class Pipeline<T, R> {
     private List<PipelineGrouperService> pipelineGrouperServiceList = new ArrayList<>();
     private Instant startTime;
 
-    public Pipeline<T, R> append(PipeLineTaskRunner taskRunner) {
+    @SuppressWarnings("unchecked")
+    public <R> Pipeline<T, R> append(PipeLineTaskRunner<? super T, I, R> taskRunner) {
         taskList.add(taskRunner);
         if (taskRunner instanceof PipelineGrouperService) {
             pipelineGrouperServiceList.add((PipelineGrouperService) taskRunner);
         }
-        return this;
+        return (Pipeline<T, R>) this;
     }
 
-    public Pipeline<T, R> execute() {
+    public Pipeline<T, I> execute() {
         return execute(null);
     }
 
     // TODO: fix data race
     @SuppressWarnings("unchecked")
-    public Pipeline<T, R> execute(Object input) {
+    public Pipeline<T, I> execute(I input) {
         startTime = Instant.now();
 
         ExecutorService[] executorServices = new ExecutorService[taskList.size() + 1];
@@ -60,7 +59,7 @@ public class Pipeline<T, R> {
             executorServices[i] = Executors.newFixedThreadPool(4);
         }
         Consumer[] nextList = new Consumer[taskList.size()];
-        nextList[taskList.size() - 1] = finalNext;
+        nextList[taskList.size() - 1] = System.out::println;
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
 

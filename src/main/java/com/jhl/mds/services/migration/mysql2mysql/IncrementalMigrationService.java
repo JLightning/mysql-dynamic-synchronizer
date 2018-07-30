@@ -138,7 +138,7 @@ public class IncrementalMigrationService {
 
             Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
 
-            Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
+            Pipeline<MigrationDTO, WriteRowsEventData> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append((PipeLineTaskRunner<MigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
                         synchronized (insertingPrimaryKeys) {
@@ -150,8 +150,8 @@ public class IncrementalMigrationService {
                     })
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<String>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
-                    .append(mySQLInsertService)
-                    .execute(eventData)
+                    .append(mySQLInsertService);
+            pipeline.execute(eventData)
                     .waitForFinish();
 
             synchronized (insertingPrimaryKeys) {
@@ -178,7 +178,7 @@ public class IncrementalMigrationService {
 
             Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
 
-            Pipeline<MigrationDTO, Long> pipeline = new Pipeline<>(dto);
+            Pipeline<MigrationDTO, UpdateRowsEventData> pipeline = new Pipeline<>(dto);
             pipeline.append(mySQLBinLogUpdateMapperService)
                     .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
                         Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(input.getFirst(), sourceFields);
@@ -197,8 +197,8 @@ public class IncrementalMigrationService {
 
                         next.accept(Pair.of(key, value));
                     })
-                    .append(mySQLUpdateService)
-                    .execute(eventData)
+                    .append(mySQLUpdateService);
+            pipeline.execute(eventData)
                     .waitForFinish();
         } catch (Exception e) {
             e.printStackTrace();
