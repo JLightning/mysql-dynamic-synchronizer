@@ -1,7 +1,6 @@
 package com.jhl.mds.util.pipeline;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +34,11 @@ public class Pipeline<Context, FirstInput, Input> {
     private List<PipelineGrouperService> pipelineGrouperServiceList = new ArrayList<>();
     private Instant startTime;
 
-    private Pipeline(Context context){
+    private Pipeline(Context context) {
         this.context = context;
     }
 
-    public static <C, I> Pipeline<C, I, I> of(C context, Class<I> firstInputClass){
+    public static <C, I> Pipeline<C, I, I> of(C context, Class<I> firstInputClass) {
         return new Pipeline<>(context);
     }
 
@@ -70,7 +69,7 @@ public class Pipeline<Context, FirstInput, Input> {
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
 
-            Consumer next = o -> {
+            Consumer tmpNext = o -> {
                 try {
                     taskList.get(finalI + 1).execute(context, o, nextList[finalI + 1], errorHandler);
                 } catch (Exception e) {
@@ -81,13 +80,14 @@ public class Pipeline<Context, FirstInput, Input> {
                 }
             };
 
-            if (!(taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread) && threadEnable) {
-                Consumer tmpNext = next;
-                next = o -> {
-                    invokeCount.incrementAndGet();
+            Consumer next = o -> {
+                invokeCount.incrementAndGet();
+                if (!(taskList.get(finalI) instanceof PipeLineTaskRunner.SelfHandleThread) && threadEnable) {
                     executorServices[finalI + 1].submit(() -> tmpNext.accept(o));
-                };
-            }
+                } else {
+                    tmpNext.accept(o);
+                }
+            };
 
             nextList[i] = next;
         }
