@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
-@Service
+@Service("mysql2mysqlFullMigrationService")
 public class FullMigrationService {
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(1);

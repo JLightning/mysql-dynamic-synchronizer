@@ -5,6 +5,7 @@ import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.consts.MySQLConstants;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.repositories.TaskRepository;
+import com.jhl.mds.dao.repositories.TaskStatisticsRepository;
 import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
@@ -41,6 +42,7 @@ public class IncrementalMigrationService {
     private boolean enableAutoStart;
     private ApplicationEventPublisher eventPublisher;
     private TaskRepository taskRepository;
+    private TaskStatisticsRepository taskStatisticsRepository;
     private MySQLBinLogPool mySQLBinLogPool;
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
@@ -58,6 +60,7 @@ public class IncrementalMigrationService {
     public IncrementalMigrationService(
             ApplicationEventPublisher eventPublisher,
             TaskRepository taskRepository,
+            TaskStatisticsRepository taskStatisticsRepository,
             MySQLBinLogPool mySQLBinLogPool,
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
@@ -70,6 +73,7 @@ public class IncrementalMigrationService {
     ) {
         this.eventPublisher = eventPublisher;
         this.taskRepository = taskRepository;
+        this.taskStatisticsRepository = taskStatisticsRepository;
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
@@ -151,6 +155,12 @@ public class IncrementalMigrationService {
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
+                    // TODO: fix synchronization
+                    .append((context, input, next, errorHandler) -> {
+                        synchronized (IncrementalMigrationService.this) {
+                            taskStatisticsRepository.updateStatistics(dto.getTaskId(), 1, 0, 0, new Date());
+                        }
+                    })
                     .execute(eventData)
                     .waitForFinish();
 
@@ -198,6 +208,12 @@ public class IncrementalMigrationService {
                         next.accept(Pair.of(key, value));
                     })
                     .append(mySQLUpdateService)
+                    // TODO: fix synchronization
+                    .append((context, input, next, errorHandler) -> {
+                        synchronized (IncrementalMigrationService.this) {
+                            taskStatisticsRepository.updateStatistics(dto.getTaskId(), 0, 1, 0, new Date());
+                        }
+                    })
                     .execute(eventData)
                     .waitForFinish();
         } catch (Exception e) {

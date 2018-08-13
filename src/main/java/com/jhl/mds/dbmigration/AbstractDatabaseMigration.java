@@ -1,6 +1,9 @@
 package com.jhl.mds.dbmigration;
 
-import java.io.*;
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
 
 public class AbstractDatabaseMigration {
 
@@ -8,16 +11,16 @@ public class AbstractDatabaseMigration {
 
     String getCurrentVersion() {
         String version = "0.0.0";
-        try (BufferedReader br = new BufferedReader(new FileReader(FILENAME))) {
-            version = br.readLine().trim();
+        try {
+            version = FileUtils.readFileToString(new File(FILENAME), "utf-8");
         } finally {
             return version;
         }
     }
 
     void writeVersion(String version) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILENAME))) {
-            bw.write(version);
+        try {
+            FileUtils.writeStringToFile(new File(FILENAME), version, "utf-8");
         } catch (IOException e) {
 
         }
