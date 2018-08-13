@@ -4,8 +4,10 @@ import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.consts.MySQLConstants;
 import com.jhl.mds.dao.entities.Task;
+import com.jhl.mds.dao.entities.TaskStatistics;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dao.repositories.TaskStatisticsRepository;
+import com.jhl.mds.dto.IncrementalMigrationProgressDTO;
 import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
@@ -105,7 +107,13 @@ public class IncrementalMigrationService {
 
         ExecutorService executor = getExecutorServiceForTaskId(dto.getTaskId());
 
-        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true));
+        TaskStatistics taskStatistics = taskStatisticsRepository.findByFkTaskId(dto.getTaskId());
+
+        if (taskStatistics != null) {
+            eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true, taskStatistics.getInsertCount(), taskStatistics.getUpdateCount(), taskStatistics.getDeleteCount()));
+        } else {
+            eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true, 0, 0, 0));
+        }
 
         MySQLBinLogListener listener = new MySQLBinLogListener() {
             @Override
@@ -160,6 +168,10 @@ public class IncrementalMigrationService {
                         synchronized (IncrementalMigrationService.this) {
                             taskStatisticsRepository.updateStatistics(dto.getTaskId(), 1, 0, 0, new Date());
                         }
+
+                        TaskStatistics taskStatistics = taskStatisticsRepository.findByFkTaskId(dto.getTaskId());
+
+                        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), false, taskStatistics.getInsertCount(), taskStatistics.getUpdateCount(), taskStatistics.getDeleteCount()));
                     })
                     .execute(eventData)
                     .waitForFinish();
@@ -227,10 +239,21 @@ public class IncrementalMigrationService {
 
         runningTask.remove(dto.getTaskId());
 
-        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), false));
+        TaskStatistics taskStatistics = taskStatisticsRepository.findByFkTaskId(dto.getTaskId());
+
+        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), false, taskStatistics.getInsertCount(), taskStatistics.getUpdateCount(), taskStatistics.getDeleteCount()));
     }
 
     public boolean isTaskRunning(int taskId) {
         return runningTask.contains(taskId);
+    }
+
+    public IncrementalMigrationProgressDTO getIncrementalMigrationProgress(int taskId) {
+        try {
+            TaskStatistics taskStatistics = taskStatisticsRepository.findByFkTaskId(taskId);
+            return new IncrementalMigrationProgressDTO(isTaskRunning(taskId), taskStatistics.getInsertCount(), taskStatistics.getUpdateCount(), taskStatistics.getDeleteCount());
+        } catch (Exception e) {
+            return new IncrementalMigrationProgressDTO(isTaskRunning(taskId), 0, 0, 0);
+        }
     }
 }

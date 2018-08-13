@@ -19,4 +19,6 @@ public interface TaskStatisticsRepository extends JpaRepository<TaskStatistics, 
             ") ORDER BY type ASC LIMIT 1", nativeQuery = true)
     @Transactional
     void updateStatistics(int taskId, int insertDelta, int updateDelta, int deleteDelta, Date date);
+
+    TaskStatistics findByFkTaskId(int taksId);
 }

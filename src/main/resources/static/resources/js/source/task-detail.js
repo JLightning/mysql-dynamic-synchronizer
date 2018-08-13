@@ -7,7 +7,7 @@ class TaskDetail extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fullMigrationProgress: 0, fullMigrationRunning: false, incrementalMigrationRunning: false};
+        this.state = {fullMigrationProgress: 0, fullMigrationRunning: false, incrementalMigrationRunning: false, incrementalMigrationProgress: {insertCount: 0, updateCount: 0, deleteCount: 0}};
     }
 
     componentDidMount() {
@@ -21,7 +21,11 @@ class TaskDetail extends React.Component {
         });
 
         taskApiClient.getIncrementalMigrationProgressWs(taskId, event => {
-            this.setState({incrementalMigrationRunning: event.running});
+            this.setState({incrementalMigrationRunning: event.running, incrementalMigrationProgress: {
+                    insertCount: event.insertCount,
+                    updateCount: event.updateCount,
+                    deleteCount: event.deleteCount
+                }});
         });
 
         taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));
@@ -112,9 +116,9 @@ class TaskDetail extends React.Component {
                         </div>
                         <Table th={["Insert", "Update", "Delete"]}>
                             <tr>
-                                <td>0</td>
-                                <td>0</td>
-                                <td>0</td>
+                                <td>{this.state.incrementalMigrationProgress.insertCount}</td>
+                                <td>{this.state.incrementalMigrationProgress.updateCount}</td>
+                                <td>{this.state.incrementalMigrationProgress.deleteCount}</td>
                             </tr>
                         </Table>
                     </div>

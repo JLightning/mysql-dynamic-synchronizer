@@ -19,7 +19,7 @@ import java.util.Date;
 public class TaskStatistics {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int TaskStatistics;
+    private int taskStatisticsId;
     private int fkTaskId;
     private long insertCount;
     private long updateCount;

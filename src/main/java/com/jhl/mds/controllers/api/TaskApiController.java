@@ -180,8 +180,8 @@ public class TaskApiController {
     }
 
     @SubscribeMapping("/channel/task/incremental-migration-progress/{taskId}")
-    public FullMigrationProgressDTO getIncrementalMigrationProgressWs(@DestinationVariable int taskId) {
-        return new FullMigrationProgressDTO(incrementalMigrationService.isTaskRunning(taskId), 0);
+    public IncrementalMigrationProgressDTO getIncrementalMigrationProgressWs(@DestinationVariable int taskId) {
+        return incrementalMigrationService.getIncrementalMigrationProgress(taskId);
     }
 
     @GetMapping("/get-task-types")
@@ -205,7 +205,7 @@ public class TaskApiController {
     @EventListener
     @Async
     public void onIncrementalMigrationTaskStatusUpdate(IncrementalStatusUpdateEvent event) {
-        FullMigrationProgressDTO fullMigrationProgressDTO = new FullMigrationProgressDTO(event.isRunning(), 0);
-        simpMessagingTemplate.convertAndSend("/app/channel/task/incremental-migration-progress/" + event.getTaskId(), fullMigrationProgressDTO);
+        IncrementalMigrationProgressDTO incrementalMigrationProgressDTO = new IncrementalMigrationProgressDTO(event.isRunning(), event.getInsertCount(), event.getUpdateCount(), event.getDeleteCount());
+        simpMessagingTemplate.convertAndSend("/app/channel/task/incremental-migration-progress/" + event.getTaskId(), incrementalMigrationProgressDTO);
     }
 }
