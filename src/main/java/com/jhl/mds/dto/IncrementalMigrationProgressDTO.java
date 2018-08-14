@@ -1,11 +1,14 @@
 package com.jhl.mds.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @AllArgsConstructor
+@Getter
 public class IncrementalMigrationProgressDTO {
-    public boolean running;
-    public long insertCount;
-    public long updateCount;
-    public long deleteCount;
+    private boolean running;
+    private Long insertCount;
+    private Long updateCount;
+    private Long deleteCount;
+    private boolean isDelta;
 }

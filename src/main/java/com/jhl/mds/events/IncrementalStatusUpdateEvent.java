@@ -1,15 +1,15 @@
 package com.jhl.mds.events;
 
-import lombok.AllArgsConstructor;
+import com.jhl.mds.dto.IncrementalMigrationProgressDTO;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
-public class IncrementalStatusUpdateEvent {
+public class IncrementalStatusUpdateEvent extends IncrementalMigrationProgressDTO {
 
     private int taskId;
-    private boolean running;
-    public long insertCount;
-    public long updateCount;
-    public long deleteCount;
+
+    public IncrementalStatusUpdateEvent(int taskId, boolean running, Long insertCount, Long updateCount, Long deleteCount, boolean isDelta) {
+        super(running, insertCount, updateCount, deleteCount, isDelta);
+        this.taskId = taskId;
+    }
 }

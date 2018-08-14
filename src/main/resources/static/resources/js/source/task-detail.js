@@ -7,7 +7,12 @@ class TaskDetail extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fullMigrationProgress: 0, fullMigrationRunning: false, incrementalMigrationRunning: false, incrementalMigrationProgress: {insertCount: 0, updateCount: 0, deleteCount: 0}};
+        this.state = {
+            fullMigrationProgress: 0,
+            fullMigrationRunning: false,
+            incrementalMigrationRunning: false,
+            incrementalMigrationProgress: {insertCount: 0, updateCount: 0, deleteCount: 0}
+        };
     }
 
     componentDidMount() {
@@ -21,11 +26,23 @@ class TaskDetail extends React.Component {
         });
 
         taskApiClient.getIncrementalMigrationProgressWs(taskId, event => {
-            this.setState({incrementalMigrationRunning: event.running, incrementalMigrationProgress: {
-                    insertCount: event.insertCount,
-                    updateCount: event.updateCount,
-                    deleteCount: event.deleteCount
-                }});
+            if (event.delta) {
+                this.setState({
+                    incrementalMigrationRunning: event.running, incrementalMigrationProgress: {
+                        insertCount: event.insertCount + this.state.incrementalMigrationProgress.insertCount,
+                        updateCount: event.updateCount + this.state.incrementalMigrationProgress.updateCount,
+                        deleteCount: event.deleteCount + this.state.incrementalMigrationProgress.deleteCount
+                    }
+                });
+            } else {
+                this.setState({
+                    incrementalMigrationRunning: event.running, incrementalMigrationProgress: {
+                        insertCount: event.insertCount || this.state.incrementalMigrationProgress.insertCount,
+                        updateCount: event.updateCount || this.state.incrementalMigrationProgress.updateCount,
+                        deleteCount: event.deleteCount || this.state.incrementalMigrationProgress.deleteCount
+                    }
+                });
+            }
         });
 
         taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));

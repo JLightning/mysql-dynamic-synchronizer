@@ -205,7 +205,6 @@ public class TaskApiController {
     @EventListener
     @Async
     public void onIncrementalMigrationTaskStatusUpdate(IncrementalStatusUpdateEvent event) {
-        IncrementalMigrationProgressDTO incrementalMigrationProgressDTO = new IncrementalMigrationProgressDTO(event.isRunning(), event.getInsertCount(), event.getUpdateCount(), event.getDeleteCount());
-        simpMessagingTemplate.convertAndSend("/app/channel/task/incremental-migration-progress/" + event.getTaskId(), incrementalMigrationProgressDTO);
+        simpMessagingTemplate.convertAndSend("/app/channel/task/incremental-migration-progress/" + event.getTaskId(), event);
     }
 }
