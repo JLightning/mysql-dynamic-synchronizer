@@ -18,7 +18,7 @@ public interface TaskStatisticsRepository extends JpaRepository<TaskStatistics, 
             "   UNION SELECT ?1, ?2, ?3, ?4, ?5, ?5, 2 " +
             ") ORDER BY type ASC LIMIT 1", nativeQuery = true)
     @Transactional
-    void updateStatistics(int taskId, int insertDelta, int updateDelta, int deleteDelta, Date date);
+    void updateStatistics(int taskId, long insertDelta, long updateDelta, long deleteDelta, Date date);
 
     TaskStatistics findByFkTaskId(int taksId);
 }

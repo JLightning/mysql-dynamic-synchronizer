@@ -157,13 +157,8 @@ public class IncrementalMigrationService {
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
-                    // TODO: fix synchronization
                     .append((context, input, next, errorHandler) -> {
-                        synchronized (IncrementalMigrationService.this) {
-                            taskStatisticsRepository.updateStatistics(dto.getTaskId(), 1, 0, 0, new Date());
-                        }
-
-                        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true, 1L, 0L, 0L, true));
+                        updateStatistics(dto, 1, 0, 0);
                     })
                     .execute(eventData)
                     .waitForFinish();
@@ -212,19 +207,23 @@ public class IncrementalMigrationService {
                         next.accept(Pair.of(key, value));
                     })
                     .append(mySQLUpdateService)
-                    // TODO: fix synchronization
                     .append((context, input, next, errorHandler) -> {
-                        synchronized (IncrementalMigrationService.this) {
-                            taskStatisticsRepository.updateStatistics(dto.getTaskId(), 0, 1, 0, new Date());
-                        }
-
-                        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true, 0L, 1L, 0L, true));
+                        updateStatistics(dto, 0, 1, 0);
                     })
                     .execute(eventData)
                     .waitForFinish();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // TODO: fix synchronization
+    private void updateStatistics(MigrationDTO dto, long insertDelta, long updateDelta, long deleteDelta) {
+        synchronized (IncrementalMigrationService.this) {
+            taskStatisticsRepository.updateStatistics(dto.getTaskId(), insertDelta, updateDelta, deleteDelta, new Date());
+        }
+
+        eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true, insertDelta, updateDelta, 0L, true));
     }
 
     public synchronized void stop(MigrationDTO dto) {
