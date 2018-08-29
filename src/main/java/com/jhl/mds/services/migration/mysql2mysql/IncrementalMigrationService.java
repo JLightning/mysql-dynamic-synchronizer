@@ -140,7 +140,7 @@ public class IncrementalMigrationService {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
-            Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
+            Set tmpInsertingPrimaryKeys = new HashSet<>();
 
             Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
 
