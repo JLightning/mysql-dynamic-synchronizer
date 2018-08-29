@@ -1,9 +1,7 @@
 package com.jhl.mds.services.mysql.binlog;
 
-import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +21,7 @@ public class MySQLBinLogPool {
         }
     }
 
-    public void addListener(TableInfoDTO source, MySQLBinLogListener listener) {
+    public synchronized void addListener(TableInfoDTO source, MySQLBinLogListener listener) {
         if (!connectionMap.containsKey(source.getServer())) {
             openNewConnection(source.getServer());
         }
@@ -33,9 +31,9 @@ public class MySQLBinLogPool {
         }
     }
 
-    public void removeListener(TableInfoDTO source, MySQLBinLogListener listener) {
+    public synchronized void removeListener(TableInfoDTO source, MySQLBinLogListener listener) {
         if (!connectionMap.containsKey(source.getServer())) {
-            openNewConnection(source.getServer());
+            return;
         }
         MySQLBinLogConnection connection = connectionMap.get(source.getServer());
         if (connection != null) {

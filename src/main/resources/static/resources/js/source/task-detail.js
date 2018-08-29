@@ -49,6 +49,7 @@ class TaskDetail extends React.Component {
     }
 
     render() {
+        const task = this.state.task;
         if (this.state.task == null) return <p>Loading...</p>;
         return (
             <div className="container-fluid">
@@ -89,7 +90,8 @@ class TaskDetail extends React.Component {
                 <div className="row mt-3">
                     <div className="col-6">
                         <p className="h4">Mapping:</p>
-                        <Table th={["Source", "Target"]}>
+                        <Table
+                            th={["Source: " + task.source.database + ":" + task.source.table, "Target: " + task.target.database + ":" + task.target.table]}>
                             {this.state.task.mapping.map(o => (
                                 <tr>
                                     <td>{o.sourceField}</td>
