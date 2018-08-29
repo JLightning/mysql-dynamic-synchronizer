@@ -63,7 +63,7 @@ class TaskDetail extends React.Component {
                     <div className="col-3 pl-3 vertial-center">
                         <div>Full migration progress:</div>
                     </div>
-                    <div className="col-8 vertial-center">
+                    <div className="col-7 vertial-center">
                         <div className="progress ml-1" style={{height: "24px"}}>
                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                  aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
@@ -71,17 +71,23 @@ class TaskDetail extends React.Component {
                             </div>
                         </div>
                     </div>
-                    <div className="col-1 vertial-center">
+                    <div className="col-2 vertial-center">
                         {
                             (() => {
                                 if (this.state.fullMigrationRunning)
                                     return <button type="button"
                                                    className="float-right btn btn-primary btn-sm ml-1">Stop</button>;
                                 return (
-                                    <button type="button" className="float-right btn btn-primary btn-sm"
-                                            onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
-                                        Start
-                                    </button>
+                                    <div>
+                                        <button type="button" className="float-right btn btn-primary btn-sm"
+                                                onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
+                                            Start
+                                        </button>
+                                        <button type="button" className="float-right btn btn-primary btn-sm mr-1"
+                                                onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
+                                            Truncate and start
+                                        </button>
+                                    </div>
                                 );
                             })()
                         }
