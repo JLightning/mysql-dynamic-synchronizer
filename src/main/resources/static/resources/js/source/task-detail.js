@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import taskApiClient from "./api-client/task-api-client";
 import Table from "./common/table";
+import Modal, {ModalButton} from "./common/modal";
 
 class TaskDetail extends React.Component {
 
@@ -53,6 +54,12 @@ class TaskDetail extends React.Component {
         if (this.state.task == null) return <p>Loading...</p>;
         return (
             <div className="container-fluid">
+                <Modal ref={o => this.confirmTruncateModal = o} title='Confirm Truncate'>
+                    <p>Are you sure you want to truncate?</p>
+                    <ModalButton title={'No'}/>
+                    <ModalButton title={'Yes'} className='btn-primary' onClick={() => taskApiClient.truncateAndStartFullMigrationTask(taskId)}/>
+                </Modal>
+
                 <div className="row mt-3">
                     <div className="col-4">
                         <p className="h2">Task: {this.state.task.taskName}</p>
@@ -84,7 +91,7 @@ class TaskDetail extends React.Component {
                                             Start
                                         </button>
                                         <button type="button" className="float-right btn btn-primary btn-sm mr-1"
-                                                onClick={() => taskApiClient.truncateAndStartFullMigrationTask(taskId)}>
+                                                onClick={() => this.confirmTruncateModal.show()}>
                                             Truncate and start
                                         </button>
                                     </div>
