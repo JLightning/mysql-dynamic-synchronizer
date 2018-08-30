@@ -41,6 +41,10 @@ class TaskApiClient extends AbstractClient {
     stopIncrementalMigrationTask(taskId) {
         return this.get('/api/task/detail/' + taskId + '/stop-incremental-migration', {});
     }
+
+    truncateAndStartFullMigrationTask(taskId) {
+        return this.get('/api/task/detail/' + taskId + '/truncate-and-start-full-migration', {});
+    }
 }
 
 const taskApiClient = new TaskApiClient();

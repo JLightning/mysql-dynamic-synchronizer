@@ -14,6 +14,7 @@ import com.jhl.mds.events.ProgressUpdateEvent;
 import com.jhl.mds.jsclientgenerator.JsClientController;
 import com.jhl.mds.services.migration.mysql2mysql.FullMigrationService;
 import com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService;
+import com.jhl.mds.services.mysql.MySQLCommonService;
 import com.jhl.mds.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ public class TaskApiController {
     private TaskRepository taskRepository;
     private TaskFieldMappingRepository taskFieldMappingRepository;
     private TaskFilterRepository taskFilterRepository;
+    private MySQLCommonService mySQLCommonService;
     private FullMigrationService fullMigrationService;
     private IncrementalMigrationService incrementalMigrationService;
     private TaskDTO.Converter taskDTOConverter;
@@ -50,6 +52,7 @@ public class TaskApiController {
             TaskRepository taskRepository,
             TaskFieldMappingRepository taskFieldMappingRepository,
             TaskFilterRepository taskFilterRepository,
+            MySQLCommonService mySQLCommonService,
             FullMigrationService fullMigrationService,
             IncrementalMigrationService incrementalMigrationService,
             TaskDTO.Converter taskDTOConverter,
@@ -59,6 +62,7 @@ public class TaskApiController {
         this.taskRepository = taskRepository;
         this.taskFieldMappingRepository = taskFieldMappingRepository;
         this.taskFilterRepository = taskFilterRepository;
+        this.mySQLCommonService = mySQLCommonService;
         this.fullMigrationService = fullMigrationService;
         this.incrementalMigrationService = incrementalMigrationService;
         this.taskDTOConverter = taskDTOConverter;
@@ -151,6 +155,20 @@ public class TaskApiController {
     public ApiResponse<Boolean> startFullMigrationTask(@PathVariable int taskId) {
         try {
             MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
+            fullMigrationService.queue(migrationDTO);
+        } catch (Exception e) {
+            return ApiResponse.error(e);
+        }
+
+        return ApiResponse.success(true);
+    }
+
+    @GetMapping("/detail/{taskId}/truncate-and-start-full-migration")
+    public ApiResponse<Boolean> truncateAndStartFullMigrationTask(@PathVariable int taskId) {
+        try {
+            MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
+            mySQLCommonService.truncateTable(migrationDTO.getTarget());
+
             fullMigrationService.queue(migrationDTO);
         } catch (Exception e) {
             return ApiResponse.error(e);

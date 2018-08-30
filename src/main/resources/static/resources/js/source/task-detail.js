@@ -84,7 +84,7 @@ class TaskDetail extends React.Component {
                                             Start
                                         </button>
                                         <button type="button" className="float-right btn btn-primary btn-sm mr-1"
-                                                onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
+                                                onClick={() => taskApiClient.truncateAndStartFullMigrationTask(taskId)}>
                                             Truncate and start
                                         </button>
                                     </div>
