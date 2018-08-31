@@ -4,35 +4,6 @@ export default class Modal extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {contents: [], buttons: []};
-    }
-
-    componentDidMount() {
-        this.checkChildProps();
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.children !== prevProps.children) {
-            this.checkChildProps();
-        }
-    }
-
-    checkChildProps() {
-        const contents = [];
-        const buttons = [];
-        let children = this.props.children;
-        if (!Array.isArray(children)) {
-            children = [children];
-        }
-        children.forEach(item => {
-            const type = item.type;
-            if (type.name === 'ModalButton') {
-                buttons.push(item);
-            } else {
-                contents.push(item);
-            }
-        });
-        this.setState({contents, buttons})
     }
 
     show() {
@@ -51,10 +22,10 @@ export default class Modal extends React.Component {
                             </button>
                         </div>
                         <div className="modal-body">
-                            {this.state.contents}
+                            {this.props.content}
                         </div>
                         <div className="modal-footer">
-                            {this.state.buttons}
+                            {this.props.button}
                         </div>
                     </div>
                 </div>
@@ -67,6 +38,6 @@ export class ModalButton extends React.Component {
 
     render() {
         return <button type="button" className={"btn " + this.props.className} onClick={this.props.onClick}
-                       data-dismiss="modal">{this.props.title || 'Button'}</button>;
+                       data-dismiss="modal">{this.props.children}</button>;
     }
 }

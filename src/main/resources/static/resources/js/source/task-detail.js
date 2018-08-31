@@ -54,10 +54,13 @@ class TaskDetail extends React.Component {
         if (this.state.task == null) return <p>Loading...</p>;
         return (
             <div className="container-fluid">
-                <Modal ref={o => this.confirmTruncateModal = o} title='Confirm Truncate'>
-                    <p>Are you sure you want to truncate?</p>
-                    <ModalButton title={'No'}/>
-                    <ModalButton title={'Yes'} className='btn-primary' onClick={() => taskApiClient.truncateAndStartFullMigrationTask(taskId)}/>
+                <Modal ref={o => this.confirmTruncateModal = o} title='Confirm Truncate' content={<p>Are you sure you want to truncate?</p>} button={
+                    <div>
+                        <ModalButton>No</ModalButton>
+                        <ModalButton className='btn-primary ml-1' onClick={() => taskApiClient.truncateAndStartFullMigrationTask(taskId)}>Yes</ModalButton>
+                    </div>
+                }>
+
                 </Modal>
 
                 <div className="row mt-3">
