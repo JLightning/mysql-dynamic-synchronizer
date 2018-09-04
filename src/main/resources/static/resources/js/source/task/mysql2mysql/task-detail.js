@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import taskApiClient from "./api-client/task-api-client";
-import Table from "./common/table";
-import Modal, {ModalButton} from "./common/modal";
+import taskApiClient from "../../api-client/task-api-client";
+import Table from "../../common/table";
+import Modal, {ModalButton} from "../../common/modal";
 
 class TaskDetail extends React.Component {
 

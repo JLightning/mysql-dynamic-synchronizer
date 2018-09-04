@@ -1,12 +1,11 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import TableSelector from './common/table-selector';
-import mySQLApiClient from './api-client/mysql-api-client';
-import taskApiClient from "./api-client/task-api-client";
-import Table from "./common/table";
-import Select, {SelectOption} from "./common/select";
+import TableSelector from '../../common/table-selector';
+import mySQLApiClient from '../../api-client/mysql-api-client';
+import taskApiClient from "../../api-client/task-api-client";
+import Table from "../../common/table";
+import Select, {SelectOption} from "../../common/select";
 
-class TaskCreate extends React.Component {
+export default class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
@@ -348,8 +347,4 @@ class FieldRow extends React.Component {
             </tr>
         );
     }
-}
-
-if (document.getElementById('taskCreateWrapper') !== null) {
-    ReactDOM.render(<TaskCreate/>, document.getElementById('taskCreateWrapper'));
 }
