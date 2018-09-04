@@ -4,7 +4,7 @@ import TaskCreate from "./mysql2mysql/task-create";
 
 const type = {
     MYSQL2MYSQL: 'mysql2mysql'
-}
+};
 
 class TaskCreateChooser extends React.Component {
 
