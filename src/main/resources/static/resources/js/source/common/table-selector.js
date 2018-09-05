@@ -1,4 +1,5 @@
 import React from "react";
+import PropTypes from 'prop-types';
 import Select, {SelectOption} from "./select";
 import mySQLApiClient from "../api-client/mysql-api-client";
 
@@ -83,3 +84,9 @@ export default class TableSelector extends React.Component {
         );
     }
 }
+
+TableSelector.propTypes = {
+    onSelected: PropTypes.func.isRequired,
+    table: PropTypes.object,
+    title: PropTypes.string.isRequired
+};
