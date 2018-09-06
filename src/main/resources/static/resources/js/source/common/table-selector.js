@@ -2,59 +2,72 @@ import React from "react";
 import PropTypes from 'prop-types';
 import Select, {SelectOption} from "./select";
 import mySQLApiClient from "../api-client/mysql-api-client";
+import {observer} from 'mobx-react';
+import {observable, reaction} from "mobx";
 
+@observer
 export default class TableSelector extends React.Component {
+
+    @observable servers = [];
+    @observable databases = [];
+    @observable tables = [];
+    @observable serverId = 0;
+    @observable database = '';
+    @observable table = '';
 
     constructor(props) {
         super(props);
-        this.state = {servers: [], databases: [], tables: [], serverId: 0, database: '', table: ''};
         if (this.props.table != null) {
-            this.state.serverId = this.props.table.serverId;
-            this.state.database = this.props.table.database;
-            this.state.table = this.props.table.table;
-
-            this.serverSelected(this.state.serverId);
-            this.databaseSelected(this.state.database);
+            this.serverId = this.props.table.serverId;
+            this.database = this.props.table.database;
+            this.table = this.props.table.table;
         }
     }
 
     componentDidMount() {
         this.getServers();
+        reaction(() => this.serverId, serverId => this.serverSelected(serverId));
+        reaction(() => this.database, database => this.databaseSelected(database));
+        reaction(() => this.table, table => {
+            this.props.onSelected({
+                serverId: this.serverId,
+                database: this.database,
+                table: table
+            })
+        })
     }
 
     getServers() {
-        mySQLApiClient.getServers().done(data => this.setState({servers: data}));
+        mySQLApiClient.getServers().done(data => this.servers = data);
     }
 
     serverSelected(serverId) {
-        mySQLApiClient.getDatabasesForServer(serverId).done(data => this.setState({
-            databases: data,
-            serverId: serverId
-        }));
+        mySQLApiClient.getDatabasesForServer(serverId).done(data => {
+            this.databases = data;
+        });
     }
 
     databaseSelected(database) {
-        mySQLApiClient.getTablesForServerAndDatabase(this.state.serverId, database).done(data => this.setState({
-            tables: data,
-            database: database
-        }));
+        mySQLApiClient.getTablesForServerAndDatabase(this.serverId, database).done(data => {
+            this.tables = data;
+        });
     }
 
     renderServerAndDb() {
         return [
             <div className="row" key="server">
                 <Select className='fullWidth col'
-                        options={this.state.servers.map(server => new SelectOption(server.serverId, server.name + ' mysql://' + server.host + ':' + server.port))}
+                        options={this.servers.map(server => new SelectOption(server.serverId, server.name + ' mysql://' + server.host + ':' + server.port))}
                         btnTitle={'Select Server'}
-                        value={this.state.serverId}
-                        onItemClick={option => this.serverSelected(option.id)}/>
+                        value={this.serverId}
+                        onItemClick={option => this.serverId = option.id}/>
             </div>,
             <div className="row" key="db">
                 <Select className='mt-3 fullWidth col'
-                        options={this.state.databases.map(db => new SelectOption(db, db))}
+                        options={this.databases.map(db => new SelectOption(db, db))}
                         btnTitle={'Select Database'}
-                        value={this.state.database}
-                        onItemClick={option => this.databaseSelected(option.value)}/>
+                        value={this.database}
+                        onItemClick={option => this.database = option.value}/>
             </div>
         ]
     }
@@ -66,19 +79,10 @@ export default class TableSelector extends React.Component {
                 {this.renderServerAndDb()}
                 <div className="row">
                     <Select className='mt-3 fullWidth col'
-                            options={this.state.tables.map(table => new SelectOption(table, table))}
+                            options={this.tables.map(table => new SelectOption(table, table))}
                             btnTitle={'Select Table'}
-                            value={this.state.table}
-                            onItemClick={option => {
-                                this.setState({table: option.value});
-                                if (this.props.onSelected !== undefined) {
-                                    this.props.onSelected({
-                                        serverId: this.state.serverId,
-                                        database: this.state.database,
-                                        table: option.value
-                                    })
-                                }
-                            }}/>
+                            value={this.table}
+                            onItemClick={option => this.table = option.value}/>
                 </div>
             </div>
         );

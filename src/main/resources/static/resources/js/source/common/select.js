@@ -1,46 +1,45 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import {observable} from "mobx";
+import {observer} from 'mobx-react';
 
+@observer
 export default class Select extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {show: false}
-    }
+    @observable showDropdown = false;
+    @observable btnTitle = null;
 
     renderDropdownItems() {
-        const result = [];
         let options = this.props.options || [];
-        options.forEach(option => {
-            result.push(<a key={option.id} className="dropdown-item" href="#"
-                           onClick={() => this.onItemClick(option)}>{option.value}</a>)
-        });
-        return result;
+        return options.map(option => <a key={option.id} className="dropdown-item" href="#"
+                                         onClick={() => this.onItemClick(option)}>{option.value}</a>);
     }
 
     componentDidUpdate(prevProps) {
         if (this.props.options !== prevProps.options || this.props.value !== prevProps.value) {
             this.props.options.forEach((o) => {
                 if (o.id === this.props.value) {
-                    this.setState({btnTitle: o.value});
+                    this.btnTitle = o.value;
                 }
             });
         }
     }
 
     onItemClick(option) {
-        this.setState({show: false, btnTitle: option.value});
+        this.showDropdown = false;
+        this.btnTitle = option.value;
         if (this.props.onItemClick !== undefined) {
             this.props.onItemClick(option);
         }
     }
 
     render() {
-        const className = 'dropdown-menu' + (this.state.show ? ' show' : '');
+        const className = 'dropdown-menu' + (this.showDropdown ? ' show' : '');
         return (
             <div className={'dropdown ' + (this.props.className || '')}>
                 <button className="btn btn-secondary dropdown-toggle" type="button"
-                        onClick={() => this.setState({show: !this.state.show})}>
-                    {this.state.btnTitle || this.props.btnTitle || 'Select'}
+                        onClick={() => this.showDropdown = !this.showDropdown}>
+                    {this.btnTitle || this.props.btnTitle || 'Select'}
                 </button>
                 <div className="col">
                     <div className={className} aria-labelledby="dropdownMenuButton">
@@ -51,6 +50,12 @@ export default class Select extends React.Component {
         );
     }
 }
+
+Select.propTypes = {
+    options: PropTypes.array,
+    btnTitle: PropTypes.string,
+    onItemClick: PropTypes.func
+};
 
 export class SelectOption {
 
