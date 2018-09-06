@@ -17,24 +17,27 @@ export default class TableSelector extends React.Component {
 
     constructor(props) {
         super(props);
+
+        reaction(() => this.serverId, serverId => this.serverSelected(serverId));
+        reaction(() => this.database, database => this.databaseSelected(database));
+
         if (this.props.table != null) {
             this.serverId = this.props.table.serverId;
             this.database = this.props.table.database;
             this.table = this.props.table.table;
         }
-    }
 
-    componentDidMount() {
-        this.getServers();
-        reaction(() => this.serverId, serverId => this.serverSelected(serverId));
-        reaction(() => this.database, database => this.databaseSelected(database));
         reaction(() => this.table, table => {
             this.props.onSelected({
                 serverId: this.serverId,
                 database: this.database,
                 table: table
             })
-        })
+        });
+    }
+
+    componentDidMount() {
+        this.getServers();
     }
 
     getServers() {

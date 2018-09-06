@@ -4,42 +4,47 @@ import mySQLApiClient from '../../api-client/mysql-api-client';
 import taskApiClient from "../../api-client/task-api-client";
 import Table from "../../common/table";
 import Select, {SelectOption} from "../../common/select";
+import {computed, observable} from 'mobx';
+import {observer} from 'mobx-react';
+import TagEditor from "../../common/tag-editor";
 
+@observer
 export default class TaskCreate extends React.Component {
+
+    @observable fields = [];
+    @observable filters = [];
+    @observable taskTypes = [];
+    @observable insertModes = [];
+    @observable taskType = '';
+    @observable insertMode = '';
+    @observable taskName = '';
 
     constructor(props) {
         super(props);
         this.state = {
-            taskName: '',
-            fields: [],
-            table: {},
-            filters: [],
-            taskTypes: [],
-            taskType: '',
-            insertModes: [],
-            insertMode: ''
+            table: {}
         };
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
-            this.state.taskName = taskDTO.taskName;
+            this.taskName = taskDTO.taskName;
             this.state.table.source = taskDTO.source;
             this.state.table.target = taskDTO.target;
-            this.state.taskType = taskDTO.taskType;
-            this.state.insertMode = taskDTO.insertMode;
-            this.state.filters = taskDTO.filters;
+            this.taskType = taskDTO.taskType;
+            this.insertMode = taskDTO.insertMode;
+            this.filters = taskDTO.filters;
 
             this.getMapping();
         }
     }
 
     componentDidMount() {
-        taskApiClient.getTaskTypes().done(taskTypes => this.setState({taskTypes}));
-        taskApiClient.getInsertModes().done(insertModes => this.setState({insertModes}));
+        taskApiClient.getTaskTypes().done(taskTypes => this.taskTypes = taskTypes);
+        taskApiClient.getInsertModes().done(insertModes => this.insertModes = insertModes);
     }
 
-    getReadyToSubmit() {
-        const state = this.state;
-        return state.fields.length > 0 && state.taskName !== '' && state.taskType !== '' && state.insertMode !== '';
+    @computed get readyToSubmit() {
+        console.log('compute readyToSubmit');
+        return this.fields.length > 0 && this.taskName !== '' && this.taskType !== '' && this.insertMode !== '';
     }
 
     tableSelected(params, isSource) {
@@ -54,7 +59,7 @@ export default class TaskCreate extends React.Component {
             this.getMapping();
         } else {
             mySQLApiClient.getFieldForServerDatabaseAndTable(params.serverId, params.database, params.table).done(data => {
-                const fields = this.state.fields;
+                const fields = this.fields;
                 data.forEach((field, i) => {
                     if (fields.length > i) {
                         fields[i][sub] = field.field;
@@ -65,7 +70,7 @@ export default class TaskCreate extends React.Component {
                     }
                 });
 
-                this.setState({fields: fields});
+                this.fields = fields;
             });
         }
     }
@@ -76,28 +81,28 @@ export default class TaskCreate extends React.Component {
 
         const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
         mySQLApiClient.getMappingFor2TableFlat(sourceParam.serverId, sourceParam.database, sourceParam.table, targetParam.serverId, targetParam.database, targetParam.table, mapping)
-            .done(fields => this.setState({fields}));
+            .done(fields => this.fields = fields);
     }
 
     handleMappableChange(e, idx) {
-        const fields = this.state.fields;
+        const fields = this.fields;
         fields[idx].mappable = e.target.checked;
-        this.setState({fields: fields});
+        this.fields = fields;
     }
 
     submit() {
         const state = this.state;
-        const mapping = state.fields.filter(field => field.mappable).map(field => {
+        const mapping = this.fields.filter(field => field.mappable).map(field => {
             return {sourceField: field.sourceField, targetField: field.targetField}
         });
         const postParams = {
-            taskName: state.taskName,
+            taskName: this.taskName,
             mapping: mapping,
             source: state.table.source,
             target: state.table.target,
-            taskType: state.taskType,
-            insertMode: state.insertMode,
-            filters: this.state.filters
+            taskType: this.taskType,
+            insertMode: this.insertMode,
+            filters: this.filters
         };
 
         if (typeof taskDTO !== 'undefined') {
@@ -110,7 +115,7 @@ export default class TaskCreate extends React.Component {
     }
 
     swapField(dragField, dropField) {
-        let fields = this.state.fields;
+        let fields = this.fields;
         const dragFieldIdx = fields.indexOf(dragField);
         const dropFieldIdx = fields.indexOf(dropField);
 
@@ -123,18 +128,16 @@ export default class TaskCreate extends React.Component {
         fields[dropFieldIdx].mappable = true;
         fields[dragFieldIdx].mappable = false;
 
-        this.setState({fields: fields});
+        this.fields = fields;
     }
 
     editField(idx, fieldName) {
-        let fields = this.state.fields;
+        let fields = this.fields;
         fields[idx].sourceField = fieldName;
-        this.setState({fields: fields});
+        this.fields = fields;
     }
 
     render() {
-        const readyToSubmit = this.getReadyToSubmit();
-        const state = this.state;
         return (
             <div className="container mt-3">
                 <h1>Task Information</h1>
@@ -143,8 +146,8 @@ export default class TaskCreate extends React.Component {
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
                         <input type="text" className="form-control" id="name" name="name" placeholder="Enter Task Name"
-                               defaultValue={this.state.taskName}
-                               onChange={e => this.setState({taskName: e.target.value})}/>
+                               defaultValue={this.taskName}
+                               onChange={e => this.taskName = e.target.value}/>
                     </div>
 
                     <div className="row">
@@ -152,18 +155,18 @@ export default class TaskCreate extends React.Component {
                             <div className="form-group">
                                 <label htmlFor="name">Task Type</label>
                                 <Select className="fullWidth" btnTitle="Select Task Type"
-                                        options={this.state.taskTypes.map((type, idx) => new SelectOption(idx, type))}
-                                        onItemClick={o => this.setState({taskType: o.value})}
-                                        value={this.state.taskTypes.indexOf(this.state.taskType)}/>
+                                        options={this.taskTypes.map((type, idx) => new SelectOption(idx, type))}
+                                        onItemClick={o => this.taskType = o.value}
+                                        value={this.taskTypes.indexOf(this.taskType)}/>
                             </div>
                         </div>
                         <div className="col">
                             <div className="form-group">
                                 <label htmlFor="name">Insert Mode</label>
                                 <Select className="fullWidth" btnTitle="Select Insert Mode"
-                                        options={this.state.insertModes.map((mode, idx) => new SelectOption(idx, mode))}
-                                        onItemClick={o => this.setState({insertMode: o.value})}
-                                        value={this.state.insertModes.indexOf(this.state.insertMode)}/>
+                                        options={this.insertModes.map((mode, idx) => new SelectOption(idx, mode))}
+                                        onItemClick={o => this.insertMode = o.value}
+                                        value={this.insertModes.indexOf(this.insertMode)}/>
                             </div>
                         </div>
                     </div>
@@ -181,10 +184,10 @@ export default class TaskCreate extends React.Component {
 
                     <h4 className="mt-3">Mapping</h4>
                     {
-                        this.state.fields.length > 0 ?
+                        this.fields.length > 0 ?
                             <Table th={['Source Fields', 'Sync?', 'Target Fields']} className="mt-3">
                                 <FieldRowList
-                                    fields={this.state.fields}
+                                    fields={this.fields}
                                     handleMappableChange={(e, idx) => this.handleMappableChange(e, idx)}
                                     swapField={this.swapField.bind(this)}
                                     editField={this.editField.bind(this)}/>
@@ -192,65 +195,18 @@ export default class TaskCreate extends React.Component {
                     }
 
                     <h4 className="mt-3">Filter</h4>
-                    <TaskFilter filters={this.state.filters} addFilter={(filter, cb) => {
-                        mySQLApiClient.validateFilter(state.table.source.serverId, state.table.source.database, state.table.source.table, filter)
-                            .done(data => {
-                                let filters = this.state.filters;
-                                filters.push(data)
-                                this.setState({filters: filters});
-                                cb();
-                            });
-                    }}
-                                removeFilter={idx => {
-                                    let filters = this.state.filters;
-                                    filters.splice(idx, 1);
-                                    this.setState({filters: filters});
-                                }}/>
+                    <TagEditor items={this.filters} table={this.state.table}
+                               validator={(value, cb) => mySQLApiClient.validateFilter(this.state.table.source.serverId, this.state.table.source.database, this.state.table.source.table, value)
+                                   .done(data => cb(data))}/>
 
                     <button type="button" className="btn btn-primary float-right mt-3"
-                            disabled={!readyToSubmit}
+                            disabled={!this.readyToSubmit}
                             onClick={() => this.submit()}>
                         Submit
                     </button>
                 </form>
             </div>
         )
-    }
-}
-
-class TaskFilter extends React.Component {
-
-    constructor(props) {
-        super(props);
-        this.state = {filters: this.props.filters || [], inputValue: ''};
-    }
-
-    render() {
-        return (
-            <div>
-                <div className="filterWrapper">
-                    {this.state.filters.map((filter, idx) =>
-                        <span key={idx} className="filter btn btn-secondary btn-sm mr-2"
-                              onClick={idx => this.props.removeFilter(idx)}>
-                            <span>{filter}</span>
-                            <i className="fa fa-close ml-2" aria-hidden="true"/>
-                        </span>
-                    )}
-                </div>
-                <input type="text" className="form-control mt-2" id="filter" name="filter" placeholder="Enter Task Name"
-                       onKeyPress={(e) => {
-                           if (e.key === 'Enter') {
-                               const value = e.target.value;
-                               if (value.trim() !== '') {
-                                   this.props.addFilter(value, () => this.setState({inputValue: ''}))
-                               }
-                               return;
-                           }
-                       }}
-                       value={this.state.inputValue}
-                       onChange={e => this.setState({inputValue: e.target.value})}/>
-            </div>
-        );
     }
 }
 
