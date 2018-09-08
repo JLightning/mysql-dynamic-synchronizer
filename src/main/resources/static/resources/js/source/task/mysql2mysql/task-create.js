@@ -195,7 +195,7 @@ export default class TaskCreate extends React.Component {
                     }
 
                     <h4 className="mt-3">Filter</h4>
-                    <TagEditor items={this.filters} table={this.state.table}
+                    <TagEditor items={this.filters}
                                validator={(value, cb) => mySQLApiClient.validateFilter(this.state.table.source.serverId, this.state.table.source.database, this.state.table.source.table, value)
                                    .done(data => cb(data))}/>
 
@@ -210,6 +210,7 @@ export default class TaskCreate extends React.Component {
     }
 }
 
+@observer
 class FieldRowList extends React.Component {
 
     captureDrapStartField(field) {
@@ -234,6 +235,7 @@ class FieldRowList extends React.Component {
     }
 }
 
+@observer
 class FieldRow extends React.Component {
 
     constructor(props) {
