@@ -11,7 +11,7 @@ class TableStructureSync extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {fields: [], table: {}, readyForSubmit: true};
+        this.state = {fields: [], table: {source:{}, target: {}}, readyForSubmit: true};
     }
 
     tableSelected(params, isSource) {

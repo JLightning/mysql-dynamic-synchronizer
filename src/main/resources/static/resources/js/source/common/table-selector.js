@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import Select, {SelectOption} from "./select";
 import mySQLApiClient from "../api-client/mysql-api-client";
 import {observer} from 'mobx-react';
-import {autorun, observable, reaction} from "mobx";
+import {autorun, observable} from "mobx";
 
 @observer
 export default class TableSelector extends React.Component {

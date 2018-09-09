@@ -23,16 +23,11 @@ export default class TaskCreate extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {
-            table: {}
-        };
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.taskName = taskDTO.taskName;
             this.sourceTable = taskDTO.source;
             this.targetTable = taskDTO.target;
-            this.state.table.source = taskDTO.source;
-            this.state.table.target = taskDTO.target;
             this.taskType = taskDTO.taskType;
             this.insertMode = taskDTO.insertMode;
             this.filters = taskDTO.filters;
@@ -95,15 +90,14 @@ export default class TaskCreate extends React.Component {
     }
 
     submit() {
-        const state = this.state;
         const mapping = this.fields.filter(field => field.mappable).map(field => {
             return {sourceField: field.sourceField, targetField: field.targetField}
         });
         const postParams = {
             taskName: this.taskName,
             mapping: mapping,
-            source: state.table.source,
-            target: state.table.target,
+            source: this.sourceTable,
+            target: this.targetTable,
             taskType: this.taskType,
             insertMode: this.insertMode,
             filters: this.filters
@@ -198,7 +192,7 @@ export default class TaskCreate extends React.Component {
 
                     <h4 className="mt-3">Filter</h4>
                     <TagEditor items={this.filters}
-                               validator={(value, cb) => mySQLApiClient.validateFilter(this.state.table.source.serverId, this.state.table.source.database, this.state.table.source.table, value)
+                               validator={(value, cb) => mySQLApiClient.validateFilter(this.sourceTable.serverId, this.sourceTable.database, this.sourceTable.table, value)
                                    .done(data => cb(data))}/>
 
                     <button type="button" className="btn btn-primary float-right mt-3"

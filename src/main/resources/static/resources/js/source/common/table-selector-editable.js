@@ -1,28 +1,28 @@
 import React from "react";
 import TableSelector from "./table-selector";
+import {observable} from 'mobx';
+import {observer} from 'mobx-react';
+import PropTypes from "prop-types";
 
+@observer
 export default class TableSelectorEditable extends TableSelector {
+
+    @observable showDone = true;
+    @observable tmpTableName = '';
 
     constructor(props) {
         super(props);
-        this.state.showDone = true;
     }
 
     render() {
         let doneBtn = '';
         let inputClass = 'col-12'
-        if (this.state.showDone) {
+        if (this.showDone) {
             doneBtn = (
                 <div className="col-2">
                     <a className="btn btn-primary text-white" onClick={e => {
-                        this.setState({showDone: false});
-                        if (this.props.onSelected !== undefined) {
-                            this.props.onSelected({
-                                serverId: this.state.serverId,
-                                database: this.state.database,
-                                table: this.state.table
-                            });
-                        }
+                        this.showDone = false;
+                        this.props.table.table = this.tmpTableName;
                     }}>Done</a>
                 </div>
             );
@@ -36,7 +36,7 @@ export default class TableSelectorEditable extends TableSelector {
                 <div className="row mt-3">
                     <div className={inputClass}>
                         <input type="text" className="form-control" placeholder="New table name"
-                               onChange={e => this.setState({table: e.target.value})}/>
+                               onChange={e => this.tmpTableName = e.target.value}/>
                     </div>
                     {doneBtn}
                 </div>
@@ -44,3 +44,8 @@ export default class TableSelectorEditable extends TableSelector {
         );
     }
 }
+
+TableSelectorEditable.propTypes = {
+    table: PropTypes.object,
+    title: PropTypes.string.isRequired
+};
