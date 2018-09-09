@@ -112,23 +112,6 @@ export default class TaskCreate extends React.Component {
         });
     }
 
-    swapField(dragField, dropField) {
-        let fields = this.fields;
-        const dragFieldIdx = fields.indexOf(dragField);
-        const dropFieldIdx = fields.indexOf(dropField);
-
-        if (dragFieldIdx === dropFieldIdx) return;
-
-        const tmp = fields[dragFieldIdx].sourceField;
-        fields[dragFieldIdx].sourceField = fields[dropFieldIdx].sourceField;
-        fields[dropFieldIdx].sourceField = tmp;
-
-        fields[dropFieldIdx].mappable = true;
-        fields[dragFieldIdx].mappable = false;
-
-        this.fields = fields;
-    }
-
     editField(idx, fieldName) {
         let fields = this.fields;
         fields[idx].sourceField = fieldName;
@@ -185,7 +168,6 @@ export default class TaskCreate extends React.Component {
                                 <FieldRowList
                                     fields={this.fields}
                                     handleMappableChange={(e, idx) => this.handleMappableChange(e, idx)}
-                                    swapField={this.swapField.bind(this)}
                                     editField={this.editField.bind(this)}/>
                             </Table> : ''
                     }
@@ -209,13 +191,26 @@ export default class TaskCreate extends React.Component {
 @observer
 class FieldRowList extends React.Component {
 
+    capturedField = null;
+
     captureDrapStartField(field) {
-        this.setState({capturedField: field});
+        this.capturedField = field;
     }
 
     onDrop(field) {
-        if (this.state.capturedField !== null) {
-            this.props.swapField(this.state.capturedField, field);
+        if (this.capturedField !== null) {
+            let fields = this.props.fields;
+            const dragFieldIdx = fields.indexOf(this.capturedField);
+            const dropFieldIdx = fields.indexOf(field);
+
+            if (dragFieldIdx === dropFieldIdx) return;
+
+            const tmp = fields[dragFieldIdx].sourceField;
+            fields[dragFieldIdx].sourceField = fields[dropFieldIdx].sourceField;
+            fields[dropFieldIdx].sourceField = tmp;
+
+            fields[dropFieldIdx].mappable = true;
+            fields[dragFieldIdx].mappable = false;
         }
     }
 
@@ -234,37 +229,35 @@ class FieldRowList extends React.Component {
 @observer
 class FieldRow extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {dropTargetClass: '', custom: false};
-    }
+    @observable dropTargetClass = '';
+    @observable custom = false;
 
     onDragOver(e) {
-        this.setState({dropTargetClass: 'bg-primary text-white'});
+        this.dropTargetClass = 'bg-primary text-white';
         e.preventDefault();
         e.stopPropagation();
     }
 
     onDragLeave(e) {
-        this.setState({dropTargetClass: ''});
+        this.dropTargetClass = '';
     }
 
     onDrop(e) {
-        this.setState({dropTargetClass: ''});
+        this.dropTargetClass = '';
     }
 
     getSourceText() {
         const field = this.props.field;
-        if (this.state.custom)
+        if (this.custom)
             return (
                 <div>
                     <input type="text" value={field.sourceField}
                            onChange={e => this.props.editField(this.props.idx, e.target.value)}/>
                     <i className="fa fa-check-square-o ml-2" aria-hidden="true"
-                       onClick={() => this.setState({custom: false})}/>
+                       onClick={() => this.custom = false}/>
                 </div>
             );
-        return <div onClick={() => this.setState({custom: true})}
+        return <div onClick={() => this.custom = true}
                     style={{minHeight: '1.5rem'}}>{field.sourceField}</div>;
     }
 
@@ -274,10 +267,14 @@ class FieldRow extends React.Component {
         return (
             <tr>
                 {
-                    <td className={this.state.dropTargetClass + ' pointer'}
+                    <td className={this.dropTargetClass + ' pointer'}
                         draggable="true"
-                        onDragStart={() => {
-                            this.setState({dropTargetClass: 'bg-success text-white'});
+                        onDragStart={e => {
+                            if (this.custom) {
+                                e.preventDefault();
+                                return;
+                            }
+                            this.dropTargetClass = 'bg-success text-white';
                             this.props.captureDrapStartField(field);
                         }}
                         onDrop={() => {
