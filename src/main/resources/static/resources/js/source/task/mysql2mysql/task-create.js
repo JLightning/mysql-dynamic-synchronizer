@@ -4,7 +4,7 @@ import mySQLApiClient from '../../api-client/mysql-api-client';
 import taskApiClient from "../../api-client/task-api-client";
 import Table from "../../common/table";
 import Select, {SelectOption} from "../../common/select";
-import {computed, observable} from 'mobx';
+import {autorun, computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
 import TagEditor from "../../common/tag-editor";
 
@@ -18,6 +18,8 @@ export default class TaskCreate extends React.Component {
     @observable taskType = '';
     @observable insertMode = '';
     @observable taskName = '';
+    @observable sourceTable = {};
+    @observable targetTable = {};
 
     constructor(props) {
         super(props);
@@ -27,6 +29,8 @@ export default class TaskCreate extends React.Component {
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.taskName = taskDTO.taskName;
+            this.sourceTable = taskDTO.source;
+            this.targetTable = taskDTO.target;
             this.state.table.source = taskDTO.source;
             this.state.table.target = taskDTO.target;
             this.taskType = taskDTO.taskType;
@@ -35,6 +39,8 @@ export default class TaskCreate extends React.Component {
 
             this.getMapping();
         }
+
+        autorun(() => this.getMapping());
     }
 
     componentDidMount() {
@@ -47,41 +53,39 @@ export default class TaskCreate extends React.Component {
         return this.fields.length > 0 && this.taskName !== '' && this.taskType !== '' && this.insertMode !== '';
     }
 
-    tableSelected(params, isSource) {
-        const sub = isSource ? 'sourceField' : 'targetField';
-        const sub2 = isSource ? 'source' : 'target';
-
-        const table = this.state.table;
-        table[sub2] = params;
-        this.setState({table: table});
-
-        if (this.state.table.source != null && this.state.table.target != null) {
-            this.getMapping();
-        } else {
-            mySQLApiClient.getFieldForServerDatabaseAndTable(params.serverId, params.database, params.table).done(data => {
-                const fields = this.fields;
-                data.forEach((field, i) => {
-                    if (fields.length > i) {
-                        fields[i][sub] = field.field;
-                    } else {
-                        const _o = {};
-                        _o[sub] = field.field;
-                        fields.push(_o);
-                    }
-                });
-
-                this.fields = fields;
-            });
-        }
-    }
-
     getMapping() {
-        const sourceParam = this.state.table.source;
-        const targetParam = this.state.table.target;
+        let emptySourceTable = typeof this.sourceTable.serverId === 'undefined' || typeof this.sourceTable.database === 'undefined' || typeof this.sourceTable.table === 'undefined';
+        let emptyTargetTable = typeof this.targetTable.serverId === 'undefined' || typeof this.targetTable.database === 'undefined' || typeof this.targetTable.table === 'undefined';
+        let table = this.sourceTable;
+        let sub = 'sourceField';
+        if (!emptySourceTable && !emptyTargetTable) {
+            const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
+            mySQLApiClient.getMappingFor2TableFlat(this.sourceTable.serverId, this.sourceTable.database, this.sourceTable.table,
+                this.targetTable.serverId, this.targetTable.database, this.targetTable.table, mapping)
+                .done(fields => this.fields = fields);
 
-        const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
-        mySQLApiClient.getMappingFor2TableFlat(sourceParam.serverId, sourceParam.database, sourceParam.table, targetParam.serverId, targetParam.database, targetParam.table, mapping)
-            .done(fields => this.fields = fields);
+            return;
+        } else if (emptySourceTable) {
+            table = this.targetTable;
+            sub = 'targetField';
+        }
+        if (emptySourceTable && emptyTargetTable) {
+            return;
+        }
+        mySQLApiClient.getFieldForServerDatabaseAndTable(table.serverId, table.database, table.table).done(data => {
+            const fields = this.fields;
+            data.forEach((field, i) => {
+                if (fields.length > i) {
+                    fields[i][sub] = field.field;
+                } else {
+                    const _o = {};
+                    _o[sub] = field.field;
+                    fields.push(_o);
+                }
+            });
+
+            this.fields = fields;
+        });
     }
 
     handleMappableChange(e, idx) {
@@ -173,12 +177,10 @@ export default class TaskCreate extends React.Component {
 
                     <div className="row">
                         <div className="col">
-                            <TableSelector table={this.state.table.source} title='Source'
-                                           onSelected={o => this.tableSelected(o, true)}/>
+                            <TableSelector table={this.sourceTable} title='Source'/>
                         </div>
                         <div className="col">
-                            <TableSelector table={this.state.table.target} title='Target'
-                                           onSelected={o => this.tableSelected(o, false)}/>
+                            <TableSelector table={this.targetTable} title='Target'/>
                         </div>
                     </div>
 
