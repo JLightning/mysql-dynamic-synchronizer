@@ -4,6 +4,7 @@ import {default as TaskCreateMysql2Mysql} from "./mysql2mysql/task-create";
 import {default as TaskCreateMysql2Redis} from "./mysql2redis/task-create";
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
+import DevTools from 'mobx-react-devtools';
 
 const type = {
     MYSQL_2_MYSQL: 'mysql2mysql',
@@ -19,7 +20,7 @@ const type = {
         this.type = type;
     }
 
-    render() {
+    renderx() {
         switch (this.type) {
             case type.MYSQL_2_MYSQL:
                 return <TaskCreateMysql2Mysql/>;
@@ -35,6 +36,15 @@ const type = {
                     </div>
                 );
         }
+    }
+
+    render() {
+        return (
+            <div>
+                <DevTools noPanel/>
+                {this.renderx()}
+            </div>
+        )
     }
 }
 

@@ -4,9 +4,10 @@ import mySQLApiClient from '../../api-client/mysql-api-client';
 import taskApiClient from "../../api-client/task-api-client";
 import Table from "../../common/table";
 import Select, {SelectOption} from "../../common/select";
-import {autorun, computed, observable, reaction} from 'mobx';
+import {autorun, computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
 import TagEditor from "../../common/tag-editor";
+import PropTypes from 'prop-types';
 
 @observer
 export default class TaskCreate extends React.Component {
@@ -196,6 +197,8 @@ class FieldRowList extends React.Component {
 
     constructor(props) {
         super(props);
+
+        autorun(() => props.fields.forEach((field, idx) => this.editMode[idx] = observable.box(false)))
     }
 
     captureDrapStartField(field) {
@@ -208,7 +211,7 @@ class FieldRowList extends React.Component {
             const dragFieldIdx = fields.indexOf(this.capturedField);
             const dropFieldIdx = fields.indexOf(field);
 
-            if (this.editMode[dropFieldIdx] === true) {
+            if (this.editMode[dropFieldIdx].get() === true) {
                 showError('Cannot drop on an editing field');
                 return;
             }
@@ -229,8 +232,8 @@ class FieldRowList extends React.Component {
             key={idx}
             idx={idx}
             field={field}
-            editModeChange={(idx, mode) => this.editMode[idx] = mode}
             {...this.props}
+            isInEditMode={this.editMode[idx]}
             onDrop={this.onDrop.bind(this)}
             captureDrapStartField={this.captureDrapStartField.bind(this)}
         />);
@@ -241,11 +244,6 @@ class FieldRowList extends React.Component {
 class FieldRow extends React.Component {
 
     @observable dropTargetClass = '';
-    @observable isInEditMode = false;
-
-    componentDidMount() {
-        autorun(() => this.props.editModeChange(this.props.idx, this.isInEditMode));
-    }
 
     onDragOver(e) {
         this.dropTargetClass = 'bg-primary text-white';
@@ -263,16 +261,16 @@ class FieldRow extends React.Component {
 
     getSourceText() {
         const field = this.props.field;
-        if (this.isInEditMode)
+        if (this.props.isInEditMode.get())
             return (
                 <div>
                     <input type="text" value={field.sourceField}
                            onChange={e => this.props.editField(this.props.idx, e.target.value)}/>
                     <i className="fa fa-check-square-o ml-2" aria-hidden="true"
-                       onClick={() => this.isInEditMode = false}/>
+                       onClick={() => this.props.isInEditMode.set(false)}/>
                 </div>
             );
-        return <div onClick={() => this.isInEditMode = true}
+        return <div onClick={() => this.props.isInEditMode.set(true)}
                     style={{minHeight: '1.5rem'}}>{field.sourceField}</div>;
     }
 
@@ -285,7 +283,7 @@ class FieldRow extends React.Component {
                     <td className={this.dropTargetClass + ' pointer'}
                         draggable="true"
                         onDragStart={e => {
-                            if (this.isInEditMode) {
+                            if (this.props.isInEditMode.get()) {
                                 e.preventDefault();
                                 return;
                             }
@@ -314,3 +312,9 @@ class FieldRow extends React.Component {
         );
     }
 }
+
+FieldRow.propTypes = {
+    isInEditMode: PropTypes.object,
+    captureDrapStartField: PropTypes.func,
+    onDrop: PropTypes.func
+};
