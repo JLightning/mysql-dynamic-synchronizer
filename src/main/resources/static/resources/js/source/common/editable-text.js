@@ -26,14 +26,14 @@ export default class EditableText extends React.Component {
 
     render() {
         const value = this.props.value || '';
-        if (this.state.editing) {
+        if (this.editing) {
             return (
                 <div>
                     <input type="text" value={this.tmpValue}
                            onChange={e => this.tmpValue = e.target.value}/>
                     <i className="fa fa-check-square-o ml-2 pointer" aria-hidden="true"
                        onClick={() => {
-                           this.props.updateValue(this.state.tmpValue);
+                           this.props.updateValue(this.tmpValue);
                            this.editing = false;
                        }}/>
                     <i className="fa fa-close ml-2 pointer" aria-hidden="true"
