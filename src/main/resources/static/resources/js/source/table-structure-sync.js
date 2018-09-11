@@ -6,60 +6,65 @@ import mySQLApiClient from "./api-client/mysql-api-client";
 import Table from "./common/table";
 import EditableText from "./common/editable-text";
 import toolApiClient from "./api-client/tool-api-client";
+import {computed, observable, autorun} from "mobx";
+import {observer} from 'mobx-react';
 
+@observer
 class TableStructureSync extends React.Component {
+
+    @observable sourceTable = {};
+    @observable targetTable = {};
+    @observable fields = [];
 
     constructor(props) {
         super(props);
-        this.state = {fields: [], table: {source:{}, target: {}}, readyForSubmit: true};
+
+        autorun(() => this.getFields());
     }
 
-    tableSelected(params, isSource) {
-        const sub2 = isSource ? 'source' : 'target';
+    getFields() {
+        if (typeof this.sourceTable.serverId === 'undefined' || typeof this.sourceTable.database === 'undefined' || typeof this.sourceTable.table === 'undefined') return;
 
-        const table = this.state.table;
-        table[sub2] = params;
-        this.setState({table: table});
+        mySQLApiClient.getFieldForServerDatabaseAndTable(this.sourceTable.serverId, this.sourceTable.database, this.sourceTable.table).done(data => {
+            let fields = [];
 
-        if (isSource) {
-            mySQLApiClient.getFieldForServerDatabaseAndTable(params.serverId, params.database, params.table).done(data => {
-                let fields = [];
+            data.forEach(field => fields.push({
+                sourceField: field.field,
+                mappable: true,
+                targetField: field.field
+            }));
 
-                data.forEach(field => fields.push({
-                    sourceField: field.field,
-                    mappable: true,
-                    targetField: field.field
-                }));
-
-                this.setState({fields: fields});
-            });
-        }
+            this.fields = fields;
+        });
     }
 
     updateTargetField(value, idx) {
-        let fields = this.state.fields;
-        fields[idx].targetField = value;
-        this.setState({fields});
+        this.fields[idx].targetField = value;
     }
 
     handleMappableChange(e, idx) {
-        const fields = this.state.fields;
-        fields[idx].mappable = e.target.checked;
-        this.setState({fields: fields});
+        this.fields[idx].mappable = e.target.checked;
     }
 
     submit() {
-        const mapping = this.state.fields.filter(field => field.mappable).map(field => {
+        const mapping = this.fields.filter(field => field.mappable).map(field => {
             return {sourceField: field.sourceField, targetField: field.targetField}
         });
         const postParams = {
-            taskName: this.state.taskName,
             mapping: mapping,
-            source: this.state.table.source,
-            target: this.state.table.target
+            source: this.sourceTable,
+            target: this.targetTable
         };
 
-        toolApiClient.syncStructure(postParams).done(data => alert(data));
+        toolApiClient.syncStructure(postParams).done(data => {
+            if (data) {
+                showError("Success");
+            }
+        });
+    }
+
+    @computed get readyForSubmit() {
+        return this.fields.length > 0;
     }
 
     render() {
@@ -67,25 +72,23 @@ class TableStructureSync extends React.Component {
             <div className="container mt-3">
                 <div className="row">
                     <div className="col">
-                        <TableSelector table={this.state.table.source} title='Source'
-                                       onSelected={o => this.tableSelected(o, true)}/>
+                        <TableSelector table={this.sourceTable} title='Source'/>
                     </div>
                     <div className="col">
-                        <TableSelectorEditable table={this.state.table.target} title='Target'
-                                               onSelected={o => this.tableSelected(o, false)}/>
+                        <TableSelectorEditable table={this.targetTable} title='Target'/>
                     </div>
                 </div>
                 {
-                    this.state.fields.length > 0 ?
+                    this.fields.length > 0 ?
                         <Table th={['Source Fields', 'Sync?', 'Target Fields']} className="mt-3">
-                            {this.state.fields.map((field, idx) => <FieldRow field={field} key={idx}
+                            {this.fields.map((field, idx) => <FieldRow field={field} key={idx}
                                                                              updateTargetField={value => this.updateTargetField(value, idx)}
                                                                              handleMappableChange={e => this.handleMappableChange(e, idx)}/>)}
                         </Table> : ''
                 }
 
                 <button type="button" className="btn btn-primary float-right mt-3"
-                        disabled={!this.state.readyForSubmit}
+                        disabled={!this.readyForSubmit}
                         onClick={() => this.submit()}>
                     Submit
                 </button>
@@ -94,6 +97,7 @@ class TableStructureSync extends React.Component {
     }
 }
 
+@observer
 class FieldRow extends React.Component {
 
     render() {
