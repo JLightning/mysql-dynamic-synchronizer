@@ -52,10 +52,6 @@ class TableStructureSync extends React.Component {
         this.fields[idx].targetField = value;
     }
 
-    handleMappableChange(e, idx) {
-        this.fields[idx].mappable = e.target.checked;
-    }
-
     submit() {
         const mapping = this.fields.filter(field => field.mappable).map(field => {
             return {sourceField: field.sourceField, targetField: field.targetField}
@@ -93,7 +89,6 @@ class TableStructureSync extends React.Component {
                         <Table th={['Source Fields', 'Sync?', 'Target Fields']} className="mt-3">
                             {this.fields.map((field, idx) => <FieldRow field={field} key={idx}
                                                                        updateTargetField={value => this.updateTargetField(value, idx)}
-                                                                       handleMappableChange={e => this.handleMappableChange(e, idx)}
                                                                        editing={this.editing[idx]}/>)}
                         </Table> : ''
                 }
@@ -112,6 +107,10 @@ class TableStructureSync extends React.Component {
 @observer
 class FieldRow extends React.Component {
 
+    updateTargetField(value) {
+        this.props.field.targetField = value;
+    }
+
     render() {
         const field = this.props.field;
         return (
@@ -122,11 +121,11 @@ class FieldRow extends React.Component {
                     </td>
                 }
                 <td>
-                    {<input type="checkbox" checked={field.mappable}
-                            onChange={e => this.props.handleMappableChange(e)}/>}
+                    <input type="checkbox" checked={field.mappable}
+                            onChange={e => this.props.field.mappable = e.target.checked}/>
                 </td>
                 <td>
-                    <EditableText updateValue={this.props.updateTargetField} value={field.targetField} editing={this.props.editing}/>
+                    <EditableText updateValue={this.updateTargetField.bind(this)} value={field.targetField} editing={this.props.editing}/>
                 </td>
             </tr>
         );

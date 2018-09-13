@@ -18,7 +18,8 @@ export default class EditableText extends React.Component {
     }
 
     cancelChange() {
-        this.editing = false;
+        this.tmpValue = this.props.value || '';
+        this.editing.set(false);
     }
 
     render() {
