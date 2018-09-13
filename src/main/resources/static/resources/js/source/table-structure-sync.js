@@ -6,8 +6,9 @@ import mySQLApiClient from "./api-client/mysql-api-client";
 import Table from "./common/table";
 import EditableText from "./common/editable-text";
 import toolApiClient from "./api-client/tool-api-client";
-import {computed, observable, autorun} from "mobx";
+import {autorun, computed, observable} from "mobx";
 import {observer} from 'mobx-react';
+import DevTools from 'mobx-react-devtools';
 
 @observer
 class TableStructureSync extends React.Component {
@@ -15,11 +16,20 @@ class TableStructureSync extends React.Component {
     @observable sourceTable = {};
     @observable targetTable = {};
     @observable fields = [];
+    @observable editing = [];
+    targetTableFinished = observable.box(false);
 
     constructor(props) {
         super(props);
 
         autorun(() => this.getFields());
+        autorun(() => this.fields.forEach((field, idx) => {
+            if (this.editing.length <= idx) {
+                this.editing.push(observable.box(false));
+            } else {
+                this.editing[idx].set(false);
+            }
+        }))
     }
 
     getFields() {
@@ -64,7 +74,7 @@ class TableStructureSync extends React.Component {
     }
 
     @computed get readyForSubmit() {
-        return this.fields.length > 0;
+        return this.fields.length > 0 && this.editing.filter(f => f.get() === true).length === 0 && this.targetTableFinished.get();
     }
 
     render() {
@@ -75,15 +85,16 @@ class TableStructureSync extends React.Component {
                         <TableSelector table={this.sourceTable} title='Source'/>
                     </div>
                     <div className="col">
-                        <TableSelectorEditable table={this.targetTable} title='Target'/>
+                        <TableSelectorEditable table={this.targetTable} title='Target' finished={this.targetTableFinished}/>
                     </div>
                 </div>
                 {
                     this.fields.length > 0 ?
                         <Table th={['Source Fields', 'Sync?', 'Target Fields']} className="mt-3">
                             {this.fields.map((field, idx) => <FieldRow field={field} key={idx}
-                                                                             updateTargetField={value => this.updateTargetField(value, idx)}
-                                                                             handleMappableChange={e => this.handleMappableChange(e, idx)}/>)}
+                                                                       updateTargetField={value => this.updateTargetField(value, idx)}
+                                                                       handleMappableChange={e => this.handleMappableChange(e, idx)}
+                                                                       editing={this.editing[idx]}/>)}
                         </Table> : ''
                 }
 
@@ -92,6 +103,7 @@ class TableStructureSync extends React.Component {
                         onClick={() => this.submit()}>
                     Submit
                 </button>
+                <DevTools/>
             </div>
         );
     }
@@ -114,7 +126,7 @@ class FieldRow extends React.Component {
                             onChange={e => this.props.handleMappableChange(e)}/>}
                 </td>
                 <td>
-                    <EditableText updateValue={this.props.updateTargetField} value={field.targetField}/>
+                    <EditableText updateValue={this.props.updateTargetField} value={field.targetField} editing={this.props.editing}/>
                 </td>
             </tr>
         );

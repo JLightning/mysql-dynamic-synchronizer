@@ -1,23 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {observable} from 'mobx';
+import {autorun, observable} from 'mobx';
 import {observer} from 'mobx-react';
 
 @observer
 export default class EditableText extends React.Component {
 
-    @observable editing = false;
+    editing = observable.box(false);
     @observable tmpValue = '';
 
     constructor(props) {
         super(props);
         this.tmpValue = props.value || '';
-    }
+        if (props.editing !== undefined) this.editing = props.editing;
 
-    componentDidUpdate(prevProps) {
-        if (prevProps.value !== this.props.value) {
-            this.tmpValue = this.props.value;
-        }
+        autorun(() => this.tmpValue = this.props.value);
     }
 
     cancelChange() {
@@ -26,7 +23,7 @@ export default class EditableText extends React.Component {
 
     render() {
         const value = this.props.value || '';
-        if (this.editing) {
+        if (this.editing.get()) {
             return (
                 <div>
                     <input type="text" value={this.tmpValue}
@@ -34,18 +31,19 @@ export default class EditableText extends React.Component {
                     <i className="fa fa-check-square-o ml-2 pointer" aria-hidden="true"
                        onClick={() => {
                            this.props.updateValue(this.tmpValue);
-                           this.editing = false;
+                           this.editing.set(false);
                        }}/>
                     <i className="fa fa-close ml-2 pointer" aria-hidden="true"
                        onClick={this.cancelChange.bind(this)}/>
                 </div>
             )
         }
-        return <div className="pointer" onClick={() => this.editing = true}>{value}</div>
+        return <div className="pointer" onClick={() => this.editing.set(true)}>{value}</div>
     }
 }
 
 EditableText.propTypes = {
     updateValue: PropTypes.func.isRequired,
-    value: PropTypes.string
+    value: PropTypes.string,
+    editing: PropTypes.object
 };

@@ -7,21 +7,22 @@ import PropTypes from "prop-types";
 @observer
 export default class TableSelectorEditable extends TableSelector {
 
-    @observable showDone = true;
+    finished = observable.box(false);
     @observable tmpTableName = '';
 
     constructor(props) {
         super(props);
+        if (props.finished !== undefined) this.finished = props.finished;
     }
 
     render() {
         let doneBtn = '';
         let inputClass = 'col-12'
-        if (this.showDone) {
+        if (!this.finished.get()) {
             doneBtn = (
                 <div className="col-2">
                     <a className="btn btn-primary text-white" onClick={e => {
-                        this.showDone = false;
+                        this.finished.set(true);
                         this.props.table.table = this.tmpTableName;
                     }}>Done</a>
                 </div>
@@ -47,5 +48,6 @@ export default class TableSelectorEditable extends TableSelector {
 
 TableSelectorEditable.propTypes = {
     table: PropTypes.object,
-    title: PropTypes.string.isRequired
+    title: PropTypes.string.isRequired,
+    finished: PropTypes.object
 };
