@@ -2,6 +2,7 @@ import * as React from "react";
 import taskListApiClient from "../api-client/task-list-api-client";
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
+import {Link} from "react-router-dom";
 
 @observer
 export default class TaskList extends React.Component {
@@ -31,7 +32,7 @@ export default class TaskList extends React.Component {
                     </tr>
                     </thead>
                     <tbody>
-                        {this.taskList.map(task => <Row key={task.taskId} task={task}/>)}
+                    {this.taskList.map(task => <Row key={task.taskId} task={task}/>)}
                     </tbody>
                 </table>
             </div>
@@ -57,7 +58,8 @@ class Row extends React.Component {
                 <td>TMP</td>
                 <td>
                     <div>
-                        <a className="text-white btn btn-primary btn-sm">Detail</a>
+                        <Link to={"/task/detail/" + task.taskId}
+                              className="text-white btn btn-primary btn-sm">Detail</Link>
                         <a className="btn btn-danger btn-sm delete-task ml-1" href="#">Remove</a>
                     </div>
                 </td>

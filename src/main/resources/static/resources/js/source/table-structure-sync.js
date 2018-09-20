@@ -1,4 +1,3 @@
-import ReactDOM from "react-dom";
 import React from 'react';
 import TableSelector from "./common/table-selector";
 import TableSelectorEditable from "./common/table-selector-editable";
@@ -11,7 +10,7 @@ import {observer} from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 
 @observer
-class TableStructureSync extends React.Component {
+export default class TableStructureSync extends React.Component {
 
     @observable sourceTable = {};
     @observable targetTable = {};
@@ -81,7 +80,8 @@ class TableStructureSync extends React.Component {
                         <TableSelector table={this.sourceTable} title='Source'/>
                     </div>
                     <div className="col">
-                        <TableSelectorEditable table={this.targetTable} title='Target' finished={this.targetTableFinished}/>
+                        <TableSelectorEditable table={this.targetTable} title='Target'
+                                               finished={this.targetTableFinished}/>
                     </div>
                 </div>
                 {
@@ -122,10 +122,11 @@ class FieldRow extends React.Component {
                 }
                 <td>
                     <input type="checkbox" checked={field.mappable}
-                            onChange={e => this.props.field.mappable = e.target.checked}/>
+                           onChange={e => this.props.field.mappable = e.target.checked}/>
                 </td>
                 <td>
-                    <EditableText updateValue={this.updateTargetField.bind(this)} value={field.targetField} editing={this.props.editing}/>
+                    <EditableText updateValue={this.updateTargetField.bind(this)} value={field.targetField}
+                                  editing={this.props.editing}/>
                 </td>
             </tr>
         );

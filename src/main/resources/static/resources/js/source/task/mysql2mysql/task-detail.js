@@ -4,10 +4,13 @@ import taskApiClient from "../../api-client/task-api-client";
 import Table from "../../common/table";
 import Modal, {ModalButton} from "../../common/modal";
 
-class TaskDetail extends React.Component {
+export default class TaskDetail extends React.Component {
+
+    taskId = 0;
 
     constructor(props) {
         super(props);
+        this.taskId = this.props.match.params.taskId;
         this.state = {
             fullMigrationProgress: 0,
             fullMigrationRunning: false,
@@ -17,7 +20,7 @@ class TaskDetail extends React.Component {
     }
 
     componentDidMount() {
-        taskApiClient.getFullMigrationTaskProgressWs(taskId, event => {
+        taskApiClient.getFullMigrationTaskProgressWs(this.taskId, event => {
             if (this.state.fullMigrationProgress !== event.progress) {
                 this.setState({fullMigrationProgress: event.progress})
             }
@@ -26,7 +29,7 @@ class TaskDetail extends React.Component {
             }
         });
 
-        taskApiClient.getIncrementalMigrationProgressWs(taskId, event => {
+        taskApiClient.getIncrementalMigrationProgressWs(this.taskId, event => {
             if (event.delta) {
                 this.setState({
                     incrementalMigrationRunning: event.running, incrementalMigrationProgress: {
@@ -46,7 +49,7 @@ class TaskDetail extends React.Component {
             }
         });
 
-        taskApiClient.getTaskAction(taskId).done(data => this.setState({task: data}));
+        taskApiClient.getTaskAction(this.taskId).done(data => this.setState({task: data}));
     }
 
     render() {
@@ -161,8 +164,4 @@ class TaskDetail extends React.Component {
             </div>
         );
     }
-}
-
-if (document.getElementById('taskDetailWrapper') !== null) {
-    ReactDOM.render(<TaskDetail/>, document.getElementById('taskDetailWrapper'));
 }

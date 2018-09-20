@@ -9,6 +9,8 @@ import {BrowserRouter, Route} from "react-router-dom";
 import TaskCreateChooser from "./task/task-create-chooser";
 import TaskCreateMysql2Mysql from "./task/mysql2mysql/task-create";
 import TaskList from "./task/task-list";
+import TaskDetail from "./task/mysql2mysql/task-detail";
+import TableStructureSync from "./table-structure-sync";
 
 class App extends React.Component {
 
@@ -19,6 +21,8 @@ class App extends React.Component {
                     <Route exact path="/task/list" component={TaskList}/>
                     <Route exact path="/task/create" component={TaskCreateChooser}/>
                     <Route path="/task/create/mysql-to-mysql" component={TaskCreateMysql2Mysql}/>
+                    <Route path="/task/detail/:taskId" component={TaskDetail}/>
+                    <Route path="/util/table-structure-sync" component={TableStructureSync}/>
                 </Layout>
             </BrowserRouter>
         )
