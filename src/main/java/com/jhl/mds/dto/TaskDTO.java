@@ -42,10 +42,7 @@ public class TaskDTO {
     public static class Converter {
 
         public TaskDTO from(Task task, List<TaskFieldMapping> taskFieldMappings, List<TaskFilter> taskFilters) {
-            List<SimpleFieldMappingDTO> mapping = taskFieldMappings.stream()
-                    .map(o -> new SimpleFieldMappingDTO(o.getSourceField(), o.getTargetField())).collect(Collectors.toList());
-            List<String> filters = taskFilters.stream().map(TaskFilter::getFilter).collect(Collectors.toList());
-            return TaskDTO.builder()
+            TaskDTOBuilder builder = TaskDTO.builder()
                     .taskId(task.getTaskId())
                     .taskName(task.getName())
                     .source(Table.builder()
@@ -59,10 +56,24 @@ public class TaskDTO {
                             .table(task.getTargetTable())
                             .build())
                     .taskType(TaskType.getByCode(task.getTaskType()))
-                    .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()))
-                    .mapping(mapping)
-                    .filters(filters)
-                    .build();
+                    .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()));
+
+            if (taskFieldMappings != null) {
+                List<SimpleFieldMappingDTO> mapping = taskFieldMappings.stream()
+                        .map(o -> new SimpleFieldMappingDTO(o.getSourceField(), o.getTargetField())).collect(Collectors.toList());
+                builder.mapping(mapping);
+            }
+
+            if (taskFilters != null) {
+                List<String> filters = taskFilters.stream().map(TaskFilter::getFilter).collect(Collectors.toList());
+                builder.filters(filters);
+            }
+
+            return builder.build();
+        }
+
+        public TaskDTO from(Task task) {
+            return from(task, null, null);
         }
     }
 }

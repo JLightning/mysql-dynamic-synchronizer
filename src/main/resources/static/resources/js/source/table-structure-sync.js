@@ -131,7 +131,3 @@ class FieldRow extends React.Component {
         );
     }
 }
-
-if (document.getElementById('tableStructureSyncWrapper') !== null) {
-    ReactDOM.render(<TableStructureSync/>, document.getElementById('tableStructureSyncWrapper'));
-}

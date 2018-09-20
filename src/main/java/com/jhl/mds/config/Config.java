@@ -5,12 +5,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 
 @Configuration
-public class Config {
+public class Config implements WebMvcConfigurer {
 
     @Value("${spring.datasource.url:jdbc:sqlite:mds.db}")
     private String sqliteDatabaseFile;
@@ -28,5 +30,11 @@ public class Config {
                 .build();
 
         return dataSource;
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+//        registry.addResourceHandler("/**").addResourceLocations("classpath:/templates/index.html");
+        registry.addResourceHandler("/public/**").addResourceLocations("classpath:/static/resources/");
     }
 }

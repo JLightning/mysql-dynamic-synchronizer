@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Controller
-@RequestMapping("/task")
+@RequestMapping("/task-old")
 public class TaskController {
 
     private TaskRepository taskRepository;
