@@ -138,6 +138,11 @@ public class TaskApiController {
         }
     }
 
+    @DeleteMapping("/{taskId}")
+    public ApiResponse<Boolean> deleteTask(@PathVariable int taskId) {
+        return ApiResponse.success(true);
+    }
+
     @GetMapping("/detail/{taskId}")
     public ApiResponse<TaskDTO> getTaskAction(@PathVariable int taskId) {
         Task task = taskRepository.getOne(taskId);

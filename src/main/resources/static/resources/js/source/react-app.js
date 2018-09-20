@@ -1,8 +1,5 @@
-// import './task/task-create-chooser.js';
-// import './task/mysql2mysql/task-detail.js';
-// import './table-structure-sync.js';
-
 import * as React from "react";
+import {Fragment} from "react";
 import ReactDOM from "react-dom";
 import Layout from "./layout";
 import {BrowserRouter, Route} from "react-router-dom";
@@ -17,13 +14,16 @@ class App extends React.Component {
     render() {
         return (
             <BrowserRouter>
-                <Layout>
-                    <Route exact path="/task/list" component={TaskList}/>
-                    <Route exact path="/task/create" component={TaskCreateChooser}/>
-                    <Route path="/task/create/mysql-to-mysql" component={TaskCreateMysql2Mysql}/>
-                    <Route path="/task/detail/:taskId" component={TaskDetail}/>
-                    <Route path="/util/table-structure-sync" component={TableStructureSync}/>
-                </Layout>
+                <Fragment>
+                    <Layout>
+                        <Route exact path="/task/list" component={TaskList}/>
+                        <Route exact path="/task/create" component={TaskCreateChooser}/>
+                        <Route path="/task/create/mysql-to-mysql" component={TaskCreateMysql2Mysql}/>
+                        <Route path="/task/detail/:taskId" component={TaskDetail}/>
+
+                        <Route path="/util/table-structure-sync" component={TableStructureSync}/>
+                    </Layout>
+                </Fragment>
             </BrowserRouter>
         )
     }

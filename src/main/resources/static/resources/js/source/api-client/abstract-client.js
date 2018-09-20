@@ -30,6 +30,14 @@ export default class AbstractClient {
         return this.baseHttpRequest($.post(DOMAIN + uri, data));
     }
 
+    delete(uri, data) {
+        return this.baseHttpRequest($.ajax(DOMAIN + uri, {
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            type: 'DELETE'
+        }));
+    }
+
     postJson(uri, data) {
         return this.baseHttpRequest($.ajax(DOMAIN + uri, {
             data: JSON.stringify(data),

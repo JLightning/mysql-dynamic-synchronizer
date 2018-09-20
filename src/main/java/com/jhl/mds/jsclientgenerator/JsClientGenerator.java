@@ -71,7 +71,8 @@ public class JsClientGenerator {
             for (Method method : methods) {
                 Annotation[] annotations = method.getDeclaredAnnotations();
                 for (Annotation annotation : annotations) {
-                    if (annotation instanceof GetMapping || annotation instanceof PostMapping || annotation instanceof RequestMapping || annotation instanceof SubscribeMapping) {
+                    if (annotation instanceof GetMapping || annotation instanceof PostMapping || annotation instanceof RequestMapping || annotation instanceof SubscribeMapping
+                            || annotation instanceof DeleteMapping) {
                         jsMethods.addAll(renderMethod(baseUri, method, annotation));
                     }
                 }
@@ -94,6 +95,9 @@ public class JsClientGenerator {
         if (annotation instanceof GetMapping) {
             methodUri += ((GetMapping) annotation).value()[0];
             methodAction = "get";
+        } else if (annotation instanceof DeleteMapping) {
+            methodUri += ((DeleteMapping) annotation).value()[0];
+            methodAction = "delete";
         } else if (annotation instanceof PostMapping) {
             methodAction = "post";
             methodUri += ((PostMapping) annotation).value()[0];
