@@ -1,12 +1,12 @@
 import React from 'react';
-import TableSelector from '../../common/table-selector';
-import mySQLApiClient from '../../api-client/mysql-api-client';
-import taskApiClient from "../../api-client/task-api-client";
-import Table from "../../common/table";
-import Select, {SelectOption} from "../../common/select";
+import TableSelector from '../../../common/table-selector';
+import mySQLApiClient from '../../../api-client/mysql-api-client';
+import taskApiClient from "../../../api-client/task-api-client";
+import Table from "../../../common/table";
+import Select, {SelectOption} from "../../../common/select";
 import {autorun, computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
-import TagEditor from "../../common/tag-editor";
+import TagEditor from "../../../common/tag-editor";
 import PropTypes from 'prop-types';
 
 @observer

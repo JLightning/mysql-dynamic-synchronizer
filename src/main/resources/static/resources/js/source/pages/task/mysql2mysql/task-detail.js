@@ -1,9 +1,9 @@
 import React from 'react';
-import taskApiClient from "../../api-client/task-api-client";
-import Table from "../../common/table";
+import taskApiClient from "../../../api-client/task-api-client";
+import Table from "../../../common/table";
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
-import YesNoModal from "../../common/yes-no-modal";
+import YesNoModal from "../../../common/yes-no-modal";
 
 @observer
 export default class TaskDetail extends React.Component {

@@ -1,10 +1,10 @@
 import React from 'react';
-import taskApiClient from "../../api-client/task-api-client";
-import mySQLApiClient from "../../api-client/mysql-api-client";
-import Table from "../../common/table";
-import TableSelector from "../../common/table-selector";
-import Select, {SelectOption} from "../../common/select";
-import RedisServerSelector from "../../common/redis-server-selector";
+import taskApiClient from "../../../api-client/task-api-client";
+import mySQLApiClient from "../../../api-client/mysql-api-client";
+import Table from "../../../common/table";
+import TableSelector from "../../../common/table-selector";
+import Select, {SelectOption} from "../../../common/select";
+import RedisServerSelector from "../../../common/redis-server-selector";
 
 export default class TaskCreate extends React.Component {
 

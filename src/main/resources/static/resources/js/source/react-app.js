@@ -3,12 +3,12 @@ import {Fragment} from "react";
 import ReactDOM from "react-dom";
 import Layout from "./layout";
 import {BrowserRouter, Route} from "react-router-dom";
-import TaskCreateChooser from "./task/task-create-chooser";
-import TaskCreateMysql2Mysql from "./task/mysql2mysql/task-create";
-import TaskList from "./task/task-list";
-import TaskDetail from "./task/mysql2mysql/task-detail";
+import TaskCreateChooser from "./pages/task/task-create-chooser";
+import TaskCreateMysql2Mysql from "./pages/task/mysql2mysql/task-create";
+import TaskList from "./pages/task/task-list";
+import TaskDetail from "./pages/task/mysql2mysql/task-detail";
 import TableStructureSync from "./table-structure-sync";
-import MySQLServerList from "./servers/mysql-server-list";
+import MySQLServerList from "./pages/servers/mysql-server-list";
 
 class App extends React.Component {
 
