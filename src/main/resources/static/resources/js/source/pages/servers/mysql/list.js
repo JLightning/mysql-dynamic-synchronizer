@@ -1,10 +1,10 @@
 import React from "react";
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
-import mySQLApiClient from "../../api-client/mysql-api-client";
+import mySQLApiClient from "../../../api-client/mysql-api-client";
 
 @observer
-export default class MySQLServerList extends React.Component {
+export default class MysqlServerList extends React.Component {
 
     @observable serverList = [];
 

@@ -8,7 +8,8 @@ import TaskCreateMysql2Mysql from "./pages/task/mysql2mysql/task-create";
 import TaskList from "./pages/task/task-list";
 import TaskDetail from "./pages/task/mysql2mysql/task-detail";
 import TableStructureSync from "./table-structure-sync";
-import MySQLServerList from "./pages/servers/mysql-server-list";
+import MysqlServerList from "./pages/servers/mysql/list";
+import RedisServerAdd from "./pages/servers/redis/add";
 
 class App extends React.Component {
 
@@ -22,7 +23,9 @@ class App extends React.Component {
                         <Route path="/task/create/mysql-to-mysql" component={TaskCreateMysql2Mysql}/>
                         <Route path="/task/detail/:taskId" component={TaskDetail}/>
 
-                        <Route path="/server/mysql-server-list" component={MySQLServerList}/>
+                        <Route path="/server/mysql/list" component={MysqlServerList}/>
+
+                        <Route path="/server/redis/add" component={RedisServerAdd}/>
 
                         <Route path="/util/table-structure-sync" component={TableStructureSync}/>
                     </Layout>

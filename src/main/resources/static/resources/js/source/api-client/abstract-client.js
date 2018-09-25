@@ -38,6 +38,14 @@ export default class AbstractClient {
         }));
     }
 
+    put(uri, data) {
+        return this.baseHttpRequest($.ajax(DOMAIN + uri, {
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            type: 'PUT'
+        }));
+    }
+
     postJson(uri, data) {
         return this.baseHttpRequest($.ajax(DOMAIN + uri, {
             data: JSON.stringify(data),

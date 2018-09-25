@@ -40,11 +40,14 @@ export default class Layout extends React.Component {
                                 <li className="nav-item dropdown">
                                     <a className="nav-link dropdown-toggle" href="#" id="serverDropdown" role="button"
                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        MySQL Servers
+                                        Servers
                                     </a>
                                     <div className="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <Link to="/server/mysql-server-list/" className="dropdown-item">List</Link>
+                                        <h6 className="dropdown-header">MySQL</h6>
+                                        <Link to="/server/mysql/list/" className="dropdown-item">List</Link>
                                         <a className="dropdown-item">Add Server</a>
+                                        <h6 className="dropdown-header">Redis</h6>
+                                        <Link to="/server/redis/add/" className="dropdown-item">Add Server</Link>
                                     </div>
                                 </li>
                                 <li className="nav-item dropdown">

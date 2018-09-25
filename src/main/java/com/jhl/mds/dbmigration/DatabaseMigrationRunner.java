@@ -33,6 +33,7 @@ public class DatabaseMigrationRunner {
             new DatabaseMigration100().run(conn);
             new DatabaseMigration101().run(conn);
             new DatabaseMigration102().run(conn);
+            new DatabaseMigration103().run(conn);
         }
     }
 

@@ -1,5 +1,6 @@
 package com.jhl.mds.jsclientgenerator;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -72,7 +73,7 @@ public class JsClientGenerator {
                 Annotation[] annotations = method.getDeclaredAnnotations();
                 for (Annotation annotation : annotations) {
                     if (annotation instanceof GetMapping || annotation instanceof PostMapping || annotation instanceof RequestMapping || annotation instanceof SubscribeMapping
-                            || annotation instanceof DeleteMapping) {
+                            || annotation instanceof DeleteMapping || annotation instanceof PutMapping) {
                         jsMethods.addAll(renderMethod(baseUri, method, annotation));
                     }
                 }
@@ -98,7 +99,11 @@ public class JsClientGenerator {
         } else if (annotation instanceof DeleteMapping) {
             methodUri += ((DeleteMapping) annotation).value()[0];
             methodAction = "delete";
-        } else if (annotation instanceof PostMapping) {
+        } else if (annotation instanceof PutMapping) {
+            methodUri += ((PutMapping) annotation).value()[0];
+            methodAction = "put";
+        }
+        if (annotation instanceof PostMapping) {
             methodAction = "post";
             methodUri += ((PostMapping) annotation).value()[0];
         } else if (annotation instanceof RequestMapping) {
@@ -118,6 +123,7 @@ public class JsClientGenerator {
         int count = 0;
         Parameter requestBodyParameter = null;
         String[] parameterNames = parameterNameDiscoverer.getParameterNames(method);
+        boolean useRequestBody = false;
         for (Parameter parameter : method.getParameters()) {
             Annotation[] annotations = parameter.getAnnotations();
             for (Annotation a : annotations) {
@@ -127,8 +133,10 @@ public class JsClientGenerator {
                     httpParameters.add(parameterName);
                     break;
                 } else if (a instanceof RequestBody) {
+                    useRequestBody = true;
                     requestBodyParameter = parameter;
-                    methodAction = "postJson";
+                    if (annotation instanceof PostMapping || (annotation instanceof RequestMapping && ArrayUtils.contains(((RequestMapping) annotation).value(), "POST")))
+                        methodAction = "postJson";
                     methodParameters.add(parameterName);
                     httpParameters.add(parameterName);
                     break;
@@ -164,7 +172,7 @@ public class JsClientGenerator {
         String renderMethodContent = methodTemplate.replaceAll("\\{methodName}", method.getName());
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);
         renderMethodContent = renderMethodContent.replaceAll("\\{methodUri}", "'" + methodUri + "'");
-        if (methodAction.equals("postJson")) {
+        if (useRequestBody) {
             renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
             renderMethodContent = renderMethodContent.replaceAll("\\{\\{httpParameters}}", StringUtils.join(httpParameters, ", "));
         } else if (methodAction.equals("subscribe")) {
