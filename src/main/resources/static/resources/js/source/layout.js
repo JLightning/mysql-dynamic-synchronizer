@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import {Fragment} from "react";
 import {Link} from "react-router-dom";
 import {observable} from 'mobx';
@@ -43,10 +43,8 @@ export default class Layout extends React.Component {
                                         MySQL Servers
                                     </a>
                                     <div className="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <a className="dropdown-item"
-                                        >List</a>
-                                        <a className="dropdown-item">Add
-                                            Server</a>
+                                        <Link to="/server/mysql-server-list/" className="dropdown-item">List</Link>
+                                        <a className="dropdown-item">Add Server</a>
                                     </div>
                                 </li>
                                 <li className="nav-item dropdown">
