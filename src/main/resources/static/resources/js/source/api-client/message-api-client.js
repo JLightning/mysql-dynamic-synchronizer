@@ -3,7 +3,7 @@ import AbstractClient from "./abstract-client";
 class MessageApiClient extends AbstractClient {
 
     getErrorMessages() {
-        return this.get('/api/message/errors', {});
+        return super.get('/api/message/errors', {});
     }
 }
 

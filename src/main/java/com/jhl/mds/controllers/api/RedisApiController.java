@@ -47,4 +47,10 @@ public class RedisApiController {
         dto.setServerId(redisServer.getServerId());
         return ApiResponse.success(dto);
     }
+
+    @DeleteMapping("/{serverId}")
+    public ApiResponse<Boolean> delete(@PathVariable int serverId) {
+        redisServerRepository.deleteById(serverId);
+        return ApiResponse.success(true);
+    }
 }

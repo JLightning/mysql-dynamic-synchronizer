@@ -3,15 +3,19 @@ import AbstractClient from "./abstract-client";
 class RedisApiClient extends AbstractClient {
 
     createFlat(serverId, name, host, port, username, password) {
-        return this.put('/api/redis/', {serverId, name, host, port, username, password});
+        return super.put('/api/redis/', {serverId, name, host, port, username, password});
     }
 
     create(dto) {
-        return this.put('/api/redis/', dto);
+        return super.put('/api/redis/', dto);
+    }
+
+    delete(serverId) {
+        return super.delete('/api/redis/' + serverId + '', {});
     }
 
     list() {
-        return this.get('/api/redis/', {});
+        return super.get('/api/redis/', {});
     }
 }
 

@@ -11,5 +11,5 @@ export default {newVariableClassName};
 
 [method_template]
     {methodName}({methodParameters}) {
-        return this.{methodAction}({methodUri}, {{httpParameters}});
+        return super.{methodAction}({methodUri}, {{httpParameters}});
     }
