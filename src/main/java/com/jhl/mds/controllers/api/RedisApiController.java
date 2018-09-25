@@ -28,6 +28,11 @@ public class RedisApiController {
         this.redisServerDTOConverter = redisServerDTOConverter;
     }
 
+    @ExceptionHandler(Exception.class)
+    public ApiResponse exceptionHandler(Exception e) {
+        return ApiResponse.error(e);
+    }
+
     @GetMapping("/")
     public ApiResponse<List<RedisServerDTO>> list() {
         List<RedisServer> servers = redisServerRepository.findAll(Sort.by(Sort.Direction.DESC, "serverId"));
@@ -37,6 +42,9 @@ public class RedisApiController {
 
     @PutMapping("/")
     public ApiResponse<RedisServerDTO> create(@RequestBody RedisServerDTO dto) {
+        RedisServer redisServer = redisServerDTOConverter.toDAO(dto);
+        redisServerRepository.save(redisServer);
+        dto.setServerId(redisServer.getServerId());
         return ApiResponse.success(dto);
     }
 }

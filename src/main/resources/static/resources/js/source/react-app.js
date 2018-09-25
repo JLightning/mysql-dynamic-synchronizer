@@ -10,6 +10,7 @@ import TaskDetail from "./pages/task/mysql2mysql/task-detail";
 import TableStructureSync from "./table-structure-sync";
 import MysqlServerList from "./pages/servers/mysql/list";
 import RedisServerAdd from "./pages/servers/redis/add";
+import RedisServerList from "./pages/servers/redis/list";
 
 class App extends React.Component {
 
@@ -25,6 +26,7 @@ class App extends React.Component {
 
                         <Route path="/server/mysql/list" component={MysqlServerList}/>
 
+                        <Route path="/server/redis/list" component={RedisServerList}/>
                         <Route path="/server/redis/add" component={RedisServerAdd}/>
 
                         <Route path="/util/table-structure-sync" component={TableStructureSync}/>

@@ -30,5 +30,16 @@ public class RedisServerDTO {
                     .password(server.getPassword())
                     .build();
         }
+
+        public RedisServer toDAO(RedisServerDTO dto) {
+            return RedisServer.builder()
+                    .serverId(dto.getServerId())
+                    .name(dto.getName())
+                    .host(dto.getHost())
+                    .port(dto.getPort())
+                    .username(dto.getUsername())
+                    .password(dto.getPassword())
+                    .build();
+        }
     }
 }

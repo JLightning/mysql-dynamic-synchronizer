@@ -47,6 +47,7 @@ export default class Layout extends React.Component {
                                         <Link to="/server/mysql/list/" className="dropdown-item">List</Link>
                                         <a className="dropdown-item">Add Server</a>
                                         <h6 className="dropdown-header">Redis</h6>
+                                        <Link to="/server/redis/list/" className="dropdown-item">List</Link>
                                         <Link to="/server/redis/add/" className="dropdown-item">Add Server</Link>
                                     </div>
                                 </li>
