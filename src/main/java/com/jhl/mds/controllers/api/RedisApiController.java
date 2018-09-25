@@ -48,6 +48,21 @@ public class RedisApiController {
         return ApiResponse.success(dto);
     }
 
+    @PostMapping("/")
+    public ApiResponse<RedisServerDTO> update(@RequestBody RedisServerDTO dto) {
+        RedisServer redisServer = redisServerDTOConverter.toDAO(dto);
+        redisServerRepository.save(redisServer);
+        dto.setServerId(redisServer.getServerId());
+        return ApiResponse.success(dto);
+    }
+
+    @GetMapping("/{serverId}")
+    public ApiResponse<RedisServerDTO> detail(@PathVariable int serverId) {
+        RedisServer redisServer = redisServerRepository.findByServerId(serverId);
+        RedisServerDTO dto = redisServerDTOConverter.from(redisServer);
+        return ApiResponse.success(dto);
+    }
+
     @DeleteMapping("/{serverId}")
     public ApiResponse<Boolean> delete(@PathVariable int serverId) {
         redisServerRepository.deleteById(serverId);

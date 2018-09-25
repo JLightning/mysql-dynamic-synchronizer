@@ -2,11 +2,13 @@ import React from 'react';
 import {computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
 import redisApiClient from "../../../api-client/redis-api-client";
+import Validator from "../../../util/validator";
 
 @observer
 export default class RedisServerAdd extends React.Component {
 
     @observable server = {
+        serverId: 0,
         name: '',
         host: '',
         port: '',
@@ -14,13 +16,29 @@ export default class RedisServerAdd extends React.Component {
         password: '',
     };
 
+    constructor(props) {
+        super(props);
+        this.server.serverId = Validator.isNull(props.match.params.serverId) ? 0 : props.match.params.serverId;
+    }
+
+    componentDidMount() {
+        console.log("test", this.server.serverId);
+        if (this.server.serverId !== 0) {
+            redisApiClient.detail(this.server.serverId).done(server => this.server = server);
+        }
+    }
+
     @computed get readyToSubmit() {
         return this.server.name !== '' && this.server.host !== '' && this.server.port !== '';
     }
 
     submit(e) {
         e.preventDefault();
-        redisApiClient.create(this.server).done(data => location.href = '/server/redis/list/');
+        if (this.server.serverId === 0) {
+            redisApiClient.create(this.server).done(data => location.href = '/server/redis/list/');
+        } else {
+            redisApiClient.update(this.server).done(data => location.href = '/server/redis/list/');
+        }
     }
 
     render() {
@@ -56,7 +74,9 @@ export default class RedisServerAdd extends React.Component {
                                value={this.server.password} onChange={e => this.server.password = e.target.value}
                                placeholder="Enter Password"/>
                     </div>
-                    <button onClick={e => this.submit(e)} type="submit" className="btn btn-primary" disabled={!this.readyToSubmit}>Submit</button>
+                    <button onClick={e => this.submit(e)} type="submit" className="btn btn-primary"
+                            disabled={!this.readyToSubmit}>Submit
+                    </button>
                 </form>
             </div>
         );

@@ -3,6 +3,7 @@ import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import redisApiClient from "../../../api-client/redis-api-client";
 import YesNoModal from "../../../common/yes-no-modal";
+import {Link} from "react-router-dom";
 
 @observer
 export default class ReidsServerList extends React.Component {
@@ -32,7 +33,8 @@ export default class ReidsServerList extends React.Component {
                     </thead>
                     <tbody>
                     {
-                        this.serverList.map(server => <Row key={server.serverId} server={server} reload={this.reload.bind(this)}/>)
+                        this.serverList.map(server => <Row key={server.serverId} server={server}
+                                                           reload={this.reload.bind(this)}/>)
                     }
                     </tbody>
                 </table>
@@ -56,15 +58,18 @@ class Row extends React.Component {
                     <td>{server.host}</td>
                     <td>{server.port}</td>
                     <td>
-                        <a className="text-white btn btn-primary btn-sm">Edit</a>
+                        <Link to={"/server/redis/edit/" + server.serverId}
+                              className="text-white btn btn-primary btn-sm">Edit</Link>
                         <a className="text-white btn btn-danger btn-sm delete-server ml-1" href="#"
                            onClick={e => this.showDeleteModal = true}>Delete</a>
                     </td>
                 </tr>
                 {
-                    this.showDeleteModal ? <YesNoModal onYes={e => redisApiClient.delete(server.serverId).done(data => this.props.reload())} title="Delete Confirm" onHide={e => this.showDeleteModal = false}>
+                    this.showDeleteModal ? <YesNoModal
+                        onYes={e => redisApiClient.delete(server.serverId).done(data => this.props.reload())}
+                        title="Delete Confirm" onHide={e => this.showDeleteModal = false}>
                         Are you sure you want to delete server {server.serverId}: {server.host}:{server.port}?
-                    </YesNoModal>:null
+                    </YesNoModal> : null
                 }
             </Fragment>
         );

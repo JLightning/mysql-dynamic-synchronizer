@@ -28,6 +28,7 @@ class App extends React.Component {
 
                         <Route path="/server/redis/list" component={RedisServerList}/>
                         <Route path="/server/redis/add" component={RedisServerAdd}/>
+                        <Route path="/server/redis/edit/:serverId" component={RedisServerAdd}/>
 
                         <Route path="/util/table-structure-sync" component={TableStructureSync}/>
                     </Layout>
