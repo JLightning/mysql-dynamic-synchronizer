@@ -21,6 +21,7 @@ export default class TaskCreate extends React.Component {
     @observable taskName = '';
     @observable sourceTable = {};
     @observable targetTable = {};
+    autorunDisposers = [];
 
     constructor(props) {
         super(props);
@@ -36,12 +37,16 @@ export default class TaskCreate extends React.Component {
             this.getMapping();
         }
 
-        autorun(() => this.getMapping());
+        this.autorunDisposers.push(autorun(() => this.getMapping()));
     }
 
     componentDidMount() {
         taskApiClient.getTaskTypes().done(taskTypes => this.taskTypes = taskTypes);
         taskApiClient.getInsertModes().done(insertModes => this.insertModes = insertModes);
+    }
+
+    componentWillUnmount() {
+        this.autorunDisposers.forEach(disposer => disposer());
     }
 
     @computed get readyToSubmit() {
@@ -194,11 +199,16 @@ class FieldRowList extends React.Component {
 
     capturedField = null;
     editMode = {};
+    autorunDisposer = [];
 
     constructor(props) {
         super(props);
 
-        autorun(() => props.fields.forEach((field, idx) => this.editMode[idx] = observable.box(false)))
+        this.autorunDisposer.push(autorun(() => props.fields.forEach((field, idx) => this.editMode[idx] = observable.box(false))));
+    }
+
+    componentWillUnmount() {
+        this.autorunDisposer.forEach(disposer => disposer());
     }
 
     captureDrapStartField(field) {

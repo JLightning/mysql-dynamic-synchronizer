@@ -11,6 +11,7 @@ export default class TableSelector extends React.Component {
     @observable servers = [];
     @observable databases = [];
     @observable tables = [];
+    autorunDisposer = [];
 
     constructor(props) {
         super(props);
@@ -19,8 +20,12 @@ export default class TableSelector extends React.Component {
     componentDidMount() {
         this.getServers();
 
-        autorun(() => this.serverSelected(this.props.table.serverId));
-        autorun(() => this.databaseSelected(this.props.table.database));
+        this.autorunDisposer.push(autorun(() => this.serverSelected(this.props.table.serverId)));
+        this.autorunDisposer.push(autorun(() => this.databaseSelected(this.props.table.database)));
+    }
+
+    componentWillUnmount() {
+        this.autorunDisposer.forEach(disposer => disposer());
     }
 
     getServers() {

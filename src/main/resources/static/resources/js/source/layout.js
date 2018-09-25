@@ -3,6 +3,7 @@ import {Fragment} from "react";
 import {Link} from "react-router-dom";
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
+import DevTools from 'mobx-react-devtools';
 
 export default class Layout extends React.Component {
 
@@ -65,6 +66,7 @@ export default class Layout extends React.Component {
                     </div>
                 </div>
                 <Modal/>
+                <DevTools/>
             </Fragment>
         )
     }
