@@ -12,6 +12,10 @@ export default class Modal extends React.Component {
         $(modalElm).on('hidden.bs.modal', e => this.props.onHide(e));
     }
 
+    hide() {
+        $(this.modal).modal('hide');
+    }
+
     render() {
         if (document.getElementById('modalWrapper') !== null) {
             return ReactDOM.createPortal(

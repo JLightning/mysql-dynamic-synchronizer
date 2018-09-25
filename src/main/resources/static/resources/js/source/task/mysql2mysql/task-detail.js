@@ -1,74 +1,62 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import taskApiClient from "../../api-client/task-api-client";
 import Table from "../../common/table";
-import Modal, {ModalButton} from "../../common/modal";
+import {observable} from 'mobx';
+import {observer} from 'mobx-react';
+import YesNoModal from "../../common/yes-no-modal";
 
+@observer
 export default class TaskDetail extends React.Component {
 
     taskId = 0;
+    @observable task = null;
+    @observable incrementalMigrationProgress = {insertCount: 0, updateCount: 0, deleteCount: 0};
+    @observable incrementalMigrationRunning = false;
+    @observable fullMigrationProgress = 0;
+    @observable fullMigrationRunning = false;
+    @observable showTruncateModal = false;
 
     constructor(props) {
         super(props);
-        this.taskId = this.props.match.params.taskId;
-        this.state = {
-            fullMigrationProgress: 0,
-            fullMigrationRunning: false,
-            incrementalMigrationRunning: false,
-            incrementalMigrationProgress: {insertCount: 0, updateCount: 0, deleteCount: 0}
-        };
+        this.taskId = props.match.params.taskId;
     }
 
     componentDidMount() {
         taskApiClient.getFullMigrationTaskProgressWs(this.taskId, event => {
-            if (this.state.fullMigrationProgress !== event.progress) {
-                this.setState({fullMigrationProgress: event.progress})
-            }
-            if (this.state.fullMigrationRunning !== event.running) {
-                this.setState({fullMigrationRunning: event.running})
-            }
+            this.fullMigrationProgress = event.progress;
+            this.fullMigrationRunning = event.running;
         });
 
         taskApiClient.getIncrementalMigrationProgressWs(this.taskId, event => {
             if (event.delta) {
-                this.setState({
-                    incrementalMigrationRunning: event.running, incrementalMigrationProgress: {
-                        insertCount: event.insertCount + this.state.incrementalMigrationProgress.insertCount,
-                        updateCount: event.updateCount + this.state.incrementalMigrationProgress.updateCount,
-                        deleteCount: event.deleteCount + this.state.incrementalMigrationProgress.deleteCount
-                    }
-                });
+                this.incrementalMigrationRunning = event.running;
+                this.incrementalMigrationProgress.insertCount += event.insertCount;
+                this.incrementalMigrationProgress.updateCount += event.updateCount;
+                this.incrementalMigrationProgress.deleteCount += event.deleteCount;
             } else {
-                this.setState({
-                    incrementalMigrationRunning: event.running, incrementalMigrationProgress: {
-                        insertCount: event.insertCount || this.state.incrementalMigrationProgress.insertCount,
-                        updateCount: event.updateCount || this.state.incrementalMigrationProgress.updateCount,
-                        deleteCount: event.deleteCount || this.state.incrementalMigrationProgress.deleteCount
-                    }
-                });
+                this.incrementalMigrationRunning = event.running;
+                this.incrementalMigrationProgress.insertCount = this.incrementalMigrationProgress.insertCount || event.insertCount;
+                this.incrementalMigrationProgress.updateCount = this.incrementalMigrationProgress.updateCount || event.updateCount;
+                this.incrementalMigrationProgress.deleteCount = this.incrementalMigrationProgress.deleteCount || event.deleteCount;
             }
         });
 
-        taskApiClient.getTaskAction(this.taskId).done(data => this.setState({task: data}));
+        taskApiClient.getTaskAction(this.taskId).done(data => this.task = data);
     }
 
     render() {
-        const task = this.state.task;
-        if (this.state.task == null) return <p>Loading...</p>;
+        if (this.task == null) return <p>Loading...</p>;
         return (
             <div className="container-fluid">
-                <Modal ref={o => this.confirmTruncateModal = o} title='Confirm Truncate' content={<p>Are you sure you want to truncate?</p>} button={
-                    <div>
-                        <ModalButton>No</ModalButton>
-                        <ModalButton className='btn-primary ml-1' onClick={() => taskApiClient.truncateAndStartFullMigrationTask(taskId)}>Yes</ModalButton>
-                    </div>
-                }>
-
-                </Modal>
-
+                {
+                    this.showTruncateModal ? <YesNoModal title="Confirm Truncate" onHide={e => this.showTruncateModal = false}
+                                                 onYes={e => taskApiClient.truncateAndStartFullMigrationTask(this.taskId)}>
+                        Are you sure you want to truncate and migrate?
+                    </YesNoModal> : null
+                }
                 <div className="row mt-3">
                     <div className="col-4">
-                        <p className="h2">Task: {this.state.task.taskName}</p>
+                        <p className="h2">Task: {this.task.taskName}</p>
                         <p>Task type: MySQL to MySQL full migration and incremental migration</p>
                     </div>
                 </div>
@@ -80,24 +68,24 @@ export default class TaskDetail extends React.Component {
                         <div className="progress ml-1" style={{height: "24px"}}>
                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                  aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-                                 style={{width: this.state.fullMigrationProgress + '%'}}>{this.state.fullMigrationProgress}%
+                                 style={{width: this.fullMigrationProgress + '%'}}>{this.fullMigrationProgress}%
                             </div>
                         </div>
                     </div>
                     <div className="col-2 vertial-center">
                         {
                             (() => {
-                                if (this.state.fullMigrationRunning)
+                                if (this.fullMigrationRunning)
                                     return <button type="button"
                                                    className="float-right btn btn-primary btn-sm ml-1">Stop</button>;
                                 return (
                                     <div>
                                         <button type="button" className="float-right btn btn-primary btn-sm"
-                                                onClick={() => taskApiClient.startFullMigrationTask(taskId)}>
+                                                onClick={() => taskApiClient.startFullMigrationTask(this.taskId)}>
                                             Start
                                         </button>
                                         <button type="button" className="float-right btn btn-primary btn-sm mr-1"
-                                                onClick={() => this.confirmTruncateModal.show()}>
+                                                onClick={() => this.showTruncateModal = true}>
                                             Truncate and start
                                         </button>
                                     </div>
@@ -110,8 +98,8 @@ export default class TaskDetail extends React.Component {
                     <div className="col-6">
                         <p className="h4">Mapping:</p>
                         <Table
-                            th={["Source: " + task.source.database + ":" + task.source.table, "Target: " + task.target.database + ":" + task.target.table]}>
-                            {this.state.task.mapping.map(o => (
+                            th={["Source: " + this.task.source.database + ":" + this.task.source.table, "Target: " + this.task.target.database + ":" + this.task.target.table]}>
+                            {this.task.mapping.map(o => (
                                 <tr>
                                     <td>{o.sourceField}</td>
                                     <td>{o.targetField}</td>
@@ -120,8 +108,8 @@ export default class TaskDetail extends React.Component {
                         </Table>
                         <p className="h4">Filters:</p>
                         <Table th={["Filter"]}>
-                            {this.state.task.filters.map(o => (
-                                <tr>
+                            {this.task.filters.map((o, idx) => (
+                                <tr key={idx}>
                                     <td>{o}</td>
                                 </tr>
                             ))}
@@ -135,16 +123,16 @@ export default class TaskDetail extends React.Component {
                             <div className="col-6">
                                 {
                                     (() => {
-                                        if (this.state.incrementalMigrationRunning)
+                                        if (this.incrementalMigrationRunning)
                                             return (
                                                 <button type="button"
                                                         className="float-right btn btn-primary btn-sm ml-1"
-                                                        onClick={() => taskApiClient.stopIncrementalMigrationTask(taskId)}>Stop
+                                                        onClick={() => taskApiClient.stopIncrementalMigrationTask(this.taskId)}>Stop
                                                 </button>
                                             );
                                         return (
                                             <button type="button" className="float-right btn btn-primary btn-sm"
-                                                    onClick={() => taskApiClient.startIncrementalMigrationTask(taskId)}>
+                                                    onClick={() => taskApiClient.startIncrementalMigrationTask(this.taskId)}>
                                                 Start
                                             </button>
                                         )
@@ -154,9 +142,9 @@ export default class TaskDetail extends React.Component {
                         </div>
                         <Table th={["Insert", "Update", "Delete"]}>
                             <tr>
-                                <td>{this.state.incrementalMigrationProgress.insertCount}</td>
-                                <td>{this.state.incrementalMigrationProgress.updateCount}</td>
-                                <td>{this.state.incrementalMigrationProgress.deleteCount}</td>
+                                <td>{this.incrementalMigrationProgress.insertCount}</td>
+                                <td>{this.incrementalMigrationProgress.updateCount}</td>
+                                <td>{this.incrementalMigrationProgress.deleteCount}</td>
                             </tr>
                         </Table>
                     </div>

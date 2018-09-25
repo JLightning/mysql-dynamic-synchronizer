@@ -76,7 +76,7 @@ class Row extends React.Component {
                 </tr>
 
                 {
-                    this.showModal ? <YesNoModal title="Confirm" onHide={e => this.showModal = false}
+                    this.showModal ? <YesNoModal title="Confirm Delete" onHide={e => this.showModal = false}
                                                  onYes={e => this.props.reload()}>
                         Are you sure you want to delete task {task.taskName} (#{task.taskId})?
                     </YesNoModal> : null

@@ -4,8 +4,10 @@ import PropTypes from "prop-types";
 
 export default class YesNoModal extends React.Component {
 
+    modal = null;
+
     render() {
-        return <Modal {...this.props} button={this.getButton()}/>
+        return <Modal ref={elm => this.modal = elm} {...this.props} button={this.getButton()}/>
     }
 
     getButton() {
@@ -18,11 +20,12 @@ export default class YesNoModal extends React.Component {
     }
 
     onYes(e) {
-        console.log('test');
+        if (this.modal !== null) this.modal.hide();
         if (this.props.onYes) this.props.onYes(e)
     }
 
     onNo(e) {
+        if (this.modal !== null) this.modal.hide();
         if (this.props.onNo) this.props.onNo(e)
     }
 }

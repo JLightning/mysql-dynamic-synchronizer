@@ -54,8 +54,7 @@ export default class Layout extends React.Component {
                                         Tools
                                     </a>
                                     <div className="dropdown-menu" aria-labelledby="navbarDropdown">
-                                        <a className="dropdown-item"
-                                        >Table Structure Sync</a>
+                                        <Link to="/util/table-structure-sync/" className="dropdown-item">Table Structure Sync</Link>
                                     </div>
                                 </li>
                             </ul>
