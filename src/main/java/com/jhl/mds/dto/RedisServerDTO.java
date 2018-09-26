@@ -1,6 +1,7 @@
 package com.jhl.mds.dto;
 
 import com.jhl.mds.dao.entities.RedisServer;
+import com.jhl.mds.jsclientgenerator.JsClientDTO;
 import lombok.*;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"serverId", "name"})
+@JsClientDTO(fileName = "redis-server-dto", className = "RedisServerDTO")
 public class RedisServerDTO {
     private int serverId;
     private String name;

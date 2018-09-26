@@ -13,3 +13,27 @@ export default {newVariableClassName};
     {methodName}({methodParameters}) {
         return super.{methodAction}({methodUri}, {{httpParameters}});
     }
+[method_comment_template]
+    /**
+{params}
+     */
+[method_comment_template_param]
+    * @param {param} {{type}}
+[dto_class_template]
+export default class {className} {
+
+{fields}
+
+{constructor_comment}
+    constructor({constructor_parameters}) {
+{constructor_setters}
+    }
+}
+
+[dto_field_template]
+    /**
+     * @type {{type}}
+     */
+    {field} = {default_value};
+[dto_constructor_setter_template]
+        this.{parameter} = {parameter};

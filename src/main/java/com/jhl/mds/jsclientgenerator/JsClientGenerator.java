@@ -9,13 +9,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
-import org.springframework.messaging.simp.annotation.SubscribeMapping;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -33,6 +29,7 @@ public class JsClientGenerator {
 
     @Autowired
     public JsClientGenerator(
+            JsDTOGenerator jsDTOGenerator,
             TemplateReader templateReader,
             GetMappingRenderer getMappingRenderer,
             PostMappingRenderer postMappingRenderer,
@@ -70,11 +67,8 @@ public class JsClientGenerator {
             for (Method method : methods) {
                 Annotation[] annotations = method.getDeclaredAnnotations();
                 for (Annotation annotation : annotations) {
-                    if (annotation instanceof GetMapping || annotation instanceof PostMapping || annotation instanceof RequestMapping || annotation instanceof SubscribeMapping
-                            || annotation instanceof DeleteMapping || annotation instanceof PutMapping) {
-                        List<String> renderedMethods = renderMethod(baseUri, method, annotation);
-                        if (renderedMethods != null) jsMethods.addAll(renderedMethods);
-                    }
+                    List<String> renderedMethods = renderMethod(baseUri, method, annotation);
+                    if (renderedMethods != null) jsMethods.addAll(renderedMethods);
                 }
             }
 
