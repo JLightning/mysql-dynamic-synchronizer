@@ -32,6 +32,13 @@ export default class AbstractClient {
 
     delete(uri, data) {
         return this.baseHttpRequest($.ajax(DOMAIN + uri, {
+            data: data,
+            type: 'DELETE'
+        }));
+    }
+
+    deleteJson(uri, data) {
+        return this.baseHttpRequest($.ajax(DOMAIN + uri, {
             data: JSON.stringify(data),
             contentType: 'application/json',
             type: 'DELETE'
@@ -39,6 +46,13 @@ export default class AbstractClient {
     }
 
     put(uri, data) {
+        return this.baseHttpRequest($.ajax(DOMAIN + uri, {
+            data: data,
+            type: 'PUT'
+        }));
+    }
+
+    putJson(uri, data) {
         return this.baseHttpRequest($.ajax(DOMAIN + uri, {
             data: JSON.stringify(data),
             contentType: 'application/json',
