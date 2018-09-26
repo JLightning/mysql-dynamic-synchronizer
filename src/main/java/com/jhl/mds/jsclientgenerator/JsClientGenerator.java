@@ -89,9 +89,8 @@ public class JsClientGenerator {
 
     private List<String> renderMethod(String baseUri, Method method, Annotation annotation) {
         List<String> result = new ArrayList<>();
-        for (int i = 0; i < methodRenderers.length; i++) {
+        for (MethodRenderer methodRenderer : methodRenderers) {
             try {
-                MethodRenderer methodRenderer = methodRenderers[i];
                 List<String> rendered = methodRenderer.renderMethod(baseUri, method, annotation);
                 if (rendered != null) result.addAll(rendered);
             } catch (Exception e) {
