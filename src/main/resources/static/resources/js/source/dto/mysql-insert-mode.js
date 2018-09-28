@@ -6,7 +6,7 @@ export default class MySQLInsertMode {
     name = '';
 
     /**
-    * @param name {string}
+     * @param name {string}
      */
     constructor(name) {
         this.name = name;

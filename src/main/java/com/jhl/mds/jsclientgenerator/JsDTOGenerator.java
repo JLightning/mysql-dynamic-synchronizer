@@ -73,10 +73,7 @@ public class JsDTOGenerator {
         List<String> constructorParameters = new ArrayList<>();
         List<String> constructorSetters = new ArrayList<>();
         for (Field field : fields) {
-            String defaultValue = "null";
-            if (field.getType() == int.class) {
-                defaultValue = "0";
-            }
+            String defaultValue = getDefaultValueForField(field);
 
             String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName());
             renderedField = renderedField.replaceAll("\\{type}", getTypeComment(field.getType(), field, fileName));
@@ -101,6 +98,21 @@ public class JsDTOGenerator {
         generated.put(clazz, className);
         processing = null;
         return className;
+    }
+
+    private String getDefaultValueForField(Field field) {
+        String defaultValue = "null";
+        if (field.getType().isPrimitive()) {
+            defaultValue = "0";
+            if (field.getType() == boolean.class) {
+                defaultValue = "false";
+            } else if (field.getType() == char.class) {
+                defaultValue = "''";
+            }
+        } else if (field.getType().getName().equals("java.lang.String")) {
+            return "''";
+        }
+        return defaultValue;
     }
 
     private String renderMethodComment(Field[] fields, String fileName) {

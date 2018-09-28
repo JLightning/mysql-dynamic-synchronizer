@@ -7,16 +7,16 @@ export class Table {
     /**
      * @type {string}
      */
-    database = null;
+    database = '';
     /**
      * @type {string}
      */
-    table = null;
+    table = '';
 
     /**
-    * @param serverId {int}
-    * @param database {string}
-    * @param table {string}
+     * @param serverId {int}
+     * @param database {string}
+     * @param table {string}
      */
     constructor(serverId, database, table) {
         this.serverId = serverId;
@@ -32,7 +32,7 @@ export class TaskType {
     name = '';
 
     /**
-    * @param name {string}
+     * @param name {string}
      */
     constructor(name) {
         this.name = name;
@@ -53,7 +53,7 @@ export default class TaskDTO {
     /**
      * @type {string}
      */
-    taskName = null;
+    taskName = '';
     /**
      * @type {SimpleFieldMappingDTO[]}
      */
@@ -80,14 +80,14 @@ export default class TaskDTO {
     filters = null;
 
     /**
-    * @param taskId {int}
-    * @param taskName {string}
-    * @param mapping {SimpleFieldMappingDTO[]}
-    * @param source {Table}
-    * @param target {*}
-    * @param taskType {TaskType}
-    * @param insertMode {MySQLInsertMode}
-    * @param filters {string[]}
+     * @param taskId {int}
+     * @param taskName {string}
+     * @param mapping {SimpleFieldMappingDTO[]}
+     * @param source {Table}
+     * @param target {*}
+     * @param taskType {TaskType}
+     * @param insertMode {MySQLInsertMode}
+     * @param filters {string[]}
      */
     constructor(taskId, taskName, mapping, source, target, taskType, insertMode, filters) {
         this.taskId = taskId;

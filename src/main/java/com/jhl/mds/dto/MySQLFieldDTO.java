@@ -1,10 +1,12 @@
 package com.jhl.mds.dto;
 
+import com.jhl.mds.jsclientgenerator.JsClientDTO;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
+@JsClientDTO(fileName = "mysql-field-dto", className = "MySQLFieldDTO")
 public class MySQLFieldDTO {
     private String field;
     private String type;

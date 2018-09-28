@@ -7,31 +7,31 @@ export default class RedisServerDTO {
     /**
      * @type {string}
      */
-    name = null;
+    name = '';
     /**
      * @type {string}
      */
-    host = null;
+    host = '';
     /**
      * @type {string}
      */
-    port = null;
+    port = '';
     /**
      * @type {string}
      */
-    username = null;
+    username = '';
     /**
      * @type {string}
      */
-    password = null;
+    password = '';
 
     /**
-    * @param serverId {int}
-    * @param name {string}
-    * @param host {string}
-    * @param port {string}
-    * @param username {string}
-    * @param password {string}
+     * @param serverId {int}
+     * @param name {string}
+     * @param host {string}
+     * @param port {string}
+     * @param username {string}
+     * @param password {string}
      */
     constructor(serverId, name, host, port, username, password) {
         this.serverId = serverId;
