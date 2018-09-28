@@ -1,8 +1,10 @@
 package com.jhl.mds.jsclientgenerator.methodrenderer;
 
-import com.jhl.mds.jsclientgenerator.JsClientGenerator;
 import com.jhl.mds.jsclientgenerator.TemplateReader;
+import com.jhl.mds.jsclientgenerator.TypeCommentGenerator;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.messaging.simp.annotation.SubscribeMapping;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +17,10 @@ import java.util.List;
 
 public abstract class MethodRenderer {
 
+    @Autowired
+    private TypeCommentGenerator typeCommentGenerator;
+    @Autowired
+    private ParameterNameDiscoverer parameterNameDiscoverer;
     private TemplateReader templateReader;
 
     public MethodRenderer(TemplateReader templateReader) {
@@ -51,13 +57,20 @@ public abstract class MethodRenderer {
             fieldStr.add(field.getName());
         }
 
+        String comment = typeCommentGenerator.renderMethodComment(fields, "common");
+
         renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(fieldStr, ", "));
         renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(fieldStr, ", "));
+
+        renderMethodContent = comment + "\n" + renderMethodContent;
 
         result.add(renderMethodContent);
     }
 
     String renderMethod(Method method, String methodAction, String methodUri, List<String> methodParameters, List<String> httpParameters, Parameter requestBodyParameter) {
+
+        String comment = typeCommentGenerator.renderMethodComment(method.getParameters(), parameterNameDiscoverer.getParameterNames(method), "common");
+
         String renderMethodContent = templateReader.getMethodTemplate().replaceAll("\\{methodName}", method.getName());
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);
         renderMethodContent = renderMethodContent.replaceAll("\\{methodUri}", "'" + methodUri + "'");
@@ -68,6 +81,6 @@ public abstract class MethodRenderer {
             renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
             renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(httpParameters, ", "));
         }
-        return renderMethodContent;
+        return comment + "\n" + renderMethodContent;
     }
 }

@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@JsClientDTO(fileName = "table-fields-mapping-request-dto", className = "TableFieldsMappingRequestDTO")
 public class TableFieldsMappingRequestDTO {
 
     private int sourceServerId;

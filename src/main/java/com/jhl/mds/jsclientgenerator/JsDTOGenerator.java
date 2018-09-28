@@ -10,7 +10,6 @@ import javax.annotation.PostConstruct;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,12 +21,15 @@ public class JsDTOGenerator {
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/dto/";
     private TemplateReader templateReader;
     private JsDTOEnumGenerator jsDTOEnumGenerator;
+    private TypeCommentGenerator typeCommentGenerator;
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator) {
+    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator) {
         this.templateReader = templateReader;
         this.jsDTOEnumGenerator = jsDTOEnumGenerator;
+        this.typeCommentGenerator = typeCommentGenerator;
+        typeCommentGenerator.setJsDTOGenerator(this);
     }
 
     @PostConstruct
@@ -44,10 +46,8 @@ public class JsDTOGenerator {
         }
     }
 
-    private String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
+    public String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
         if (clazz.isEnum()) return jsDTOEnumGenerator.generateDto(clazz, appendToFileIfAnnotationNotFound);
-        if (clazz == processing) return "*";
-        processing = clazz;
 
         if (generated.containsKey(clazz)) return generated.get(clazz);
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
@@ -63,6 +63,9 @@ public class JsDTOGenerator {
             return "";
         }
 
+        if (clazz == processing) return className;
+        processing = clazz;
+
         if (appendToFileIfAnnotationNotFound == null || jsClientDTO != null) {
             FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
             fileWriter.close();
@@ -76,7 +79,7 @@ public class JsDTOGenerator {
             String defaultValue = getDefaultValueForField(field);
 
             String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName());
-            renderedField = renderedField.replaceAll("\\{type}", getTypeComment(field.getType(), field, fileName));
+            renderedField = renderedField.replaceAll("\\{type}", typeCommentGenerator.getTypeComment(field.getType(), field, fileName));
             renderedField = renderedField.replaceAll("\\{default_value}", defaultValue);
             fieldStr.add(renderedField);
 
@@ -85,7 +88,7 @@ public class JsDTOGenerator {
             constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", field.getName()));
         }
 
-        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, renderMethodComment(fields, fileName));
+        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName));
 
         if (appendToFileIfAnnotationNotFound != null && jsClientDTO == null) {
             renderedClass = renderedClass.replaceAll("export default ", "export ");
@@ -115,42 +118,7 @@ public class JsDTOGenerator {
         return defaultValue;
     }
 
-    private String renderMethodComment(Field[] fields, String fileName) {
-        List<String> params = new ArrayList<>();
-        for (Field field : fields) {
-            String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", field.getName());
-            renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), field, fileName));
 
-            params.add(renderedParam);
-        }
-
-        return templateReader.getMethodCommentTemplate().replaceAll("\\{params}", StringUtils.join(params, "\n"));
-    }
-
-    private String getTypeComment(Class clazz, Field field, String fileName) {
-        if (field != null) clazz = field.getType();
-        if (clazz.isPrimitive()) {
-            return clazz.getSimpleName();
-        } else if (clazz.getName().equals("java.lang.String")) {
-            return "string";
-        } else if (clazz.getName().contains("com.jhl")) {
-            try {
-                return generateDto(clazz, fileName);
-            } catch (Exception e) {
-                return "{}";
-            }
-        } else if (clazz.getName().contains("java.util") && clazz.getName().contains("List")) {
-            try {
-                ParameterizedType stringListType = (ParameterizedType) field.getGenericType();
-                Class<?> genericArgument = (Class<?>) stringListType.getActualTypeArguments()[0];
-
-                return getTypeComment(genericArgument, null, fileName) + "[]";
-            } catch (Exception e) {
-                return "*";
-            }
-        }
-        return "*";
-    }
 
     private String renderClass(String className, List<String> fields, List<String> constructorParameters, List<String> constructorSetters, String constructorComment) {
         String renderClassContent = templateReader.getDtoClassTemplate().replaceAll("\\{className}", className);

@@ -8,7 +8,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-@JsClientDTO(fileName = "table-info-dto", className = "TableInfoDTO")
 public class TableInfoDTO {
 
     private MySQLServerDTO server;

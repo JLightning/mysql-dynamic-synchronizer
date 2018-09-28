@@ -89,10 +89,6 @@ public class JsDTOEnumGenerator {
         return templateReader.getMethodCommentTemplate().replaceAll("\\{params}", renderedParam);
     }
 
-    private String getTypeComment(Class clazz, Field field, String fileName) {
-        return "string";
-    }
-
     private String renderClass(String className, List<String> fields, List<String> constructorParameters, List<String> constructorSetters, String constructorComment) {
         String renderClassContent = templateReader.getDtoClassTemplate().replaceAll("\\{className}", className);
         renderClassContent = renderClassContent.replaceAll("\\{fields}", StringUtils.join(fields, "\n"));

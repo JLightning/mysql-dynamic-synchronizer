@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsClientDTO(fileName = "migration-dto", className = "MigrationDTO")
 public class MigrationDTO {
 
     private int taskId;
