@@ -1,4 +1,4 @@
-export default class RedisServerDTO {
+export class MySQLServerDTO {
 
     /**
      * @type {int}
@@ -40,5 +40,31 @@ export default class RedisServerDTO {
         this.port = port;
         this.username = username;
         this.password = password;
+    }
+}
+export default class TableInfoDTO {
+
+    /**
+     * @type {MySQLServerDTO}
+     */
+    server = null;
+    /**
+     * @type {string}
+     */
+    database = null;
+    /**
+     * @type {string}
+     */
+    table = null;
+
+    /**
+    * @param server {MySQLServerDTO}
+    * @param database {string}
+    * @param table {string}
+     */
+    constructor(server, database, table) {
+        this.server = server;
+        this.database = database;
+        this.table = table;
     }
 }
