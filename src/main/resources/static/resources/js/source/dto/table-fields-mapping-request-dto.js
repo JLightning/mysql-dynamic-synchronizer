@@ -1,23 +1,3 @@
-export class SimpleFieldMappingDTO {
-
-    /**
-     * @type {string}
-     */
-    sourceField = '';
-    /**
-     * @type {string}
-     */
-    targetField = '';
-
-    /**
-     * @param sourceField {string}
-     * @param targetField {string}
-     */
-    constructor(sourceField, targetField) {
-        this.sourceField = sourceField;
-        this.targetField = targetField;
-    }
-}
 export default class TableFieldsMappingRequestDTO {
 
     /**
@@ -56,7 +36,7 @@ export default class TableFieldsMappingRequestDTO {
      * @param targetServerId {int}
      * @param targetDatabase {string}
      * @param targetTable {string}
-     * @param mapping {SimpleFieldMappingDTO[]}
+     * @param mapping {*[]}
      */
     constructor(sourceServerId, sourceDatabase, sourceTable, targetServerId, targetDatabase, targetTable, mapping) {
         this.sourceServerId = sourceServerId;
