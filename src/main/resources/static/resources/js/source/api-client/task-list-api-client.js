@@ -4,7 +4,7 @@ class TaskListApiClient extends AbstractClient {
 
     /**
 
-     * @returns {{done: (function(TaskDTO[]): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(TaskDTO[]): *): *), error: (function(*): *)}}
      */
     getAllTasks() {
         return super.get('/api/task-list/all', {});

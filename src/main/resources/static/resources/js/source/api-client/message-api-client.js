@@ -4,7 +4,7 @@ class MessageApiClient extends AbstractClient {
 
     /**
 
-     * @returns {{done: (function(string[]): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
     getErrorMessages() {
         return super.get('/api/message/errors', {});

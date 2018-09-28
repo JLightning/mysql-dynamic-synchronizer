@@ -78,7 +78,7 @@ public abstract class MethodRenderer {
             returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), null, "common");
         }
 
-        comment = comment.replaceAll("\\*/", "* @returns {{done: (function(" + returnType + "): *), error: (function(*): *)}}\n     */");
+        comment = comment.replaceAll("\\*/", "* @returns {{done: (function(function(" + returnType + "): *): *), error: (function(*): *)}}\n     */");
 
         String renderMethodContent = templateReader.getMethodTemplate().replaceAll("\\{methodName}", method.getName());
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);

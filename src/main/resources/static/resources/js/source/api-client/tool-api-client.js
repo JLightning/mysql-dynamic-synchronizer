@@ -18,7 +18,7 @@ class ToolApiClient extends AbstractClient {
 
     /**
      * @param dto {TaskDTO}
-     * @returns {{done: (function(*): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     syncStructure(dto) {
         return super.postJson('/api/tool/sync-structure', dto);

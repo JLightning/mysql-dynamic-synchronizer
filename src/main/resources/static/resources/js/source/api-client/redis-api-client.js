@@ -16,7 +16,7 @@ class RedisApiClient extends AbstractClient {
 
     /**
      * @param dto {RedisServerDTO}
-     * @returns {{done: (function(RedisServerDTO): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
     create(dto) {
         return super.putJson('/api/redis/', dto);
@@ -24,7 +24,7 @@ class RedisApiClient extends AbstractClient {
 
     /**
      * @param serverId {int}
-     * @returns {{done: (function(*): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     delete(serverId) {
         return super.delete('/api/redis/' + serverId + '', {});
@@ -32,7 +32,7 @@ class RedisApiClient extends AbstractClient {
 
     /**
      * @param serverId {int}
-     * @returns {{done: (function(RedisServerDTO): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
     detail(serverId) {
         return super.get('/api/redis/' + serverId + '', {});
@@ -40,7 +40,7 @@ class RedisApiClient extends AbstractClient {
 
     /**
 
-     * @returns {{done: (function(RedisServerDTO[]): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(RedisServerDTO[]): *): *), error: (function(*): *)}}
      */
     list() {
         return super.get('/api/redis/', {});
@@ -60,7 +60,7 @@ class RedisApiClient extends AbstractClient {
 
     /**
      * @param dto {RedisServerDTO}
-     * @returns {{done: (function(RedisServerDTO): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
     update(dto) {
         return super.postJson('/api/redis/', dto);
