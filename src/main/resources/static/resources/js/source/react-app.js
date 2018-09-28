@@ -1,5 +1,4 @@
-import React from "react";
-import {Fragment} from "react";
+import React, {Fragment} from "react";
 import ReactDOM from "react-dom";
 import Layout from "./layout";
 import {BrowserRouter, Route} from "react-router-dom";

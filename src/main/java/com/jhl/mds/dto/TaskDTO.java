@@ -5,6 +5,7 @@ import com.jhl.mds.consts.TaskType;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.entities.TaskFilter;
+import com.jhl.mds.jsclientgenerator.JsClientDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsClientDTO(fileName = "task-dto", className = "TaskDTO")
 public class TaskDTO {
     private int taskId;
     private String taskName;

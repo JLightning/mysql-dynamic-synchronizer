@@ -6,7 +6,7 @@ import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 
 @Configuration
-public class Config {
+public class JsConfig {
 
     @Bean
     public ParameterNameDiscoverer parameterNameDiscoverer() {

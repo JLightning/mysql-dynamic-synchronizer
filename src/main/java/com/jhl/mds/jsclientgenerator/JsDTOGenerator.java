@@ -21,10 +21,13 @@ public class JsDTOGenerator {
 
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/dto/";
     private TemplateReader templateReader;
+    private JsDTOEnumGenerator jsDTOEnumGenerator;
     private Map<Class, String> generated = new HashMap<>();
+    private Class processing = null;
 
-    public JsDTOGenerator(TemplateReader templateReader) {
+    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator) {
         this.templateReader = templateReader;
+        this.jsDTOEnumGenerator = jsDTOEnumGenerator;
     }
 
     @PostConstruct
@@ -42,6 +45,10 @@ public class JsDTOGenerator {
     }
 
     private String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
+        if (clazz.isEnum()) return jsDTOEnumGenerator.generateDto(clazz, appendToFileIfAnnotationNotFound);
+        if (clazz == processing) return "*";
+        processing = clazz;
+
         if (generated.containsKey(clazz)) return generated.get(clazz);
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
 
@@ -92,6 +99,7 @@ public class JsDTOGenerator {
 
         fileWriter.close();
         generated.put(clazz, className);
+        processing = null;
         return className;
     }
 
