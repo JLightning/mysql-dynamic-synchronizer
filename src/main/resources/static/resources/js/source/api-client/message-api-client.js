@@ -3,7 +3,8 @@ import AbstractClient from "./abstract-client";
 class MessageApiClient extends AbstractClient {
 
     /**
-     * @param response {*}
+
+     * @returns {{done: (function(string[]): *), error: (function(*): *)}}
      */
     getErrorMessages() {
         return super.get('/api/message/errors', {});

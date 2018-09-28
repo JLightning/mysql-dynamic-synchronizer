@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -79,7 +80,11 @@ public class JsDTOGenerator {
             String defaultValue = getDefaultValueForField(field);
 
             String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName());
-            renderedField = renderedField.replaceAll("\\{type}", typeCommentGenerator.getTypeComment(field.getType(), field, fileName));
+            try {
+                renderedField = renderedField.replaceAll("\\{type}", typeCommentGenerator.getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName));
+            } catch (ClassCastException e) {
+                renderedField = renderedField.replaceAll("\\{type}", typeCommentGenerator.getTypeComment(field.getType(), null, fileName));
+            }
             renderedField = renderedField.replaceAll("\\{default_value}", defaultValue);
             fieldStr.add(renderedField);
 
@@ -117,7 +122,6 @@ public class JsDTOGenerator {
         }
         return defaultValue;
     }
-
 
 
     private String renderClass(String className, List<String> fields, List<String> constructorParameters, List<String> constructorSetters, String constructorComment) {

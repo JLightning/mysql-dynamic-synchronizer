@@ -3,7 +3,6 @@ package com.jhl.mds.consts;
 import com.jhl.mds.jsclientgenerator.JsClientDTO;
 import lombok.Getter;
 
-@JsClientDTO(fileName = "task-type", className = "TaskType")
 public enum TaskType {
 
     FULL_MIGRATION(0b0001),

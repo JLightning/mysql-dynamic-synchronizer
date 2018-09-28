@@ -1,5 +1,6 @@
 package com.jhl.mds.jsclientgenerator;
 
+import com.jhl.mds.dto.ApiResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -25,12 +26,23 @@ public class TypeCommentGenerator {
         this.jsDTOGenerator = jsDTOGenerator;
     }
 
-    public String getTypeComment(Class clazz, Field field, String fileName) {
-        if (field != null) clazz = field.getType();
+    public String getTypeComment(Class clazz, ParameterizedType parameterizedType, String fileName) {
         if (clazz.isPrimitive()) {
             return clazz.getSimpleName();
         } else if (clazz.getName().equals("java.lang.String")) {
             return "string";
+        } else if (clazz.isArray()) {
+            return getTypeComment(clazz.getComponentType(), null, fileName) + "[]";
+        } else if (clazz == ApiResponse.class) {
+            try {
+                ParameterizedType genericArgument = (ParameterizedType) parameterizedType.getActualTypeArguments()[0];
+
+                return getTypeComment((Class) genericArgument.getRawType(), genericArgument, fileName);
+            } catch (ClassCastException e) {
+                Class genericArgument = (Class) parameterizedType.getActualTypeArguments()[0];
+
+                return getTypeComment(genericArgument, null, fileName);
+            }
         } else if (clazz.getName().contains("com.jhl")) {
             try {
                 return jsDTOGenerator.generateDto(clazz, fileName);
@@ -39,8 +51,7 @@ public class TypeCommentGenerator {
             }
         } else if (clazz.getName().contains("java.util") && clazz.getName().contains("List")) {
             try {
-                ParameterizedType stringListType = (ParameterizedType) field.getGenericType();
-                Class<?> genericArgument = (Class<?>) stringListType.getActualTypeArguments()[0];
+                Class<?> genericArgument = (Class<?>) parameterizedType.getActualTypeArguments()[0];
 
                 return getTypeComment(genericArgument, null, fileName) + "[]";
             } catch (Exception e) {
@@ -54,7 +65,11 @@ public class TypeCommentGenerator {
         List<String> params = new ArrayList<>();
         for (Field field : fields) {
             String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", field.getName());
-            renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), field, fileName));
+            try {
+                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName));
+            } catch (ClassCastException e) {
+                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null, fileName));
+            }
 
             params.add(renderedParam);
         }
@@ -70,10 +85,12 @@ public class TypeCommentGenerator {
 
         List<String> params = new ArrayList<>();
         for (Parameter field : parameters) {
-            String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", nameMap.get(field.getName()));
-            renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null, fileName));
+            if (field.getAnnotations().length > 0) {
+                String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", nameMap.get(field.getName()));
+                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null, fileName));
 
-            params.add(renderedParam);
+                params.add(renderedParam);
+            }
         }
 
         return templateReader.getMethodCommentTemplate().replaceAll("\\{params}", StringUtils.join(params, "\n"));

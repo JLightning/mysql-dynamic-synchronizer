@@ -4,6 +4,7 @@ class MySQLApiClient extends AbstractClient {
 
     /**
      * @param serverId {int}
+     * @returns {{done: (function(string[]): *), error: (function(*): *)}}
      */
     getDatabasesForServer(serverId) {
         return super.get('/api/mysql/databases', {serverId});
@@ -13,6 +14,7 @@ class MySQLApiClient extends AbstractClient {
      * @param serverId {int}
      * @param database {string}
      * @param table {string}
+     * @returns {{done: (function(MySQLFieldDTO[]): *), error: (function(*): *)}}
      */
     getFieldForServerDatabaseAndTable(serverId, database, table) {
         return super.get('/api/mysql/fields', {serverId, database, table});
@@ -33,6 +35,7 @@ class MySQLApiClient extends AbstractClient {
 
     /**
      * @param dto {TableFieldsMappingRequestDTO}
+     * @returns {{done: (function(MySQLFieldWithMappingDTO[]): *), error: (function(*): *)}}
      */
     getMappingFor2Table(dto) {
         return super.postJson('/api/mysql/fields-mapping', dto);
@@ -40,6 +43,7 @@ class MySQLApiClient extends AbstractClient {
 
     /**
 
+     * @returns {{done: (function(MySQLServerDTO[]): *), error: (function(*): *)}}
      */
     getServers() {
         return super.get('/api/mysql/servers', {});
@@ -48,6 +52,7 @@ class MySQLApiClient extends AbstractClient {
     /**
      * @param serverId {int}
      * @param database {string}
+     * @returns {{done: (function(string[]): *), error: (function(*): *)}}
      */
     getTablesForServerAndDatabase(serverId, database) {
         return super.get('/api/mysql/tables', {serverId, database});
@@ -58,6 +63,7 @@ class MySQLApiClient extends AbstractClient {
      * @param database {string}
      * @param table {string}
      * @param filter {string}
+     * @returns {{done: (function(string): *), error: (function(*): *)}}
      */
     validateFilter(serverId, database, table, filter) {
         return super.post('/api/mysql/validate-filter', {serverId, database, table, filter});

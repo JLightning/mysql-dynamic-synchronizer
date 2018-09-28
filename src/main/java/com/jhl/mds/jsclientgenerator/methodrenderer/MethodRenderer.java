@@ -12,6 +12,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +71,14 @@ public abstract class MethodRenderer {
     String renderMethod(Method method, String methodAction, String methodUri, List<String> methodParameters, List<String> httpParameters, Parameter requestBodyParameter) {
 
         String comment = typeCommentGenerator.renderMethodComment(method.getParameters(), parameterNameDiscoverer.getParameterNames(method), "common");
+        String returnType;
+        try {
+            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType(), "common");
+        } catch (ClassCastException e) {
+            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), null, "common");
+        }
+
+        comment = comment.replaceAll("\\*/", "* @returns {{done: (function(" + returnType + "): *), error: (function(*): *)}}\n     */");
 
         String renderMethodContent = templateReader.getMethodTemplate().replaceAll("\\{methodName}", method.getName());
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);
@@ -81,6 +90,8 @@ public abstract class MethodRenderer {
             renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
             renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(httpParameters, ", "));
         }
+
+
         return comment + "\n" + renderMethodContent;
     }
 }

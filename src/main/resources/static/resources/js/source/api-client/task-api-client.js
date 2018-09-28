@@ -18,6 +18,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
      * @param dto {TaskDTO}
+     * @returns {{done: (function(TaskDTO): *), error: (function(*): *)}}
      */
     createTaskAction(dto) {
         return super.postJson('/api/task/create', dto);
@@ -25,6 +26,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
      * @param taskId {int}
+     * @returns {{done: (function(*): *), error: (function(*): *)}}
      */
     deleteTask(taskId) {
         return super.delete('/api/task/' + taskId + '', {});
@@ -40,6 +42,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
 
+     * @returns {{done: (function(MySQLInsertMode[]): *), error: (function(*): *)}}
      */
     getInsertModes() {
         return super.get('/api/task/get-insert-modes', {});
@@ -47,6 +50,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
      * @param taskId {int}
+     * @returns {{done: (function(TaskDTO): *), error: (function(*): *)}}
      */
     getTaskAction(taskId) {
         return super.get('/api/task/detail/' + taskId + '', {});
@@ -54,6 +58,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
 
+     * @returns {{done: (function(TaskType[]): *), error: (function(*): *)}}
      */
     getTaskTypes() {
         return super.get('/api/task/get-task-types', {});
@@ -61,6 +66,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
      * @param taskId {int}
+     * @returns {{done: (function(*): *), error: (function(*): *)}}
      */
     startFullMigrationTask(taskId) {
         return super.get('/api/task/detail/' + taskId + '/start-full-migration', {});
@@ -68,6 +74,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
      * @param taskId {int}
+     * @returns {{done: (function(*): *), error: (function(*): *)}}
      */
     startIncrementalMigrationTask(taskId) {
         return super.get('/api/task/detail/' + taskId + '/start-incremental-migration', {});
@@ -75,6 +82,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
      * @param taskId {int}
+     * @returns {{done: (function(*): *), error: (function(*): *)}}
      */
     stopIncrementalMigrationTask(taskId) {
         return super.get('/api/task/detail/' + taskId + '/stop-incremental-migration', {});
@@ -82,6 +90,7 @@ class TaskApiClient extends AbstractClient {
 
     /**
      * @param taskId {int}
+     * @returns {{done: (function(*): *), error: (function(*): *)}}
      */
     truncateAndStartFullMigrationTask(taskId) {
         return super.get('/api/task/detail/' + taskId + '/truncate-and-start-full-migration', {});
