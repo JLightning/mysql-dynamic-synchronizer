@@ -23,13 +23,15 @@ public class JsDTOGenerator {
     private TemplateReader templateReader;
     private JsDTOEnumGenerator jsDTOEnumGenerator;
     private TypeCommentGenerator typeCommentGenerator;
+    private FileCleaner fileCleaner;
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator) {
+    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator, FileCleaner fileCleaner) {
         this.templateReader = templateReader;
         this.jsDTOEnumGenerator = jsDTOEnumGenerator;
         this.typeCommentGenerator = typeCommentGenerator;
+        this.fileCleaner = fileCleaner;
         typeCommentGenerator.setJsDTOGenerator(this);
     }
 
@@ -67,10 +69,7 @@ public class JsDTOGenerator {
         if (clazz == processing) return className;
         processing = clazz;
 
-        if (appendToFileIfAnnotationNotFound == null || jsClientDTO != null) {
-            FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
-            fileWriter.close();
-        }
+        fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY+fileName+".js");
 
         Field[] fields = clazz.getDeclaredFields();
         List<String> fieldStr = new ArrayList<>();

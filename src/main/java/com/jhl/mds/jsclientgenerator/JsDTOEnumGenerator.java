@@ -13,11 +13,13 @@ public class JsDTOEnumGenerator {
 
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/dto/";
     private TemplateReader templateReader;
+    private FileCleaner fileCleaner;
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOEnumGenerator(TemplateReader templateReader) {
+    public JsDTOEnumGenerator(TemplateReader templateReader, FileCleaner fileCleaner) {
         this.templateReader = templateReader;
+        this.fileCleaner = fileCleaner;
     }
 
     public String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
@@ -38,10 +40,7 @@ public class JsDTOEnumGenerator {
         if (clazz == processing) return className;
         processing = clazz;
 
-        if (appendToFileIfAnnotationNotFound == null || jsClientDTO != null) {
-            FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
-            fileWriter.close();
-        }
+        fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
 
         List<Field> fields = Arrays.asList(clazz.getFields());
         List<String> fieldStr = new ArrayList<>();
