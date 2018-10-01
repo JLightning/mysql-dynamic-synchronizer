@@ -24,6 +24,12 @@
   },
   "scripts": {
     "build": "browserify ./react-app.js -t babelify -o ../react-app.js && minify ../react-app.js",
-    "watch": "watchify ./react-app.js -v -t babelify -o ../react-app.min.js"
+    "watch": "watchify ./react-app.js -v -t babelify -o ../react-app.min.js",
+    "flow": "flow"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-flow": "^6.23.0",
+    "flow-bin": "^0.81.0"
   }
 }

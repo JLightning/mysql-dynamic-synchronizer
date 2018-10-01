@@ -29,7 +29,7 @@ services:
       volumes:
         - ./data/postgresql:/var/lib/postgresql
   node:
-    image: node:6.11-slim
+    image: node:8.12.0-jessie
     container_name: mds_node
     command: tailf /dev/null
     volumes:
