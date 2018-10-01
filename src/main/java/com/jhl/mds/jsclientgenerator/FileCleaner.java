@@ -16,6 +16,7 @@ public class FileCleaner {
         if (cleanedFile.contains(file)) return;
 
         FileWriter fileWriter = new FileWriter(file);
+        fileWriter.write("// @flow\n");
         fileWriter.close();
 
         cleanedFile.add(file);

@@ -10,7 +10,7 @@ import TableStructureSync from "./table-structure-sync";
 import MysqlServerList from "./pages/servers/mysql/list";
 import RedisServerAdd from "./pages/servers/redis/add";
 import RedisServerList from "./pages/servers/redis/list";
-import Validator from "./util/validator";
+import {MySQLInsertMode} from "./dto/common";
 
 class App extends React.Component {
 
@@ -41,3 +41,5 @@ class App extends React.Component {
 if (document.getElementById('reactWrapper') !== null) {
     ReactDOM.render(<App/>, document.getElementById('reactWrapper'));
 }
+
+console.log(JSON.stringify(MySQLInsertMode.INSERT_IGNORE));

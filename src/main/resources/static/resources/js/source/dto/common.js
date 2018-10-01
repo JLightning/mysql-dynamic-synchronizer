@@ -1,37 +1,38 @@
+// @flow
 export class MySQLFieldDTO {
 
     /**
      * @type {string}
      */
-    field = '';
+    field : ?string = '';
     /**
      * @type {string}
      */
-    type = '';
+    type : ?string = '';
     /**
      * @type {string}
      */
-    collation = '';
+    collation : ?string = '';
     /**
      * @type {boolean}
      */
-    nullable = false;
+    nullable : ?boolean = false;
     /**
      * @type {string}
      */
-    key = '';
+    key : ?string = '';
     /**
      * @type {string}
      */
-    defaultValue = '';
+    defaultValue : ?string = '';
     /**
      * @type {string}
      */
-    extra = '';
+    extra : ?string = '';
     /**
      * @type {string}
      */
-    comment = '';
+    comment : ?string = '';
 
     /**
      * @param field {string}
@@ -43,7 +44,7 @@ export class MySQLFieldDTO {
      * @param extra {string}
      * @param comment {string}
      */
-    constructor(field, type, collation, nullable, key, defaultValue, extra, comment) {
+    constructor(field : ?string, type : ?string, collation : ?string, nullable : ?boolean, key : ?string, defaultValue : ?string, extra : ?string, comment : ?string) {
         this.field = field;
         this.type = type;
         this.collation = collation;
@@ -53,68 +54,72 @@ export class MySQLFieldDTO {
         this.extra = extra;
         this.comment = comment;
     }
+
+
 }
 export class SimpleFieldMappingDTO {
 
     /**
      * @type {string}
      */
-    sourceField = '';
+    sourceField : ?string = '';
     /**
      * @type {string}
      */
-    targetField = '';
+    targetField : ?string = '';
 
     /**
      * @param sourceField {string}
      * @param targetField {string}
      */
-    constructor(sourceField, targetField) {
+    constructor(sourceField : ?string, targetField : ?string) {
         this.sourceField = sourceField;
         this.targetField = targetField;
     }
+
+
 }
 export class TableFieldsMappingRequestDTO {
 
     /**
-     * @type {int}
+     * @type {number}
      */
-    sourceServerId = 0;
+    sourceServerId : ?number = 0;
     /**
      * @type {string}
      */
-    sourceDatabase = '';
+    sourceDatabase : ?string = '';
     /**
      * @type {string}
      */
-    sourceTable = '';
+    sourceTable : ?string = '';
     /**
-     * @type {int}
+     * @type {number}
      */
-    targetServerId = 0;
-    /**
-     * @type {string}
-     */
-    targetDatabase = '';
+    targetServerId : ?number = 0;
     /**
      * @type {string}
      */
-    targetTable = '';
+    targetDatabase : ?string = '';
+    /**
+     * @type {string}
+     */
+    targetTable : ?string = '';
     /**
      * @type {SimpleFieldMappingDTO[]}
      */
-    mapping = null;
+    mapping : ?SimpleFieldMappingDTO[] = null;
 
     /**
-     * @param sourceServerId {int}
+     * @param sourceServerId {number}
      * @param sourceDatabase {string}
      * @param sourceTable {string}
-     * @param targetServerId {int}
+     * @param targetServerId {number}
      * @param targetDatabase {string}
      * @param targetTable {string}
      * @param mapping {SimpleFieldMappingDTO[]}
      */
-    constructor(sourceServerId, sourceDatabase, sourceTable, targetServerId, targetDatabase, targetTable, mapping) {
+    constructor(sourceServerId : ?number, sourceDatabase : ?string, sourceTable : ?string, targetServerId : ?number, targetDatabase : ?string, targetTable : ?string, mapping : ?SimpleFieldMappingDTO[]) {
         this.sourceServerId = sourceServerId;
         this.sourceDatabase = sourceDatabase;
         this.sourceTable = sourceTable;
@@ -123,69 +128,73 @@ export class TableFieldsMappingRequestDTO {
         this.targetTable = targetTable;
         this.mapping = mapping;
     }
+
+
 }
 export class MySQLFieldWithMappingDTO {
 
     /**
      * @type {string}
      */
-    sourceField = '';
+    sourceField : ?string = '';
     /**
      * @type {string}
      */
-    targetField = '';
+    targetField : ?string = '';
     /**
      * @type {boolean}
      */
-    mappable = false;
+    mappable : ?boolean = false;
 
     /**
      * @param sourceField {string}
      * @param targetField {string}
      * @param mappable {boolean}
      */
-    constructor(sourceField, targetField, mappable) {
+    constructor(sourceField : ?string, targetField : ?string, mappable : ?boolean) {
         this.sourceField = sourceField;
         this.targetField = targetField;
         this.mappable = mappable;
     }
+
+
 }
 export class MySQLServerDTO {
 
     /**
-     * @type {int}
+     * @type {number}
      */
-    serverId = 0;
+    serverId : ?number = 0;
     /**
      * @type {string}
      */
-    name = '';
+    name : ?string = '';
     /**
      * @type {string}
      */
-    host = '';
+    host : ?string = '';
     /**
      * @type {string}
      */
-    port = '';
+    port : ?string = '';
     /**
      * @type {string}
      */
-    username = '';
+    username : ?string = '';
     /**
      * @type {string}
      */
-    password = '';
+    password : ?string = '';
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param name {string}
      * @param host {string}
      * @param port {string}
      * @param username {string}
      * @param password {string}
      */
-    constructor(serverId, name, host, port, username, password) {
+    constructor(serverId : ?number, name : ?string, host : ?string, port : ?string, username : ?string, password : ?string) {
         this.serverId = serverId;
         this.name = name;
         this.host = host;
@@ -193,43 +202,45 @@ export class MySQLServerDTO {
         this.username = username;
         this.password = password;
     }
+
+
 }
 export class RedisServerDTO {
 
     /**
-     * @type {int}
+     * @type {number}
      */
-    serverId = 0;
+    serverId : ?number = 0;
     /**
      * @type {string}
      */
-    name = '';
+    name : ?string = '';
     /**
      * @type {string}
      */
-    host = '';
+    host : ?string = '';
     /**
      * @type {string}
      */
-    port = '';
+    port : ?string = '';
     /**
      * @type {string}
      */
-    username = '';
+    username : ?string = '';
     /**
      * @type {string}
      */
-    password = '';
+    password : ?string = '';
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param name {string}
      * @param host {string}
      * @param port {string}
      * @param username {string}
      * @param password {string}
      */
-    constructor(serverId, name, host, port, username, password) {
+    constructor(serverId : ?number, name : ?string, host : ?string, port : ?string, username : ?string, password : ?string) {
         this.serverId = serverId;
         this.name = name;
         this.host = host;
@@ -237,110 +248,144 @@ export class RedisServerDTO {
         this.username = username;
         this.password = password;
     }
+
+
 }
 export class Table {
 
     /**
-     * @type {int}
+     * @type {number}
      */
-    serverId = 0;
+    serverId : ?number = 0;
     /**
      * @type {string}
      */
-    database = '';
+    database : ?string = '';
     /**
      * @type {string}
      */
-    table = '';
+    table : ?string = '';
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param database {string}
      * @param table {string}
      */
-    constructor(serverId, database, table) {
+    constructor(serverId : ?number, database : ?string, table : ?string) {
         this.serverId = serverId;
         this.database = database;
         this.table = table;
     }
+
+
 }
 export class TaskType {
 
     /**
+     * @type {TaskType}
+     */
+    static FULL_MIGRATION : ?TaskType = null;
+    /**
+     * @type {TaskType}
+     */
+    static INCREMENTAL_MIGRATION : ?TaskType = null;
+    /**
+     * @type {TaskType}
+     */
+    static FULL_INCREMENTAL_MIGRATION : ?TaskType = null;
+    /**
      * @type {string}
      */
-    name = '';
+    name : string = '';
 
     /**
      * @param name {string}
      */
-    constructor(name) {
+    constructor(name : string) {
         this.name = name;
     }
+
+     toJSON() {
+          return this.name;
+     }
 }
 
 TaskType.FULL_MIGRATION = new TaskType('FULL_MIGRATION');
 TaskType.INCREMENTAL_MIGRATION = new TaskType('INCREMENTAL_MIGRATION');
 TaskType.FULL_INCREMENTAL_MIGRATION = new TaskType('FULL_INCREMENTAL_MIGRATION');
-TaskType.prototype.toJSON = function() { return this.name;};
 
 export class MySQLInsertMode {
 
     /**
+     * @type {MySQLInsertMode}
+     */
+    static INSERT : ?MySQLInsertMode = null;
+    /**
+     * @type {MySQLInsertMode}
+     */
+    static INSERT_IGNORE : ?MySQLInsertMode = null;
+    /**
+     * @type {MySQLInsertMode}
+     */
+    static REPLACE : ?MySQLInsertMode = null;
+    /**
      * @type {string}
      */
-    name = '';
+    name : string = '';
 
     /**
      * @param name {string}
      */
-    constructor(name) {
+    constructor(name : string) {
         this.name = name;
     }
+
+     toJSON() {
+          return this.name;
+     }
 }
 
 MySQLInsertMode.INSERT = new MySQLInsertMode('INSERT');
 MySQLInsertMode.INSERT_IGNORE = new MySQLInsertMode('INSERT_IGNORE');
 MySQLInsertMode.REPLACE = new MySQLInsertMode('REPLACE');
-MySQLInsertMode.prototype.toJSON = function() { return this.name;};
 
 export class TaskDTO {
 
     /**
-     * @type {int}
+     * @type {number}
      */
-    taskId = 0;
+    taskId : ?number = 0;
     /**
      * @type {string}
      */
-    taskName = '';
+    taskName : ?string = '';
     /**
      * @type {SimpleFieldMappingDTO[]}
      */
-    mapping = null;
+    mapping : ?SimpleFieldMappingDTO[] = null;
     /**
      * @type {Table}
      */
-    source = null;
+    source : ?Table = null;
     /**
      * @type {Table}
      */
-    target = null;
+    target : ?Table = null;
     /**
      * @type {TaskType}
      */
-    taskType = null;
+    taskType : ?TaskType = null;
     /**
      * @type {MySQLInsertMode}
      */
-    insertMode = null;
+    insertMode : ?MySQLInsertMode = null;
     /**
      * @type {string[]}
      */
-    filters = null;
+    filters : ?string[] = null;
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @param taskName {string}
      * @param mapping {SimpleFieldMappingDTO[]}
      * @param source {Table}
@@ -349,7 +394,7 @@ export class TaskDTO {
      * @param insertMode {MySQLInsertMode}
      * @param filters {string[]}
      */
-    constructor(taskId, taskName, mapping, source, target, taskType, insertMode, filters) {
+    constructor(taskId : ?number, taskName : ?string, mapping : ?SimpleFieldMappingDTO[], source : ?Table, target : ?Table, taskType : ?TaskType, insertMode : ?MySQLInsertMode, filters : ?string[]) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.mapping = mapping;
@@ -359,4 +404,6 @@ export class TaskDTO {
         this.insertMode = insertMode;
         this.filters = filters;
     }
+
+
 }

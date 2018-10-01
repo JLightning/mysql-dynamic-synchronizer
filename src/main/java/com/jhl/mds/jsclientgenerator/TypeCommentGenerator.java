@@ -28,7 +28,12 @@ public class TypeCommentGenerator {
 
     public String getTypeComment(Class clazz, ParameterizedType parameterizedType, String fileName) {
         if (clazz.isPrimitive()) {
-            return clazz.getSimpleName();
+            if (clazz == boolean.class) {
+                return "boolean";
+            } else if (clazz == char.class) {
+                return "string";
+            }
+            return "number";
         } else if (clazz.getName().equals("java.lang.String")) {
             return "string";
         } else if (clazz.isArray()) {

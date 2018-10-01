@@ -3,7 +3,7 @@ import AbstractClient from "./abstract-client";
 class MySQLApiClient extends AbstractClient {
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
     getDatabasesForServer(serverId) {
@@ -11,7 +11,7 @@ class MySQLApiClient extends AbstractClient {
     }
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param database {string}
      * @param table {string}
      * @returns {{done: (function(function(MySQLFieldDTO[]): *): *), error: (function(*): *)}}
@@ -21,10 +21,10 @@ class MySQLApiClient extends AbstractClient {
     }
 
     /**
-     * @param sourceServerId {int}
+     * @param sourceServerId {number}
      * @param sourceDatabase {string}
      * @param sourceTable {string}
-     * @param targetServerId {int}
+     * @param targetServerId {number}
      * @param targetDatabase {string}
      * @param targetTable {string}
      * @param mapping {SimpleFieldMappingDTO[]}
@@ -50,7 +50,7 @@ class MySQLApiClient extends AbstractClient {
     }
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param database {string}
      * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
@@ -59,7 +59,7 @@ class MySQLApiClient extends AbstractClient {
     }
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param database {string}
      * @param table {string}
      * @param filter {string}

@@ -3,7 +3,7 @@ import AbstractClient from "./abstract-client";
 class ToolApiClient extends AbstractClient {
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @param taskName {string}
      * @param mapping {SimpleFieldMappingDTO[]}
      * @param source {Table}

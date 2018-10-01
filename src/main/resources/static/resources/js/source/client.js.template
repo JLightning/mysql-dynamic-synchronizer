@@ -28,6 +28,8 @@ export default class {className} {
     constructor({constructor_parameters}) {
 {constructor_setters}
     }
+
+{methods}
 }
 
 [dto_field_template]

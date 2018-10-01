@@ -3,7 +3,7 @@ import AbstractClient from "./abstract-client";
 class RedisApiClient extends AbstractClient {
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param name {string}
      * @param host {string}
      * @param port {string}
@@ -23,7 +23,7 @@ class RedisApiClient extends AbstractClient {
     }
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     delete(serverId) {
@@ -31,7 +31,7 @@ class RedisApiClient extends AbstractClient {
     }
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
     detail(serverId) {
@@ -47,7 +47,7 @@ class RedisApiClient extends AbstractClient {
     }
 
     /**
-     * @param serverId {int}
+     * @param serverId {number}
      * @param name {string}
      * @param host {string}
      * @param port {string}

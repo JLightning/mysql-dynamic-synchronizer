@@ -3,7 +3,7 @@ import AbstractClient from "./abstract-client";
 class TaskApiClient extends AbstractClient {
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @param taskName {string}
      * @param mapping {SimpleFieldMappingDTO[]}
      * @param source {Table}
@@ -25,7 +25,7 @@ class TaskApiClient extends AbstractClient {
     }
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     deleteTask(taskId) {
@@ -49,7 +49,7 @@ class TaskApiClient extends AbstractClient {
     }
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
     getTaskAction(taskId) {
@@ -65,7 +65,7 @@ class TaskApiClient extends AbstractClient {
     }
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     startFullMigrationTask(taskId) {
@@ -73,7 +73,7 @@ class TaskApiClient extends AbstractClient {
     }
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     startIncrementalMigrationTask(taskId) {
@@ -81,7 +81,7 @@ class TaskApiClient extends AbstractClient {
     }
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     stopIncrementalMigrationTask(taskId) {
@@ -89,7 +89,7 @@ class TaskApiClient extends AbstractClient {
     }
 
     /**
-     * @param taskId {int}
+     * @param taskId {number}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
     truncateAndStartFullMigrationTask(taskId) {

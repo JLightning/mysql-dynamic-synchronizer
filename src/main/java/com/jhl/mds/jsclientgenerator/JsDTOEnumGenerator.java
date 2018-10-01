@@ -47,26 +47,34 @@ public class JsDTOEnumGenerator {
         List<String> constructorParameters = new ArrayList<>();
         List<String> constructorSetters = new ArrayList<>();
 
-        String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", "name");
+        for (Field field : fields) {
+            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", "static " + field.getName() + " : ?" + className);
+            renderedField = renderedField.replaceAll("\\{type}", className);
+            renderedField = renderedField.replaceAll("\\{default_value}", "null");
+
+            fieldStr.add(renderedField);
+        }
+
+        String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", "name : string");
         renderedField = renderedField.replaceAll("\\{type}", "string");
         renderedField = renderedField.replaceAll("\\{default_value}", "''");
         fieldStr.add(renderedField);
 
-        constructorParameters.add("name");
+        constructorParameters.add("name : string");
         constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", "name"));
 
-        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, renderMethodComment(fields, fileName));
+        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, renderMethodComment(fields, fileName), getToJson(className));
         renderedClass = renderedClass.replaceAll("\n\n\n", "\n");
 
         if (appendToFileIfAnnotationNotFound != null && jsClientDTO == null) {
             renderedClass = renderedClass.replaceAll("export default ", "export ");
         }
 
+        renderedClass += "\n";
         for (Field field : fields) {
-            renderedClass += "\n" + className + "." + field.getName() + " = new " + className + "('" + field.getName() + "');";
+            renderedClass += className + "." + field.getName() + " = new " + className + "('" + field.getName() + "');\n";
         }
-
-        renderedClass += "\n" + getToJson(className);
+        renderedClass += "\n";
 
         FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", true);
         fileWriter.append(renderedClass);
@@ -78,7 +86,7 @@ public class JsDTOEnumGenerator {
     }
 
     private String getToJson(String className) {
-        return className + ".prototype.toJSON = function() { return this.name;};\n\n";
+        return "     toJSON() {\n          return this.name;\n     }\n\n";
     }
 
     private String renderMethodComment(List<Field> fields, String fileName) {
@@ -88,12 +96,13 @@ public class JsDTOEnumGenerator {
         return templateReader.getMethodCommentTemplate().replaceAll("\\{params}", renderedParam);
     }
 
-    private String renderClass(String className, List<String> fields, List<String> constructorParameters, List<String> constructorSetters, String constructorComment) {
+    private String renderClass(String className, List<String> fields, List<String> constructorParameters, List<String> constructorSetters, String constructorComment, String toJson) {
         String renderClassContent = templateReader.getDtoClassTemplate().replaceAll("\\{className}", className);
         renderClassContent = renderClassContent.replaceAll("\\{fields}", StringUtils.join(fields, "\n"));
         renderClassContent = renderClassContent.replaceAll("\\{constructor_parameters}", StringUtils.join(constructorParameters, ", "));
         renderClassContent = renderClassContent.replaceAll("\\{constructor_setters}", StringUtils.join(constructorSetters, "\n"));
         renderClassContent = renderClassContent.replaceAll("\\{constructor_comment}", constructorComment);
+        renderClassContent = renderClassContent.replaceAll("\\{methods}", toJson);
 
         return renderClassContent;
     }

@@ -69,7 +69,7 @@ public class JsDTOGenerator {
         if (clazz == processing) return className;
         processing = clazz;
 
-        fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY+fileName+".js");
+        fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
 
         Field[] fields = clazz.getDeclaredFields();
         List<String> fieldStr = new ArrayList<>();
@@ -78,16 +78,20 @@ public class JsDTOGenerator {
         for (Field field : fields) {
             String defaultValue = getDefaultValueForField(field);
 
-            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName());
+            String type;
             try {
-                renderedField = renderedField.replaceAll("\\{type}", typeCommentGenerator.getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName));
+                type = typeCommentGenerator.getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName);
             } catch (ClassCastException e) {
-                renderedField = renderedField.replaceAll("\\{type}", typeCommentGenerator.getTypeComment(field.getType(), null, fileName));
+                type = typeCommentGenerator.getTypeComment(field.getType(), null, fileName);
             }
+
+            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName() + " : ?" + type);
+
+            renderedField = renderedField.replaceAll("\\{type}", type);
             renderedField = renderedField.replaceAll("\\{default_value}", defaultValue);
             fieldStr.add(renderedField);
 
-            constructorParameters.add(field.getName());
+            constructorParameters.add(field.getName() + " : ?" + type);
 
             constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", field.getName()));
         }
@@ -129,6 +133,7 @@ public class JsDTOGenerator {
         renderClassContent = renderClassContent.replaceAll("\\{constructor_parameters}", StringUtils.join(constructorParameters, ", "));
         renderClassContent = renderClassContent.replaceAll("\\{constructor_setters}", StringUtils.join(constructorSetters, "\n"));
         renderClassContent = renderClassContent.replaceAll("\\{constructor_comment}", constructorComment);
+        renderClassContent = renderClassContent.replaceAll("\\{methods}", "");
 
         return renderClassContent;
     }
