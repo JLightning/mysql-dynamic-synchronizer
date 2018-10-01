@@ -1,3 +1,4 @@
+// @flow
 import AbstractClient from "./abstract-client";
 
 class RedisApiClient extends AbstractClient {
@@ -10,7 +11,7 @@ class RedisApiClient extends AbstractClient {
      * @param username {string}
      * @param password {string}
      */
-    createFlat(serverId, name, host, port, username, password) {
+    createFlat(serverId : number, name : string, host : string, port : string, username : string, password : string) {
         return super.putJson('/api/redis/', {serverId, name, host, port, username, password});
     }
 
@@ -18,7 +19,7 @@ class RedisApiClient extends AbstractClient {
      * @param dto {RedisServerDTO}
      * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    create(dto) {
+    create(dto : RedisServerDTO) {
         return super.putJson('/api/redis/', dto);
     }
 
@@ -26,7 +27,7 @@ class RedisApiClient extends AbstractClient {
      * @param serverId {number}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
-    delete(serverId) {
+    delete(serverId : number) {
         return super.delete('/api/redis/' + serverId + '', {});
     }
 
@@ -34,7 +35,7 @@ class RedisApiClient extends AbstractClient {
      * @param serverId {number}
      * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    detail(serverId) {
+    detail(serverId : number) {
         return super.get('/api/redis/' + serverId + '', {});
     }
 
@@ -54,7 +55,7 @@ class RedisApiClient extends AbstractClient {
      * @param username {string}
      * @param password {string}
      */
-    updateFlat(serverId, name, host, port, username, password) {
+    updateFlat(serverId : number, name : string, host : string, port : string, username : string, password : string) {
         return super.postJson('/api/redis/', {serverId, name, host, port, username, password});
     }
 
@@ -62,7 +63,7 @@ class RedisApiClient extends AbstractClient {
      * @param dto {RedisServerDTO}
      * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    update(dto) {
+    update(dto : RedisServerDTO) {
         return super.postJson('/api/redis/', dto);
     }
 }

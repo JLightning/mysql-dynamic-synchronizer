@@ -1,3 +1,4 @@
+// @flow
 import AbstractClient from "./abstract-client";
 
 class MessageApiClient extends AbstractClient {

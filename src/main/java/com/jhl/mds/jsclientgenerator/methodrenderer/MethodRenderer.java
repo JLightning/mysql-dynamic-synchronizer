@@ -53,15 +53,17 @@ public abstract class MethodRenderer {
         renderMethodContent = renderMethodContent.replaceAll("\\{methodUri}", "'" + methodUri + "'");
 
         Field[] fields = requestBodyParameter.getType().getDeclaredFields();
-        List<String> fieldStr = new ArrayList<>();
+        List<String> methodParameters = new ArrayList<>();
+        List<String> httpParameters = new ArrayList<>();
         for (Field field : fields) {
-            fieldStr.add(field.getName());
+            methodParameters.add(getMethodParametter(field.getName(), field.getType()));
+            httpParameters.add(field.getName());
         }
 
         String comment = typeCommentGenerator.renderMethodComment(fields, "common");
 
-        renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(fieldStr, ", "));
-        renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(fieldStr, ", "));
+        renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
+        renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(httpParameters, ", "));
 
         renderMethodContent = comment + "\n" + renderMethodContent;
 
@@ -93,5 +95,9 @@ public abstract class MethodRenderer {
 
 
         return comment + "\n" + renderMethodContent;
+    }
+
+    String getMethodParametter(String name, Class clazz) {
+        return name + " : " + typeCommentGenerator.getTypeComment(clazz, null, "common");
     }
 }

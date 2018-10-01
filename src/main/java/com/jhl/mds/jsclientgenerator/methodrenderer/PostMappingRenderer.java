@@ -40,18 +40,18 @@ public class PostMappingRenderer extends MethodRenderer {
             for (Annotation a : annotations) {
                 String parameterName = parameterNames[count];
                 if (a instanceof RequestParam) {
-                    methodParameters.add(parameterName);
+                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
                     httpParameters.add(parameterName);
                     break;
                 } else if (a instanceof RequestBody) {
                     requestBodyParameter = parameter;
                     methodAction = "postJson";
-                    methodParameters.add(parameterName);
+                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
                     httpParameters.add(parameterName);
                     break;
                 } else if (a instanceof PathVariable) {
                     methodUri = methodUri.replaceAll("\\{" + parameterName + "}", "' + " + parameterName + " + '");
-                    methodParameters.add(parameterName);
+                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
                 }
             }
             count++;

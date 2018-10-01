@@ -25,6 +25,7 @@ public class JsClientGenerator {
 
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/api-client/";
     private TemplateReader templateReader;
+    private FileCleaner fileCleaner;
     private MethodRenderer[] methodRenderers;
 
     @Autowired
@@ -35,9 +36,11 @@ public class JsClientGenerator {
             PostMappingRenderer postMappingRenderer,
             PutMappingRenderer putMappingRenderer,
             DeleteMappingRenderer deleteMappingRenderer,
-            SubscribeMappingRenderer subscribeMappingRenderer
+            SubscribeMappingRenderer subscribeMappingRenderer,
+            FileCleaner fileCleaner
     ) {
         this.templateReader = templateReader;
+        this.fileCleaner = fileCleaner;
         methodRenderers = new MethodRenderer[]{getMappingRenderer, postMappingRenderer, putMappingRenderer, deleteMappingRenderer, subscribeMappingRenderer};
     }
 
@@ -74,7 +77,9 @@ public class JsClientGenerator {
 
             String renderedClass = renderClass(jsClientController, jsMethods);
 
-            FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
+            fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
+
+            FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js", true);
             fileWriter.write(renderedClass);
 
             fileWriter.close();

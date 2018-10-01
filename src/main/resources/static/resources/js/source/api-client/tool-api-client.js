@@ -1,3 +1,4 @@
+// @flow
 import AbstractClient from "./abstract-client";
 
 class ToolApiClient extends AbstractClient {
@@ -12,7 +13,7 @@ class ToolApiClient extends AbstractClient {
      * @param insertMode {MySQLInsertMode}
      * @param filters {string[]}
      */
-    syncStructureFlat(taskId, taskName, mapping, source, target, taskType, insertMode, filters) {
+    syncStructureFlat(taskId : number, taskName : string, mapping : *, source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : *) {
         return super.postJson('/api/tool/sync-structure', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
     }
 
@@ -20,7 +21,7 @@ class ToolApiClient extends AbstractClient {
      * @param dto {TaskDTO}
      * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
      */
-    syncStructure(dto) {
+    syncStructure(dto : TaskDTO) {
         return super.postJson('/api/tool/sync-structure', dto);
     }
 }

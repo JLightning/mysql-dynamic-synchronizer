@@ -42,7 +42,7 @@ public class SubscribeMappingRenderer extends MethodRenderer {
                 String parameterName = parameterNames[count];
                 if (a instanceof DestinationVariable) {
                     methodUri = methodUri.replaceAll("\\{" + parameterName + "}", "' + " + parameterName + " + '");
-                    methodParameters.add(parameterName);
+                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
                 }
             }
             count++;
