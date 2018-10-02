@@ -404,7 +404,7 @@ export class IncrementalMigrationProgressDTO {
     /**
      * @type {boolean}
      */
-    isDelta: ?boolean = false;
+    delta: ?boolean = false;
 
     /**
      * @param running {boolean}
@@ -413,12 +413,12 @@ export class IncrementalMigrationProgressDTO {
      * @param deleteCount {number}
      * @param isDelta {boolean}
      */
-    constructor(running: ?boolean, insertCount: ?number, updateCount: ?number, deleteCount: ?number, isDelta: ?boolean) {
+    constructor(running: ?boolean, insertCount: ?number, updateCount: ?number, deleteCount: ?number, delta: ?boolean) {
         this.running = running;
         this.insertCount = insertCount;
         this.updateCount = updateCount;
         this.deleteCount = deleteCount;
-        this.isDelta = isDelta;
+        this.delta = delta;
     }
 
 

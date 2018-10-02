@@ -1,6 +1,9 @@
 package com.jhl.mds.jsclientgenerator;
 
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -69,6 +72,8 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
 
         fileUtils.initClean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
 
+        List<BeanPropertyDefinition> properties = getDTOproperties(clazz);
+
         Field[] fields = clazz.getDeclaredFields();
         List<String> fieldStr = new ArrayList<>();
         List<String> constructorParameters = new ArrayList<>();
@@ -76,15 +81,15 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         for (Field field : fields) {
             String type = typeCommentGenerator.getFieldTypeComment(field, fileName);
 
-            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", getFieldName(field) + ": ?" + type);
+            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", getFieldName(field, properties) + ": ?" + type);
 
             renderedField = renderedField.replaceAll("\\{type}", type);
             renderedField = renderedField.replaceAll("\\{default_value}", getDefaultValueForField(field));
             fieldStr.add(renderedField);
 
-            constructorParameters.add(getFieldName(field) + ": ?" + type);
+            constructorParameters.add(getFieldName(field, properties) + ": ?" + type);
 
-            constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", getFieldName(field)));
+            constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", getFieldName(field, properties)));
         }
 
         String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName), "");
@@ -96,6 +101,17 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
 
         dtoRegistry.addTmpGenerated(new DTORegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
         return className;
+    }
+
+    private List<BeanPropertyDefinition> getDTOproperties(Class clazz) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        JavaType type = mapper.getTypeFactory().constructType(clazz);
+        BeanDescription introspection =
+                mapper.getSerializationConfig().introspect(type);
+        List<BeanPropertyDefinition> properties = introspection.findProperties();
+
+        return properties;
     }
 
     private String getDefaultValueForField(Field field) {
@@ -113,7 +129,12 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         return defaultValue;
     }
 
-    private String getFieldName(Field field) {
+    private String getFieldName(Field field, List<BeanPropertyDefinition> properties) {
+        for (BeanPropertyDefinition property : properties) {
+            if (property.getGetter() != null && property.getGetter().getName().equals(field.getName())) {
+                return property.getFullName().getSimpleName();
+            }
+        }
         return field.getName();
     }
 }
