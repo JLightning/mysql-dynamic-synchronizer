@@ -80,7 +80,7 @@ public class JsJsDTOEnumGenerator extends JsDTOGenerator {
         jsClassImportRegistry.addGeneratedClass(clazz, new JsClassImportRegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
         jsClassImportRegistry.addImportMap(new JsClassImportRegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
 
-        return className;
+        return "string";
     }
 
     private String getToJson(String className) {

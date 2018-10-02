@@ -15,16 +15,13 @@ import Validator from "../../../util/validator";
 @observer
 export default class TaskCreate extends React.Component {
 
-    @observable task: TaskDTO = new TaskDTO(0, '', [], {}, {}, '', '', []);
+    @observable task: TaskDTO = new TaskDTO(0, '', [], new TableDTO(), new TableDTO(), '', '', []);
 
     @observable fields = [];
     @observable taskTypes = [];
     @observable insertModes = [];
-    @observable taskType = '';
     @observable insertMode = '';
     @observable taskName = '';
-    @observable sourceTable = {};
-    @observable targetTable = {};
     autorunDisposers = [];
 
     constructor(props) {
@@ -34,7 +31,7 @@ export default class TaskCreate extends React.Component {
             this.taskName = taskDTO.taskName;
             this.task.source = taskDTO.source;
             this.task.target = taskDTO.target;
-            this.taskType = taskDTO.taskType;
+            this.task.taskType = taskDTO.taskType;
             this.insertMode = taskDTO.insertMode;
             this.filters = taskDTO.filters;
 
@@ -55,7 +52,7 @@ export default class TaskCreate extends React.Component {
 
     @computed get readyToSubmit() {
         console.log('compute readyToSubmit');
-        return this.fields.length > 0 && this.taskName !== '' && this.taskType !== '' && this.insertMode !== '';
+        return this.fields.length > 0 && this.taskName !== '' && this.insertMode !== '' && this.task.taskType !== '' ;
     }
 
     getMapping() {
@@ -109,7 +106,7 @@ export default class TaskCreate extends React.Component {
             mapping: mapping,
             source: this.task.source,
             target: this.task.target,
-            taskType: this.taskType,
+            taskType: this.task.taskType,
             insertMode: this.insertMode,
             filters: this.task.filters
         };

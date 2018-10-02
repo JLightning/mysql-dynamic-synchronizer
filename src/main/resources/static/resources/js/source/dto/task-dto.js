@@ -28,13 +28,13 @@ export class TaskDTO {
      */
     @observable target: ?Table = null;
     /**
-     * @type {TaskType}
+     * @type {string}
      */
-    @observable taskType: ?TaskType = null;
+    @observable taskType: ?string = null;
     /**
-     * @type {MySQLInsertMode}
+     * @type {string}
      */
-    @observable insertMode: ?MySQLInsertMode = null;
+    @observable insertMode: ?string = null;
     /**
      * @type {string[]}
      */
@@ -50,7 +50,7 @@ export class TaskDTO {
      * @param insertMode {MySQLInsertMode}
      * @param filters {string[]}
      */
-    constructor(taskId: ?number, taskName: ?string, mapping: ?SimpleFieldMappingDTO[], source: ?Table, target: ?Table, taskType: ?TaskType, insertMode: ?MySQLInsertMode, filters: ?string[]) {
+    constructor(taskId: ?number, taskName: ?string, mapping: ?SimpleFieldMappingDTO[], source: ?Table, target: ?Table, taskType: ?string, insertMode: ?string, filters: ?string[]) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.mapping = mapping;
