@@ -12,7 +12,6 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.annotation.PostConstruct;
-import java.io.FileWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -22,7 +21,7 @@ public class JsClientGenerator {
 
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/api-client/";
     private TemplateReader templateReader;
-    private FileCleaner fileCleaner;
+    private FileUtils fileUtils;
     private MethodRenderer[] methodRenderers;
     private DTORegistry dtoRegistry;
 
@@ -36,11 +35,11 @@ public class JsClientGenerator {
             PutMappingRenderer putMappingRenderer,
             DeleteMappingRenderer deleteMappingRenderer,
             SubscribeMappingRenderer subscribeMappingRenderer,
-            FileCleaner fileCleaner
+            FileUtils fileUtils
     ) {
         this.dtoRegistry = dtoRegistry;
         this.templateReader = templateReader;
-        this.fileCleaner = fileCleaner;
+        this.fileUtils = fileUtils;
         methodRenderers = new MethodRenderer[]{getMappingRenderer, postMappingRenderer, putMappingRenderer, deleteMappingRenderer, subscribeMappingRenderer};
     }
 
@@ -77,12 +76,8 @@ public class JsClientGenerator {
 
             String renderedClass = renderClass(jsClientController, jsMethods, BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
 
-            fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
-
-            FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js", true);
-            fileWriter.write(renderedClass);
-
-            fileWriter.close();
+            fileUtils.initClean(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
+            fileUtils.append(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js", renderedClass);
         }
     }
 

@@ -1,39 +1,36 @@
 package com.jhl.mds.jsclientgenerator;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class JsDTOGenerator {
+public class JsDTOGenerator extends DTOGenerator {
 
-    private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/dto/";
     private TemplateReader templateReader;
     private JsDTOEnumGenerator jsDTOEnumGenerator;
     private TypeCommentGenerator typeCommentGenerator;
     private DTORegistry dtoRegistry;
-    private FileCleaner fileCleaner;
+    private FileUtils fileUtils;
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator, DTORegistry dtoRegistry, FileCleaner fileCleaner) {
+    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator, DTORegistry dtoRegistry, FileUtils fileUtils) {
+        super(templateReader);
         this.templateReader = templateReader;
         this.jsDTOEnumGenerator = jsDTOEnumGenerator;
         this.typeCommentGenerator = typeCommentGenerator;
         this.dtoRegistry = dtoRegistry;
-        this.fileCleaner = fileCleaner;
+        this.fileUtils = fileUtils;
         typeCommentGenerator.setJsDTOGenerator(this);
     }
 
@@ -71,7 +68,7 @@ public class JsDTOGenerator {
         if (clazz == processing) return className;
         processing = clazz;
 
-        fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
+        fileUtils.initClean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
 
         Field[] fields = clazz.getDeclaredFields();
         List<String> fieldStr = new ArrayList<>();
@@ -93,12 +90,10 @@ public class JsDTOGenerator {
             constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", field.getName()));
         }
 
-        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName));
+        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName), "");
 
-        FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", true);
-        fileWriter.append(renderedClass);
+        fileUtils.append(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", renderedClass);
 
-        fileWriter.close();
         generated.put(clazz, className);
         processing = null;
 
@@ -119,16 +114,5 @@ public class JsDTOGenerator {
             return "''";
         }
         return defaultValue;
-    }
-
-    private String renderClass(String className, List<String> fields, List<String> constructorParameters, List<String> constructorSetters, String constructorComment) {
-        String renderClassContent = templateReader.getDtoClassTemplate().replaceAll("\\{className}", className);
-        renderClassContent = renderClassContent.replaceAll("\\{fields}", StringUtils.join(fields, "\n"));
-        renderClassContent = renderClassContent.replaceAll("\\{constructor_parameters}", StringUtils.join(constructorParameters, ", "));
-        renderClassContent = renderClassContent.replaceAll("\\{constructor_setters}", StringUtils.join(constructorSetters, "\n"));
-        renderClassContent = renderClassContent.replaceAll("\\{constructor_comment}", constructorComment);
-        renderClassContent = renderClassContent.replaceAll("\\{methods}", "");
-
-        return renderClassContent;
     }
 }

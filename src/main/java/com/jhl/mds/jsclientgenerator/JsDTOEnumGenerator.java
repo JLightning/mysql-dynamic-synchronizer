@@ -1,6 +1,5 @@
 package com.jhl.mds.jsclientgenerator;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.FileWriter;
@@ -9,19 +8,19 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @Service
-public class JsDTOEnumGenerator {
+public class JsDTOEnumGenerator extends DTOGenerator {
 
-    private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/dto/";
     private TemplateReader templateReader;
     private DTORegistry dtoRegistry;
-    private FileCleaner fileCleaner;
+    private FileUtils fileUtils;
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOEnumGenerator(TemplateReader templateReader, DTORegistry dtoRegistry, FileCleaner fileCleaner) {
+    public JsDTOEnumGenerator(TemplateReader templateReader, DTORegistry dtoRegistry, FileUtils fileUtils) {
+        super(templateReader);
         this.templateReader = templateReader;
         this.dtoRegistry = dtoRegistry;
-        this.fileCleaner = fileCleaner;
+        this.fileUtils = fileUtils;
     }
 
     public String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
@@ -42,7 +41,7 @@ public class JsDTOEnumGenerator {
         if (clazz == processing) return className;
         processing = clazz;
 
-        fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
+        fileUtils.initClean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
 
         List<Field> fields = Arrays.asList(clazz.getFields());
         List<String> fieldStr = new ArrayList<>();
@@ -74,10 +73,8 @@ public class JsDTOEnumGenerator {
         }
         renderedClass += "\n";
 
-        FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", true);
-        fileWriter.append(renderedClass);
+        fileUtils.append(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", renderedClass);
 
-        fileWriter.close();
         generated.put(clazz, className);
         processing = null;
 
@@ -95,16 +92,5 @@ public class JsDTOEnumGenerator {
         renderedParam = renderedParam.replaceAll("\\{type}", "string");
 
         return templateReader.getMethodCommentTemplate().replaceAll("\\{params}", renderedParam);
-    }
-
-    private String renderClass(String className, List<String> fields, List<String> constructorParameters, List<String> constructorSetters, String constructorComment, String toJson) {
-        String renderClassContent = templateReader.getDtoClassTemplate().replaceAll("\\{className}", className);
-        renderClassContent = renderClassContent.replaceAll("\\{fields}", StringUtils.join(fields, "\n"));
-        renderClassContent = renderClassContent.replaceAll("\\{constructor_parameters}", StringUtils.join(constructorParameters, ", "));
-        renderClassContent = renderClassContent.replaceAll("\\{constructor_setters}", StringUtils.join(constructorSetters, "\n"));
-        renderClassContent = renderClassContent.replaceAll("\\{constructor_comment}", constructorComment);
-        renderClassContent = renderClassContent.replaceAll("\\{methods}", toJson);
-
-        return renderClassContent;
     }
 }

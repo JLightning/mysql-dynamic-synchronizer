@@ -8,11 +8,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Service
-public class FileCleaner {
+public class FileUtils {
 
     private Set<String> cleanedFile = new HashSet<>();
 
-    public void clean(String file) throws IOException {
+    public void initClean(String file) throws IOException {
         if (cleanedFile.contains(file)) return;
 
         FileWriter fileWriter = new FileWriter(file);
@@ -20,5 +20,12 @@ public class FileCleaner {
         fileWriter.close();
 
         cleanedFile.add(file);
+    }
+
+    public void append(String filename, String content) throws IOException {
+        FileWriter fileWriter = new FileWriter(filename, true);
+        fileWriter.write(content);
+
+        fileWriter.close();
     }
 }
