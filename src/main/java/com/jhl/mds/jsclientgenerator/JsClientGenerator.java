@@ -2,7 +2,6 @@ package com.jhl.mds.jsclientgenerator;
 
 import com.jhl.mds.jsclientgenerator.methodrenderer.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.SpringApplication;
@@ -28,12 +27,12 @@ public class JsClientGenerator {
     private TemplateReader templateReader;
     private FileCleaner fileCleaner;
     private MethodRenderer[] methodRenderers;
-    private DTORegister dtoRegister;
+    private DTORegistry dtoRegistry;
 
     @Autowired
     public JsClientGenerator(
             JsDTOGenerator jsDTOGenerator,
-            DTORegister dtoRegister,
+            DTORegistry dtoRegistry,
             TemplateReader templateReader,
             GetMappingRenderer getMappingRenderer,
             PostMappingRenderer postMappingRenderer,
@@ -42,7 +41,7 @@ public class JsClientGenerator {
             SubscribeMappingRenderer subscribeMappingRenderer,
             FileCleaner fileCleaner
     ) {
-        this.dtoRegister = dtoRegister;
+        this.dtoRegistry = dtoRegistry;
         this.templateReader = templateReader;
         this.fileCleaner = fileCleaner;
         methodRenderers = new MethodRenderer[]{getMappingRenderer, postMappingRenderer, putMappingRenderer, deleteMappingRenderer, subscribeMappingRenderer};
@@ -109,9 +108,9 @@ public class JsClientGenerator {
         renderClassContent = renderClassContent.replaceAll("\\{methods}", StringUtils.join(jsMethods, "\n\n"));
         renderClassContent = renderClassContent.replaceAll("\\{newVariableClassName}", StringUtils.uncapitalize(jsClientController.className()));
 
-        List<DTORegister.GeneratedDefinition> importDefs = dtoRegister.getTmpGenerated();
+        List<DTORegistry.GeneratedDefinition> importDefs = dtoRegistry.getTmpGenerated();
         List<String> classToImport = new ArrayList<>();
-        for (DTORegister.GeneratedDefinition def : importDefs) {
+        for (DTORegistry.GeneratedDefinition def : importDefs) {
             classToImport.add(def.getClassName());
         }
 

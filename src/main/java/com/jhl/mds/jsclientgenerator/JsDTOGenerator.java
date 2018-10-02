@@ -1,6 +1,5 @@
 package com.jhl.mds.jsclientgenerator;
 
-import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
@@ -24,16 +23,16 @@ public class JsDTOGenerator {
     private TemplateReader templateReader;
     private JsDTOEnumGenerator jsDTOEnumGenerator;
     private TypeCommentGenerator typeCommentGenerator;
-    private DTORegister dtoRegister;
+    private DTORegistry dtoRegistry;
     private FileCleaner fileCleaner;
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator, DTORegister dtoRegister, FileCleaner fileCleaner) {
+    public JsDTOGenerator(TemplateReader templateReader, JsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator, DTORegistry dtoRegistry, FileCleaner fileCleaner) {
         this.templateReader = templateReader;
         this.jsDTOEnumGenerator = jsDTOEnumGenerator;
         this.typeCommentGenerator = typeCommentGenerator;
-        this.dtoRegister = dtoRegister;
+        this.dtoRegistry = dtoRegistry;
         this.fileCleaner = fileCleaner;
         typeCommentGenerator.setJsDTOGenerator(this);
     }
@@ -112,7 +111,7 @@ public class JsDTOGenerator {
         generated.put(clazz, className);
         processing = null;
 
-        dtoRegister.addTmpGenerated(new DTORegister.GeneratedDefinition(className, fileName));
+        dtoRegistry.addTmpGenerated(new DTORegistry.GeneratedDefinition(className, fileName));
         return className;
     }
 

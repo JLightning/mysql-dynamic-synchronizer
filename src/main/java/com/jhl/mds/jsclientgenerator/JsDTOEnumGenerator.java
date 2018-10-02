@@ -13,14 +13,14 @@ public class JsDTOEnumGenerator {
 
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/dto/";
     private TemplateReader templateReader;
-    private DTORegister dtoRegister;
+    private DTORegistry dtoRegistry;
     private FileCleaner fileCleaner;
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOEnumGenerator(TemplateReader templateReader, DTORegister dtoRegister, FileCleaner fileCleaner) {
+    public JsDTOEnumGenerator(TemplateReader templateReader, DTORegistry dtoRegistry, FileCleaner fileCleaner) {
         this.templateReader = templateReader;
-        this.dtoRegister = dtoRegister;
+        this.dtoRegistry = dtoRegistry;
         this.fileCleaner = fileCleaner;
     }
 
@@ -85,7 +85,7 @@ public class JsDTOEnumGenerator {
         generated.put(clazz, className);
         processing = null;
 
-        dtoRegister.addTmpGenerated(new DTORegister.GeneratedDefinition(className, fileName));
+        dtoRegistry.addTmpGenerated(new DTORegistry.GeneratedDefinition(className, fileName));
 
         return className;
     }

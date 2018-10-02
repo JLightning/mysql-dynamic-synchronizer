@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class DTORegister {
+public class DTORegistry {
 
     private List<GeneratedDefinition> tmpGenerated = new ArrayList<>();
 
