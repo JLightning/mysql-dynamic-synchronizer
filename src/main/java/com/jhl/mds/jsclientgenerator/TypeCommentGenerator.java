@@ -70,7 +70,7 @@ public class TypeCommentGenerator {
             } catch (Exception e) {
                 return "{}";
             }
-        } else if (clazz.getName().contains("java.util") && clazz.getName().contains("List")) {
+        } else if (List.class.isAssignableFrom(clazz)) {
             try {
                 Class<?> genericArgument = (Class<?>) parameterizedType.getActualTypeArguments()[0];
 
@@ -79,8 +79,10 @@ public class TypeCommentGenerator {
                 return "*";
             }
         } else if (clazz.getName().contains("java.lang")) {
-            if (clazz == Long.class) {
+            if (Number.class.isAssignableFrom(clazz)) {
                 return "number";
+            } else if (clazz == Character.class) {
+                return "string";
             }
             return clazz.getSimpleName().toLowerCase();
         }
