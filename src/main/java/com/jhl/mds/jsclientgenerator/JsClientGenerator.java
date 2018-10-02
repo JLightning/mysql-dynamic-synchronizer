@@ -1,6 +1,7 @@
 package com.jhl.mds.jsclientgenerator;
 
 import com.jhl.mds.jsclientgenerator.methodrenderer.*;
+import com.jhl.mds.jsclientgenerator.util.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;

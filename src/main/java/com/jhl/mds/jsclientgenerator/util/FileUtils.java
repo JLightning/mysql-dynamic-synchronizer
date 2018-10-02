@@ -1,4 +1,4 @@
-package com.jhl.mds.jsclientgenerator;
+package com.jhl.mds.jsclientgenerator.util;
 
 import org.springframework.stereotype.Service;
 

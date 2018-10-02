@@ -45,18 +45,18 @@ public class ImportRenderer {
     private String resolveImportPath(String classFileName, String dtoFileName) {
         String[] classFileNames = classFileName.split("/");
         String[] dtoFileNames = dtoFileName.split("/");
-        String result = "";
+        StringBuilder result = new StringBuilder();
         for (int i = 0; i < classFileNames.length - 1; i++) {
             if (classFileNames[i].equals(dtoFileNames[i])) continue;
-            result += "../";
+            result.append("../");
         }
 
         for (int i = 0; i < dtoFileNames.length; i++) {
             if (classFileNames[i].equals(dtoFileNames[i])) continue;
-            result += dtoFileNames[i] + "/";
+            result.append(dtoFileNames[i]).append("/");
         }
-        result = result.replaceAll("\\.js/$", "");
-        if (!result.contains("../")) result = "./" + result;
-        return result;
+        result = new StringBuilder(result.toString().replaceAll("\\.js/$", ""));
+        if (!result.toString().contains("../")) result.insert(0, "./");
+        return result.toString();
     }
 }
