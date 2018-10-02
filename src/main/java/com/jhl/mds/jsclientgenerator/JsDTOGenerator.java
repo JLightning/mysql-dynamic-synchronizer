@@ -1,6 +1,7 @@
 package com.jhl.mds.jsclientgenerator;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.util.Pair;
 
 import java.util.List;
 
@@ -22,5 +23,14 @@ public abstract class JsDTOGenerator {
         renderClassContent = renderClassContent.replaceAll("\\{methods}", methods);
 
         return renderClassContent;
+    }
+
+    Pair<String, String> getFileNameAndClassName(JsClientDTO jsClientDTO, Class<?> clazz, String appendToFileIfAnnotationNotFound) throws Exception {
+        if (jsClientDTO != null) {
+            return Pair.of(jsClientDTO.fileName(), jsClientDTO.className());
+        } else if (appendToFileIfAnnotationNotFound != null) {
+            return Pair.of(appendToFileIfAnnotationNotFound,clazz.getSimpleName());
+        }
+        throw new Exception("cannot proccess classname and filename");
     }
 }

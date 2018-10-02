@@ -2,9 +2,11 @@ package com.jhl.mds.jsclientgenerator;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 
+@Service
 public class GeneratorRunner {
 
     private JsClientGenerator jsClientGenerator;

@@ -1,7 +1,7 @@
 // @flow
 import AbstractClient from "./abstract-client";
 import {RedisServerDTO} from '../dto/redis-server-dto';
-import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, Table, TaskType, MySQLInsertMode, TaskDTO} from '../dto/common';
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, Table, TaskType, MySQLInsertMode, TaskDTO, FullMigrationProgressDTO, IncrementalMigrationProgressDTO} from '../dto/common';
 
 class TaskApiClient extends AbstractClient {
 
@@ -36,11 +36,11 @@ class TaskApiClient extends AbstractClient {
         return super.delete('/api/task/' + taskId + '', {});
     }
 
-    getFullMigrationTaskProgressWs(taskId : number, callback): void {
+    getFullMigrationTaskProgressWs(taskId : number, callback: (FullMigrationProgressDTO) => any): void {
         return super.subscribe('/app/channel/task/full-migration-progress/' + taskId + '', callback);
     }
 
-    getIncrementalMigrationProgressWs(taskId : number, callback): void {
+    getIncrementalMigrationProgressWs(taskId : number, callback: (IncrementalMigrationProgressDTO) => any): void {
         return super.subscribe('/app/channel/task/incremental-migration-progress/' + taskId + '', callback);
     }
 

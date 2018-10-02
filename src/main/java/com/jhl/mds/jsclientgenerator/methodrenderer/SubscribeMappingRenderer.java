@@ -1,7 +1,7 @@
 package com.jhl.mds.jsclientgenerator.methodrenderer;
 
-import com.jhl.mds.jsclientgenerator.JsClientGenerator;
 import com.jhl.mds.jsclientgenerator.TemplateReader;
+import com.jhl.mds.jsclientgenerator.TypeCommentGenerator;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +20,13 @@ public class SubscribeMappingRenderer extends MethodRenderer {
 
     private TemplateReader templateReader;
     private ParameterNameDiscoverer parameterNameDiscoverer;
+    private TypeCommentGenerator typeCommentGenerator;
 
-    public SubscribeMappingRenderer(TemplateReader templateReader, ParameterNameDiscoverer parameterNameDiscoverer) {
+    public SubscribeMappingRenderer(TemplateReader templateReader, ParameterNameDiscoverer parameterNameDiscoverer, TypeCommentGenerator typeCommentGenerator) {
         super(templateReader);
         this.templateReader = templateReader;
         this.parameterNameDiscoverer = parameterNameDiscoverer;
+        this.typeCommentGenerator = typeCommentGenerator;
     }
 
     @Override
@@ -48,10 +51,17 @@ public class SubscribeMappingRenderer extends MethodRenderer {
             count++;
         }
 
+        String returnType;
+        try {
+            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType(), "common");
+        } catch (ClassCastException e) {
+            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), null, "common");
+        }
+
         String renderMethodContent = templateReader.getMethodTemplate().replaceAll("\\{methodName}", method.getName());
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);
         renderMethodContent = renderMethodContent.replaceAll("\\{methodUri}", "'" + methodUri + "'");
-        methodParameters.add("callback");
+        methodParameters.add("callback: (" + returnType+") => any");
         renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
         renderMethodContent = renderMethodContent.replaceAll("\\{\\{httpParameters}}", "callback");
         renderMethodContent = renderMethodContent.replaceAll("\\{return_type}", "void");

@@ -361,3 +361,65 @@ export class TaskDTO {
 
 
 }
+export class FullMigrationProgressDTO {
+
+    /**
+     * @type {boolean}
+     */
+    running : ?boolean = false;
+    /**
+     * @type {number}
+     */
+    progress : ?number = 0;
+
+    /**
+     * @param running {boolean}
+     * @param progress {number}
+     */
+    constructor(running : ?boolean, progress : ?number) {
+        this.running = running;
+        this.progress = progress;
+    }
+
+
+}
+export class IncrementalMigrationProgressDTO {
+
+    /**
+     * @type {boolean}
+     */
+    running : ?boolean = false;
+    /**
+     * @type {number}
+     */
+    insertCount : ?number = null;
+    /**
+     * @type {number}
+     */
+    updateCount : ?number = null;
+    /**
+     * @type {number}
+     */
+    deleteCount : ?number = null;
+    /**
+     * @type {boolean}
+     */
+    isDelta : ?boolean = false;
+
+    /**
+     * @param running {boolean}
+     * @param insertCount {number}
+     * @param updateCount {number}
+     * @param deleteCount {number}
+     * @param isDelta {boolean}
+     */
+    constructor(running : ?boolean, insertCount : ?number, updateCount : ?number, deleteCount : ?number, isDelta : ?boolean) {
+        this.running = running;
+        this.insertCount = insertCount;
+        this.updateCount = updateCount;
+        this.deleteCount = deleteCount;
+        this.isDelta = isDelta;
+    }
+
+
+}

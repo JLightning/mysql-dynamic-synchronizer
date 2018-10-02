@@ -3,6 +3,7 @@ package com.jhl.mds.jsclientgenerator;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -52,16 +53,15 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         if (generated.containsKey(clazz)) return generated.get(clazz);
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
 
-        String className, fileName;
-        if (jsClientDTO != null) {
-            className = jsClientDTO.className();
-            fileName = jsClientDTO.fileName();
-        } else if (appendToFileIfAnnotationNotFound != null) {
-            className = clazz.getSimpleName();
-            fileName = appendToFileIfAnnotationNotFound;
-        } else {
+        Pair<String, String> pair;
+        try {
+            pair = getFileNameAndClassName(jsClientDTO, clazz, appendToFileIfAnnotationNotFound);
+        } catch (Exception e) {
             return "";
         }
+
+        String fileName = pair.getFirst();
+        String className = pair.getSecond();
 
         if (clazz == processing) return className;
         processing = clazz;

@@ -1,6 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {RedisServerDTO} from '../dto/redis-server-dto';
+
 
 class MessageApiClient extends AbstractClient {
 

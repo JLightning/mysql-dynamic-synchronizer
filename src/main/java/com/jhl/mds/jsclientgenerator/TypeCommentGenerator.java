@@ -79,6 +79,9 @@ public class TypeCommentGenerator {
                 return "*";
             }
         } else if (clazz.getName().contains("java.lang")) {
+            if (clazz == Long.class) {
+                return "number";
+            }
             return clazz.getSimpleName().toLowerCase();
         }
         return "*";
