@@ -59,7 +59,7 @@ export class MySQLFieldDTO {
 
 
 }
-import {SimpleFieldMappingDTO} from 'simple-field-mapping-dto';
+import {SimpleFieldMappingDTO} from './simple-field-mapping-dto';
 
 export class TableFieldsMappingRequestDTO {
 

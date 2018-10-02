@@ -25,7 +25,7 @@ public class ImportRenderer {
             Map<String, List<String>> importFromMap = new HashMap<>();
             for (JsClassImportRegistry.GeneratedDefinition def : importDefs) {
                 String relativePath = resolveImportPath(renderToFilename, def.getFileName());
-                if (relativePath.equals("")) continue;
+                if (relativePath.equals("./")) continue;
                 if (!importFromMap.containsKey(relativePath)) importFromMap.put(relativePath, new ArrayList<>());
                 importFromMap.get(relativePath).add(def.getClassName());
             }
@@ -56,6 +56,7 @@ public class ImportRenderer {
             result += dtoFileNames[i] + "/";
         }
         result = result.replaceAll("\\.js/$", "");
+        if (!result.contains("../")) result = "./" + result;
         return result;
     }
 }

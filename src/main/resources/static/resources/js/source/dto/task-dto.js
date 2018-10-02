@@ -103,7 +103,7 @@ MySQLInsertMode.INSERT = new MySQLInsertMode('INSERT');
 MySQLInsertMode.INSERT_IGNORE = new MySQLInsertMode('INSERT_IGNORE');
 MySQLInsertMode.REPLACE = new MySQLInsertMode('REPLACE');
 
-import {SimpleFieldMappingDTO} from 'simple-field-mapping-dto';
+import {SimpleFieldMappingDTO} from './simple-field-mapping-dto';
 
 export class TaskDTO {
 
