@@ -43,8 +43,7 @@ public class JsClientGenerator {
         methodRenderers = new MethodRenderer[]{getMappingRenderer, postMappingRenderer, putMappingRenderer, deleteMappingRenderer, subscribeMappingRenderer};
     }
 
-    @PostConstruct
-    public void init() throws Exception {
+    public void start() throws Exception {
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
 
@@ -133,10 +132,5 @@ public class JsClientGenerator {
         }
         result = result.replaceAll("\\.js/$", "");
         return result;
-    }
-
-    public static void main(String[] args) {
-        ConfigurableApplicationContext ctx = SpringApplication.run(JsClientGenerator.class);
-        ctx.close();
     }
 }

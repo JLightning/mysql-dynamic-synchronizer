@@ -34,8 +34,7 @@ public class JsDTOGenerator extends DTOGenerator {
         typeCommentGenerator.setJsDTOGenerator(this);
     }
 
-    @PostConstruct
-    public void init() throws Exception {
+    public void start() throws Exception {
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
 
