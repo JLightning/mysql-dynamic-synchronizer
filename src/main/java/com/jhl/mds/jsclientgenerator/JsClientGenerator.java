@@ -15,10 +15,7 @@ import javax.annotation.PostConstruct;
 import java.io.FileWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @SpringBootApplication
 public class JsClientGenerator {
@@ -78,7 +75,7 @@ public class JsClientGenerator {
                 }
             }
 
-            String renderedClass = renderClass(jsClientController, jsMethods);
+            String renderedClass = renderClass(jsClientController, jsMethods, BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
 
             fileCleaner.clean(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
 
@@ -102,21 +99,45 @@ public class JsClientGenerator {
         return result;
     }
 
-    // TODO: fix import from path
-    private String renderClass(JsClientController jsClientController, List<String> jsMethods) {
+    private String renderClass(JsClientController jsClientController, List<String> jsMethods, String renderToFilename) {
         String renderClassContent = templateReader.getClassTemplate().replaceAll("\\{className}", jsClientController.className());
         renderClassContent = renderClassContent.replaceAll("\\{methods}", StringUtils.join(jsMethods, "\n\n"));
         renderClassContent = renderClassContent.replaceAll("\\{newVariableClassName}", StringUtils.uncapitalize(jsClientController.className()));
 
         List<DTORegistry.GeneratedDefinition> importDefs = dtoRegistry.getTmpGenerated();
-        List<String> classToImport = new ArrayList<>();
+        Map<String, List<String>> importFromMap = new HashMap<>();
         for (DTORegistry.GeneratedDefinition def : importDefs) {
-            classToImport.add(def.getClassName());
+            String relativePath = resolveImportPath(renderToFilename, def.getFileName());
+            if (!importFromMap.containsKey(relativePath)) importFromMap.put(relativePath, new ArrayList<>());
+            importFromMap.get(relativePath).add(def.getClassName());
         }
 
-        renderClassContent = renderClassContent.replaceAll("\\{imports}", "import {" + StringUtils.join(classToImport, ", ") + "} from '../dto/common';");
+        List<String> importLines = new ArrayList<>();
+
+        for (Map.Entry<String, List<String>> e : importFromMap.entrySet()) {
+            importLines.add("import {" + StringUtils.join(e.getValue(), ", ") + "} from '" + e.getKey() + "';");
+        }
+
+        renderClassContent = renderClassContent.replaceAll("\\{imports}", StringUtils.join(importLines, "\n"));
 
         return renderClassContent;
+    }
+
+    private String resolveImportPath(String classFileName, String dtoFileName) {
+        String[] classFileNames = classFileName.split("/");
+        String[] dtoFileNames = dtoFileName.split("/");
+        String result = "";
+        for (int i = 0; i < classFileNames.length - 1; i++) {
+            if (classFileNames[i].equals(dtoFileNames[i])) continue;
+            result += "../";
+        }
+
+        for (int i = 0; i < dtoFileNames.length; i++) {
+            if (classFileNames[i].equals(dtoFileNames[i])) continue;
+            result += dtoFileNames[i] + "/";
+        }
+        result = result.replaceAll("\\.js/$", "");
+        return result;
     }
 
     public static void main(String[] args) {

@@ -111,7 +111,7 @@ public class JsDTOGenerator {
         generated.put(clazz, className);
         processing = null;
 
-        dtoRegistry.addTmpGenerated(new DTORegistry.GeneratedDefinition(className, fileName));
+        dtoRegistry.addTmpGenerated(new DTORegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
         return className;
     }
 

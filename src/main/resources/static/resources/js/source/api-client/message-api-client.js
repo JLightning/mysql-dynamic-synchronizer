@@ -1,6 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {} from '../dto/common';
+
 
 class MessageApiClient extends AbstractClient {
 
