@@ -22,8 +22,8 @@ public class GeneratorRunner {
 
     @PostConstruct
     public void init() throws Exception {
-        jsClientGenerator.start();
         jsDTOClassGenerator.start();
+        jsClientGenerator.start();
     }
 
     public static void main(String[] args) {

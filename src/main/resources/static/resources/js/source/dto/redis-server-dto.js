@@ -4,27 +4,27 @@ export class RedisServerDTO {
     /**
      * @type {number}
      */
-    serverId : ?number = 0;
+    serverId: ?number = 0;
     /**
      * @type {string}
      */
-    name : ?string = '';
+    name: ?string = '';
     /**
      * @type {string}
      */
-    host : ?string = '';
+    host: ?string = '';
     /**
      * @type {string}
      */
-    port : ?string = '';
+    port: ?string = '';
     /**
      * @type {string}
      */
-    username : ?string = '';
+    username: ?string = '';
     /**
      * @type {string}
      */
-    password : ?string = '';
+    password: ?string = '';
 
     /**
      * @param serverId {number}
@@ -34,7 +34,7 @@ export class RedisServerDTO {
      * @param username {string}
      * @param password {string}
      */
-    constructor(serverId : ?number, name : ?string, host : ?string, port : ?string, username : ?string, password : ?string) {
+    constructor(serverId: ?number, name: ?string, host: ?string, port: ?string, username: ?string, password: ?string) {
         this.serverId = serverId;
         this.name = name;
         this.host = host;

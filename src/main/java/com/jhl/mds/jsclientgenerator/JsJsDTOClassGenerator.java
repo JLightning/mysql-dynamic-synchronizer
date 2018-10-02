@@ -1,5 +1,6 @@
 package com.jhl.mds.jsclientgenerator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -73,19 +74,17 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         List<String> constructorParameters = new ArrayList<>();
         List<String> constructorSetters = new ArrayList<>();
         for (Field field : fields) {
-            String defaultValue = getDefaultValueForField(field);
-
             String type = typeCommentGenerator.getFieldTypeComment(field, fileName);
 
-            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName() + " : ?" + type);
+            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", getFieldName(field) + ": ?" + type);
 
             renderedField = renderedField.replaceAll("\\{type}", type);
-            renderedField = renderedField.replaceAll("\\{default_value}", defaultValue);
+            renderedField = renderedField.replaceAll("\\{default_value}", getDefaultValueForField(field));
             fieldStr.add(renderedField);
 
-            constructorParameters.add(field.getName() + " : ?" + type);
+            constructorParameters.add(getFieldName(field) + ": ?" + type);
 
-            constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", field.getName()));
+            constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", getFieldName(field)));
         }
 
         String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName), "");
@@ -112,5 +111,9 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
             return "''";
         }
         return defaultValue;
+    }
+
+    private String getFieldName(Field field) {
+        return field.getName();
     }
 }
