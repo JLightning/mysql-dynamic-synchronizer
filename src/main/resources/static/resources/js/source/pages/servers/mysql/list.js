@@ -2,11 +2,12 @@ import React from "react";
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import mySQLApiClient from "../../../api-client/mysql-api-client";
+import {MySQLServerDTO} from "../../../dto/common";
 
 @observer
 export default class MysqlServerList extends React.Component {
 
-    @observable serverList = [];
+    @observable serverList: MySQLServerDTO[] = [];
 
     componentDidMount() {
         mySQLApiClient.getServers().done(data => this.serverList = data);

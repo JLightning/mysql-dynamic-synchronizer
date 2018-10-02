@@ -4,7 +4,7 @@ import {observable} from 'mobx';
 import redisApiClient from "../../../api-client/redis-api-client";
 import YesNoModal from "../../../common/yes-no-modal";
 import {Link} from "react-router-dom";
-import {RedisServerDTO} from "../../../dto/common";
+import {RedisServerDTO} from "../../../dto/redis-server-dto";
 
 @observer
 export default class ReidsServerList extends React.Component {

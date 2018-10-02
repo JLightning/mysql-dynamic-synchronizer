@@ -4,16 +4,17 @@ import Table from "../../../common/table";
 import {observable} from 'mobx';
 import {observer} from 'mobx-react';
 import YesNoModal from "../../../common/yes-no-modal";
+import {TaskDTO} from "../../../dto/task-dto";
+import {FullMigrationProgressDTO, IncrementalMigrationProgressDTO} from "../../../dto/common";
 
 @observer
 export default class TaskDetail extends React.Component {
 
     taskId = 0;
-    @observable task = null;
-    @observable incrementalMigrationProgress = {insertCount: 0, updateCount: 0, deleteCount: 0};
+    @observable task: ?TaskDTO = null;
+    @observable incrementalMigrationProgress: IncrementalMigrationProgressDTO = new IncrementalMigrationProgressDTO(false, 0, 0, 0, false);
     @observable incrementalMigrationRunning = false;
-    @observable fullMigrationProgress = 0;
-    @observable fullMigrationRunning = false;
+    @observable fullMigrationProgress: FullMigrationProgressDTO = new FullMigrationProgressDTO(false, 0);
     @observable showTruncateModal = false;
 
     constructor(props) {
@@ -22,10 +23,7 @@ export default class TaskDetail extends React.Component {
     }
 
     componentDidMount() {
-        taskApiClient.getFullMigrationTaskProgressWs(this.taskId, event => {
-            this.fullMigrationProgress = event.progress;
-            this.fullMigrationRunning = event.running;
-        });
+        taskApiClient.getFullMigrationTaskProgressWs(this.taskId, (event: FullMigrationProgressDTO) => this.fullMigrationProgress = event);
 
         taskApiClient.getIncrementalMigrationProgressWs(this.taskId, event => {
             if (event.delta) {
@@ -68,14 +66,14 @@ export default class TaskDetail extends React.Component {
                         <div className="progress ml-1" style={{height: "24px"}}>
                             <div className="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                  aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"
-                                 style={{width: this.fullMigrationProgress + '%'}}>{this.fullMigrationProgress}%
+                                 style={{width: this.fullMigrationProgress.progress + '%'}}>{this.fullMigrationProgress.progress}%
                             </div>
                         </div>
                     </div>
                     <div className="col-2 vertial-center">
                         {
                             (() => {
-                                if (this.fullMigrationRunning)
+                                if (this.fullMigrationProgress.running)
                                     return <button type="button"
                                                    className="float-right btn btn-primary btn-sm ml-1">Stop</button>;
                                 return (
