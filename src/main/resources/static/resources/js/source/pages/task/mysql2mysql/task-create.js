@@ -8,12 +8,15 @@ import {autorun, computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
 import TagEditor from "../../../common/tag-editor";
 import PropTypes from 'prop-types';
+import {TaskDTO, Table as TableDTO} from "../../../dto/task-dto";
+import Validator from "../../../util/validator";
 
 @observer
 export default class TaskCreate extends React.Component {
 
+    @observable task: TaskDTO = new TaskDTO(0, '', [], {}, {}, '', '', []);
+
     @observable fields = [];
-    @observable filters = [];
     @observable taskTypes = [];
     @observable insertModes = [];
     @observable taskType = '';
@@ -28,8 +31,8 @@ export default class TaskCreate extends React.Component {
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
             this.taskName = taskDTO.taskName;
-            this.sourceTable = taskDTO.source;
-            this.targetTable = taskDTO.target;
+            this.task.source = taskDTO.source;
+            this.task.target = taskDTO.target;
             this.taskType = taskDTO.taskType;
             this.insertMode = taskDTO.insertMode;
             this.filters = taskDTO.filters;
@@ -55,19 +58,20 @@ export default class TaskCreate extends React.Component {
     }
 
     getMapping() {
-        let emptySourceTable = typeof this.sourceTable.serverId === 'undefined' || typeof this.sourceTable.database === 'undefined' || typeof this.sourceTable.table === 'undefined';
-        let emptyTargetTable = typeof this.targetTable.serverId === 'undefined' || typeof this.targetTable.database === 'undefined' || typeof this.targetTable.table === 'undefined';
-        let table = this.sourceTable;
+        let emptySourceTable = typeof this.task.source.serverId === 'undefined' || typeof this.task.source.database === 'undefined' || typeof this.task.source.table === 'undefined';
+        let emptyTargetTable = typeof this.task.target.serverId === 'undefined' || typeof this.task.target.database === 'undefined' || typeof this.task.target.table === 'undefined';
+
+        let table = this.task.source;
         let sub = 'sourceField';
         if (!emptySourceTable && !emptyTargetTable) {
             const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
-            mySQLApiClient.getMappingFor2TableFlat(this.sourceTable.serverId, this.sourceTable.database, this.sourceTable.table,
-                this.targetTable.serverId, this.targetTable.database, this.targetTable.table, mapping)
+            mySQLApiClient.getMappingFor2TableFlat(this.task.source.serverId, this.task.source.database, this.task.source.table,
+                this.task.target.serverId, this.task.target.database, this.task.target.table, mapping)
                 .done(fields => this.fields = fields);
 
             return;
         } else if (emptySourceTable) {
-            table = this.targetTable;
+            table = this.task.target;
             sub = 'targetField';
         }
         if (emptySourceTable && emptyTargetTable) {
@@ -102,11 +106,11 @@ export default class TaskCreate extends React.Component {
         const postParams = {
             taskName: this.taskName,
             mapping: mapping,
-            source: this.sourceTable,
-            target: this.targetTable,
+            source: this.task.source,
+            target: this.task.target,
             taskType: this.taskType,
             insertMode: this.insertMode,
-            filters: this.filters
+            filters: this.task.filters
         };
 
         if (typeof taskDTO !== 'undefined') {
@@ -160,10 +164,10 @@ export default class TaskCreate extends React.Component {
 
                     <div className="row">
                         <div className="col">
-                            <TableSelector table={this.sourceTable} title='Source'/>
+                            <TableSelector table={this.task.source} title='Source'/>
                         </div>
                         <div className="col">
-                            <TableSelector table={this.targetTable} title='Target'/>
+                            <TableSelector table={this.task.target} title='Target'/>
                         </div>
                     </div>
 
@@ -179,8 +183,8 @@ export default class TaskCreate extends React.Component {
                     }
 
                     <h4 className="mt-3">Filter</h4>
-                    <TagEditor items={this.filters}
-                               validator={(value, cb) => mySQLApiClient.validateFilter(this.sourceTable.serverId, this.sourceTable.database, this.sourceTable.table, value)
+                    <TagEditor items={this.task.filters}
+                               validator={(value, cb) => mySQLApiClient.validateFilter(this.task.source.serverId, this.task.source.database, this.task.source.table, value)
                                    .done(data => cb(data))}/>
 
                     <button type="button" className="btn btn-primary float-right mt-3"
@@ -271,7 +275,7 @@ class FieldRow extends React.Component {
 
     getSourceText() {
         const field = this.props.field;
-        if (this.props.isInEditMode.get())
+        if (!Validator.isNull(this.props.isInEditMode) && this.props.isInEditMode.get())
             return (
                 <div>
                     <input type="text" value={field.sourceField}

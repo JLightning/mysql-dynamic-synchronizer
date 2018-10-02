@@ -4,9 +4,10 @@ import Select, {SelectOption} from "./select";
 import mySQLApiClient from "../api-client/mysql-api-client";
 import {observer} from 'mobx-react';
 import {autorun, observable} from "mobx";
+import {Table} from "../dto/task-dto";
 
 @observer
-export default class TableSelector extends React.Component {
+export default class TableSelector extends React.Component<Table> {
 
     @observable servers = [];
     @observable databases = [];
@@ -19,6 +20,8 @@ export default class TableSelector extends React.Component {
 
     componentDidMount() {
         this.getServers();
+
+        autorun(() => console.log(this.props.table));
 
         this.autorunDisposer.push(autorun(() => this.serverSelected(this.props.table.serverId)));
         this.autorunDisposer.push(autorun(() => this.databaseSelected(this.props.table.database)));

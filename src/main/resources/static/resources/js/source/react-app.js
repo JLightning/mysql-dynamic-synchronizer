@@ -41,5 +41,3 @@ class App extends React.Component {
 if (document.getElementById('reactWrapper') !== null) {
     ReactDOM.render(<App/>, document.getElementById('reactWrapper'));
 }
-
-console.log(JSON.stringify(MySQLInsertMode.INSERT_IGNORE));
