@@ -45,18 +45,13 @@ public class SubscribeMappingRenderer extends MethodRenderer {
                 String parameterName = parameterNames[count];
                 if (a instanceof DestinationVariable) {
                     methodUri = methodUri.replaceAll("\\{" + parameterName + "}", "' + " + parameterName + " + '");
-                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
+                    methodParameters.add(getMethodParametter(parameterName, parameter));
                 }
             }
             count++;
         }
 
-        String returnType;
-        try {
-            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType(), "common");
-        } catch (ClassCastException e) {
-            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), null, "common");
-        }
+        String returnType = typeCommentGenerator.getReturnTypeComment(method, "common");
 
         String renderMethodContent = templateReader.getMethodTemplate().replaceAll("\\{methodName}", method.getName());
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);

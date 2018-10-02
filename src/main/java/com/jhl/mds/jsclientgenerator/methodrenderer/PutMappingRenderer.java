@@ -42,18 +42,18 @@ public class PutMappingRenderer extends MethodRenderer {
             for (Annotation a : annotations) {
                 String parameterName = parameterNames[count];
                 if (a instanceof RequestParam) {
-                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
+                    methodParameters.add(getMethodParametter(parameterName, parameter));
                     httpParameters.add(parameterName);
                     break;
                 } else if (a instanceof RequestBody) {
                     requestBodyParameter = parameter;
                     methodAction = "putJson";
-                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
+                    methodParameters.add(getMethodParametter(parameterName, parameter));
                     httpParameters.add(parameterName);
                     break;
                 } else if (a instanceof PathVariable) {
                     methodUri = methodUri.replaceAll("\\{" + parameterName + "}", "' + " + parameterName + " + '");
-                    methodParameters.add(getMethodParametter(parameterName, parameter.getType()));
+                    methodParameters.add(getMethodParametter(parameterName, parameter));
                 }
             }
             count++;

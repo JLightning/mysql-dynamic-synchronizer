@@ -75,7 +75,7 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         for (Field field : fields) {
             String defaultValue = getDefaultValueForField(field);
 
-            String type = typeCommentGenerator.getTypeComment(field, fileName);
+            String type = typeCommentGenerator.getFieldTypeComment(field, fileName);
 
             String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName() + " : ?" + type);
 

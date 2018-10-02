@@ -12,7 +12,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,12 +61,7 @@ public abstract class MethodRenderer {
 
         String comment = typeCommentGenerator.renderMethodComment(fields, "common");
 
-        String returnType;
-        try {
-            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType(), "common");
-        } catch (ClassCastException e) {
-            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), null, "common");
-        }
+        String returnType = typeCommentGenerator.getReturnTypeComment(method, "common");
 
         comment = comment.replaceAll("\\*/", "* @returns {{done: (function(function(" + returnType + "): *): *), error: (function(*): *)}}\n     */");
 
@@ -82,12 +76,7 @@ public abstract class MethodRenderer {
     String renderMethod(Method method, String methodAction, String methodUri, List<String> methodParameters, List<String> httpParameters, Parameter requestBodyParameter) {
 
         String comment = typeCommentGenerator.renderMethodComment(method.getParameters(), parameterNameDiscoverer.getParameterNames(method), "common");
-        String returnType;
-        try {
-            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType(), "common");
-        } catch (ClassCastException e) {
-            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), null, "common");
-        }
+        String returnType = typeCommentGenerator.getReturnTypeComment(method, "common");
 
         comment = comment.replaceAll("\\*/", "* @returns {{done: (function(function(" + returnType + "): *): *), error: (function(*): *)}}\n     */");
 
@@ -107,11 +96,11 @@ public abstract class MethodRenderer {
         return comment + "\n" + renderMethodContent;
     }
 
-    String getMethodParametter(String name, Class clazz) {
-        return name + " : " + typeCommentGenerator.getTypeComment(clazz, null, "common");
+    String getMethodParametter(String name, Parameter parameter) {
+        return name + " : " + typeCommentGenerator.getParameterTypeComment(parameter, "common");
     }
 
     String getMethodParametter(String name, Field field) {
-        return name + " : " + typeCommentGenerator.getTypeComment(field, "common");
+        return name + " : " + typeCommentGenerator.getFieldTypeComment(field, "common");
     }
 }
