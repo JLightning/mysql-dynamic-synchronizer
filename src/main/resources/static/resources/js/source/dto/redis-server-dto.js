@@ -1,32 +1,32 @@
 // @flow
-
+import {observable} from 'mobx';
 
 export class RedisServerDTO {
 
     /**
      * @type {number}
      */
-    serverId: ?number = 0;
+    @observable serverId: ?number = 0;
     /**
      * @type {string}
      */
-    name: ?string = '';
+    @observable name: ?string = '';
     /**
      * @type {string}
      */
-    host: ?string = '';
+    @observable host: ?string = '';
     /**
      * @type {string}
      */
-    port: ?string = '';
+    @observable port: ?string = '';
     /**
      * @type {string}
      */
-    username: ?string = '';
+    @observable username: ?string = '';
     /**
      * @type {string}
      */
-    password: ?string = '';
+    @observable password: ?string = '';
 
     /**
      * @param serverId {number}

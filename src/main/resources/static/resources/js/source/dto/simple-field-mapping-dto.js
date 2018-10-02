@@ -1,16 +1,16 @@
 // @flow
-
+import {observable} from 'mobx';
 
 export class SimpleFieldMappingDTO {
 
     /**
      * @type {string}
      */
-    sourceField: ?string = '';
+    @observable sourceField: ?string = '';
     /**
      * @type {string}
      */
-    targetField: ?string = '';
+    @observable targetField: ?string = '';
 
     /**
      * @param sourceField {string}

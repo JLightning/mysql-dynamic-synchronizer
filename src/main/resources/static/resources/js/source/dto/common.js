@@ -1,40 +1,40 @@
 // @flow
-
+import {observable} from 'mobx';
 
 export class MySQLFieldDTO {
 
     /**
      * @type {string}
      */
-    field: ?string = '';
+    @observable field: ?string = '';
     /**
      * @type {string}
      */
-    type: ?string = '';
+    @observable type: ?string = '';
     /**
      * @type {string}
      */
-    collation: ?string = '';
+    @observable collation: ?string = '';
     /**
      * @type {boolean}
      */
-    nullable: ?boolean = false;
+    @observable nullable: ?boolean = false;
     /**
      * @type {string}
      */
-    key: ?string = '';
+    @observable key: ?string = '';
     /**
      * @type {string}
      */
-    defaultValue: ?string = '';
+    @observable defaultValue: ?string = '';
     /**
      * @type {string}
      */
-    extra: ?string = '';
+    @observable extra: ?string = '';
     /**
      * @type {string}
      */
-    comment: ?string = '';
+    @observable comment: ?string = '';
 
     /**
      * @param field {string}
@@ -66,31 +66,31 @@ export class TableFieldsMappingRequestDTO {
     /**
      * @type {number}
      */
-    sourceServerId: ?number = 0;
+    @observable sourceServerId: ?number = 0;
     /**
      * @type {string}
      */
-    sourceDatabase: ?string = '';
+    @observable sourceDatabase: ?string = '';
     /**
      * @type {string}
      */
-    sourceTable: ?string = '';
+    @observable sourceTable: ?string = '';
     /**
      * @type {number}
      */
-    targetServerId: ?number = 0;
+    @observable targetServerId: ?number = 0;
     /**
      * @type {string}
      */
-    targetDatabase: ?string = '';
+    @observable targetDatabase: ?string = '';
     /**
      * @type {string}
      */
-    targetTable: ?string = '';
+    @observable targetTable: ?string = '';
     /**
      * @type {SimpleFieldMappingDTO[]}
      */
-    mapping: ?SimpleFieldMappingDTO[] = null;
+    @observable mapping: ?SimpleFieldMappingDTO[] = null;
 
     /**
      * @param sourceServerId {number}
@@ -114,21 +114,20 @@ export class TableFieldsMappingRequestDTO {
 
 }
 
-
 export class MySQLFieldWithMappingDTO {
 
     /**
      * @type {string}
      */
-    sourceField: ?string = '';
+    @observable sourceField: ?string = '';
     /**
      * @type {string}
      */
-    targetField: ?string = '';
+    @observable targetField: ?string = '';
     /**
      * @type {boolean}
      */
-    mappable: ?boolean = false;
+    @observable mappable: ?boolean = false;
 
     /**
      * @param sourceField {string}
@@ -144,33 +143,32 @@ export class MySQLFieldWithMappingDTO {
 
 }
 
-
 export class MySQLServerDTO {
 
     /**
      * @type {number}
      */
-    serverId: ?number = 0;
+    @observable serverId: ?number = 0;
     /**
      * @type {string}
      */
-    name: ?string = '';
+    @observable name: ?string = '';
     /**
      * @type {string}
      */
-    host: ?string = '';
+    @observable host: ?string = '';
     /**
      * @type {string}
      */
-    port: ?string = '';
+    @observable port: ?string = '';
     /**
      * @type {string}
      */
-    username: ?string = '';
+    @observable username: ?string = '';
     /**
      * @type {string}
      */
-    password: ?string = '';
+    @observable password: ?string = '';
 
     /**
      * @param serverId {number}
@@ -192,17 +190,16 @@ export class MySQLServerDTO {
 
 }
 
-
 export class FullMigrationProgressDTO {
 
     /**
      * @type {boolean}
      */
-    running: ?boolean = false;
+    @observable running: ?boolean = false;
     /**
      * @type {number}
      */
-    progress: ?number = 0;
+    @observable progress: ?number = 0;
 
     /**
      * @param running {boolean}
@@ -216,29 +213,28 @@ export class FullMigrationProgressDTO {
 
 }
 
-
 export class IncrementalMigrationProgressDTO {
 
     /**
      * @type {boolean}
      */
-    running: ?boolean = false;
+    @observable running: ?boolean = false;
     /**
      * @type {number}
      */
-    insertCount: ?number = null;
+    @observable insertCount: ?number = null;
     /**
      * @type {number}
      */
-    updateCount: ?number = null;
+    @observable updateCount: ?number = null;
     /**
      * @type {number}
      */
-    deleteCount: ?number = null;
+    @observable deleteCount: ?number = null;
     /**
      * @type {boolean}
      */
-    delta: ?boolean = false;
+    @observable delta: ?boolean = false;
 
     /**
      * @param running {boolean}

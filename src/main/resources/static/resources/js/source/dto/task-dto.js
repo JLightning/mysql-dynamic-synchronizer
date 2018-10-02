@@ -1,20 +1,20 @@
 // @flow
-
+import {observable} from 'mobx';
 
 export class Table {
 
     /**
      * @type {number}
      */
-    serverId: ?number = 0;
+    @observable serverId: ?number = 0;
     /**
      * @type {string}
      */
-    database: ?string = '';
+    @observable database: ?string = '';
     /**
      * @type {string}
      */
-    table: ?string = '';
+    @observable table: ?string = '';
 
     /**
      * @param serverId {number}
@@ -110,35 +110,35 @@ export class TaskDTO {
     /**
      * @type {number}
      */
-    taskId: ?number = 0;
+    @observable taskId: ?number = 0;
     /**
      * @type {string}
      */
-    taskName: ?string = '';
+    @observable taskName: ?string = '';
     /**
      * @type {SimpleFieldMappingDTO[]}
      */
-    mapping: ?SimpleFieldMappingDTO[] = null;
+    @observable mapping: ?SimpleFieldMappingDTO[] = null;
     /**
      * @type {Table}
      */
-    source: ?Table = null;
+    @observable source: ?Table = null;
     /**
      * @type {Table}
      */
-    target: ?Table = null;
+    @observable target: ?Table = null;
     /**
      * @type {TaskType}
      */
-    taskType: ?TaskType = null;
+    @observable taskType: ?TaskType = null;
     /**
      * @type {MySQLInsertMode}
      */
-    insertMode: ?MySQLInsertMode = null;
+    @observable insertMode: ?MySQLInsertMode = null;
     /**
      * @type {string[]}
      */
-    filters: ?string[] = null;
+    @observable filters: ?string[] = null;
 
     /**
      * @param taskId {number}

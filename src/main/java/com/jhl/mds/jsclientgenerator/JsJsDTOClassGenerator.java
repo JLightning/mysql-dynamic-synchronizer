@@ -99,7 +99,7 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         for (Field field : fields) {
             String type = typeCommentGenerator.getFieldTypeComment(field, fileName);
 
-            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", getFieldName(field, properties) + ": ?" + type);
+            String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", "@observable " + getFieldName(field, properties) + ": ?" + type);
 
             renderedField = renderedField.replaceAll("\\{type}", type);
             renderedField = renderedField.replaceAll("\\{default_value}", getDefaultValueForField(field));
@@ -112,7 +112,9 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
 
         String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName), "");
 
-        renderedClass = renderedClass.replaceAll("\\{imports}", StringUtils.join(importRenderer.renderImportForClass(clazz, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"), "\n"));
+        List<String> importLines = importRenderer.renderImportForClass(clazz, BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
+        importLines.add("import {observable} from 'mobx';");
+        renderedClass = renderedClass.replaceAll("\\{imports}", StringUtils.join(importLines, "\n"));
 
         fileUtils.append(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", renderedClass);
 
