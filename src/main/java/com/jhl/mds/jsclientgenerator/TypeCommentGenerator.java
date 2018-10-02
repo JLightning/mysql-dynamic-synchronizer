@@ -27,27 +27,27 @@ public class TypeCommentGenerator {
         this.jsDTOClassGenerator = jsDTOClassGenerator;
     }
 
-    public String getFieldTypeComment(Field field, String fileName) {
+    public String getFieldTypeComment(Field field) {
         try {
-            return getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName);
+            return getTypeComment(field.getType(), (ParameterizedType) field.getGenericType());
         } catch (ClassCastException e) {
-            return getTypeComment(field.getType(), null, fileName);
+            return getTypeComment(field.getType(), null);
         }
     }
 
-    public String getReturnTypeComment(Method method, String fileName) {
+    public String getReturnTypeComment(Method method) {
         try {
-            return getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType(), fileName);
+            return getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType());
         } catch (ClassCastException e) {
-            return getTypeComment(method.getReturnType(), null, fileName);
+            return getTypeComment(method.getReturnType(), null);
         }
     }
 
-    public String getParameterTypeComment(Parameter parameter, String fileName) {
-        return getTypeComment(parameter.getType(), null, fileName);
+    public String getParameterTypeComment(Parameter parameter) {
+        return getTypeComment(parameter.getType(), null);
     }
 
-    private String getTypeComment(Class clazz, ParameterizedType parameterizedType, String fileName) {
+    private String getTypeComment(Class clazz, ParameterizedType parameterizedType) {
         if (clazz.isPrimitive()) {
             if (clazz == boolean.class) {
                 return "boolean";
@@ -58,20 +58,20 @@ public class TypeCommentGenerator {
         } else if (clazz.getName().equals("java.lang.String")) {
             return "string";
         } else if (clazz.isArray()) {
-            return getTypeComment(clazz.getComponentType(), null, fileName) + "[]";
+            return getTypeComment(clazz.getComponentType(), null) + "[]";
         } else if (clazz == ApiResponse.class) {
             try {
                 ParameterizedType genericArgument = (ParameterizedType) parameterizedType.getActualTypeArguments()[0];
 
-                return getTypeComment((Class) genericArgument.getRawType(), genericArgument, fileName);
+                return getTypeComment((Class) genericArgument.getRawType(), genericArgument);
             } catch (ClassCastException e) {
                 Class genericArgument = (Class) parameterizedType.getActualTypeArguments()[0];
 
-                return getTypeComment(genericArgument, null, fileName);
+                return getTypeComment(genericArgument, null);
             }
         } else if (clazz.getName().contains("com.jhl")) {
             try {
-                return jsDTOClassGenerator.generateDto(clazz, fileName);
+                return jsDTOClassGenerator.generateDto(clazz);
             } catch (Exception e) {
                 return "{}";
             }
@@ -79,7 +79,7 @@ public class TypeCommentGenerator {
             try {
                 Class<?> genericArgument = (Class<?>) parameterizedType.getActualTypeArguments()[0];
 
-                return getTypeComment(genericArgument, null, fileName) + "[]";
+                return getTypeComment(genericArgument, null) + "[]";
             } catch (Exception e) {
                 return "*";
             }
@@ -99,9 +99,9 @@ public class TypeCommentGenerator {
         for (Field field : fields) {
             String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", field.getName());
             try {
-                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName));
+                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), (ParameterizedType) field.getGenericType()));
             } catch (ClassCastException e) {
-                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null, fileName));
+                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null));
             }
 
             params.add(renderedParam);
@@ -120,7 +120,7 @@ public class TypeCommentGenerator {
         for (Parameter field : parameters) {
             if (field.getAnnotations().length > 0) {
                 String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", nameMap.get(field.getName()));
-                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null, fileName));
+                renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null));
 
                 params.add(renderedParam);
             }

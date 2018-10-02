@@ -10,7 +10,6 @@ import TableStructureSync from "./table-structure-sync";
 import MysqlServerList from "./pages/servers/mysql/list";
 import RedisServerAdd from "./pages/servers/redis/add";
 import RedisServerList from "./pages/servers/redis/list";
-import {MySQLInsertMode} from "./dto/common";
 
 class App extends React.Component {
 

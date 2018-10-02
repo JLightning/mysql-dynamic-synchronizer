@@ -23,12 +23,12 @@ public class JsJsDTOEnumGenerator extends JsDTOGenerator {
         this.fileUtils = fileUtils;
     }
 
-    public String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
+    public String generateDto(Class<?> clazz) throws IOException {
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
 
         Pair<String, String> pair;
         try {
-            pair = getFileNameAndClassName(jsClientDTO, clazz, appendToFileIfAnnotationNotFound);
+            pair = getFileNameAndClassName(jsClientDTO, clazz);
         } catch (Exception e) {
             return "";
         }

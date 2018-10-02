@@ -51,7 +51,7 @@ public class SubscribeMappingRenderer extends MethodRenderer {
             count++;
         }
 
-        String returnType = typeCommentGenerator.getReturnTypeComment(method, "common");
+        String returnType = typeCommentGenerator.getReturnTypeComment(method);
 
         String renderMethodContent = templateReader.getMethodTemplate().replaceAll("\\{methodName}", method.getName());
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);

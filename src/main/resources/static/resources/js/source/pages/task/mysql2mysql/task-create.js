@@ -8,7 +8,8 @@ import {autorun, computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
 import TagEditor from "../../../common/tag-editor";
 import PropTypes from 'prop-types';
-import {TaskDTO, Table as TableDTO} from "../../../dto/task-dto";
+import {TaskDTO} from "../../../dto/task-dto";
+import {Table as TableDTO} from "../../../dto/table";
 import Validator from "../../../util/validator";
 
 @observer

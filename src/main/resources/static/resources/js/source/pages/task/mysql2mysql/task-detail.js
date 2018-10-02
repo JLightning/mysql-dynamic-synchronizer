@@ -5,7 +5,8 @@ import {observable} from 'mobx';
 import {observer} from 'mobx-react';
 import YesNoModal from "../../../common/yes-no-modal";
 import {TaskDTO} from "../../../dto/task-dto";
-import {FullMigrationProgressDTO, IncrementalMigrationProgressDTO} from "../../../dto/common";
+import {IncrementalMigrationProgressDTO} from "../../../dto/incremental-migration-progress-dto";
+import {FullMigrationProgressDTO} from "../../../dto/full-migration-progress-dto";
 
 @observer
 export default class TaskDetail extends React.Component {

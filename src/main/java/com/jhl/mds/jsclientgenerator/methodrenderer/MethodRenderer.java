@@ -61,7 +61,7 @@ public abstract class MethodRenderer {
 
         String comment = typeCommentGenerator.renderMethodComment(fields, "common");
 
-        String returnType = typeCommentGenerator.getReturnTypeComment(method, "common");
+        String returnType = typeCommentGenerator.getReturnTypeComment(method);
 
         comment = comment.replaceAll("\\*/", "* @returns {{done: (function(function(" + returnType + "): *): *), error: (function(*): *)}}\n     */");
 
@@ -76,7 +76,7 @@ public abstract class MethodRenderer {
     String renderMethod(Method method, String methodAction, String methodUri, List<String> methodParameters, List<String> httpParameters, Parameter requestBodyParameter) {
 
         String comment = typeCommentGenerator.renderMethodComment(method.getParameters(), parameterNameDiscoverer.getParameterNames(method), "common");
-        String returnType = typeCommentGenerator.getReturnTypeComment(method, "common");
+        String returnType = typeCommentGenerator.getReturnTypeComment(method);
 
         comment = comment.replaceAll("\\*/", "* @returns {{done: (function(function(" + returnType + "): *): *), error: (function(*): *)}}\n     */");
 
@@ -97,10 +97,10 @@ public abstract class MethodRenderer {
     }
 
     String getMethodParametter(String name, Parameter parameter) {
-        return name + " : " + typeCommentGenerator.getParameterTypeComment(parameter, "common");
+        return name + " : " + typeCommentGenerator.getParameterTypeComment(parameter);
     }
 
     String getMethodParametter(String name, Field field) {
-        return name + " : " + typeCommentGenerator.getFieldTypeComment(field, "common");
+        return name + " : " + typeCommentGenerator.getFieldTypeComment(field);
     }
 }

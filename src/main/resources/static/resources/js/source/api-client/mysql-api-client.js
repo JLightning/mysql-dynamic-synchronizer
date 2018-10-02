@@ -1,8 +1,11 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {MySQLFieldDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO} from '../dto/common';
+import {MySQLFieldWithMappingDTO} from '../dto/my-sqlfield-with-mapping-dto';
+import {TableFieldsMappingRequestDTO} from '../dto/table-fields-mapping-request-dto';
 import {SimpleFieldMappingDTO} from '../dto/simple-field-mapping-dto';
-import {MySQLInsertMode} from '../dto/task-dto';
+import {MySQLInsertMode} from '../dto/my-sqlinsert-mode';
+import {MySQLServerDTO} from '../dto/my-sqlserver-dto';
+import {MySQLFieldDTO} from '../dto/my-sqlfield-dto';
 
 class MySQLApiClient extends AbstractClient {
 

@@ -2,7 +2,7 @@ import React from "react";
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import mySQLApiClient from "../../../api-client/mysql-api-client";
-import {MySQLServerDTO} from "../../../dto/common";
+import {MySQLServerDTO} from "../../../dto/my-sqlserver-dto";
 
 @observer
 export default class MysqlServerList extends React.Component {

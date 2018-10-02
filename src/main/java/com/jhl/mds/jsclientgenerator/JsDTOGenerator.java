@@ -25,12 +25,24 @@ public abstract class JsDTOGenerator {
         return renderClassContent;
     }
 
-    Pair<String, String> getFileNameAndClassName(JsClientDTO jsClientDTO, Class<?> clazz, String appendToFileIfAnnotationNotFound) throws Exception {
+    Pair<String, String> getFileNameAndClassName(JsClientDTO jsClientDTO, Class<?> clazz) {
         if (jsClientDTO != null) {
             return Pair.of(jsClientDTO.fileName(), jsClientDTO.className());
-        } else if (appendToFileIfAnnotationNotFound != null) {
-            return Pair.of(appendToFileIfAnnotationNotFound,clazz.getSimpleName());
+        } else {
+            return Pair.of(classToFileName(clazz), clazz.getSimpleName());
         }
-        throw new Exception("cannot proccess classname and filename");
+    }
+
+    private String classToFileName(Class<?> clazz) {
+        String simpleName = clazz.getSimpleName();
+        String newName = "";
+        char lastChar = 97;
+        for (int i = 0; i < simpleName.length(); i++) {
+            char c = simpleName.charAt(i);
+            if (i > 0 && c < 97 && lastChar >= 97) newName += "-" + c;
+            else newName += c;
+            lastChar = c;
+        }
+        return newName.toLowerCase();
     }
 }

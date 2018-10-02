@@ -55,11 +55,11 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         for (BeanDefinition bd : scanner.findCandidateComponents("com.jhl.mds")) {
             Class<?> clazz = Class.forName(bd.getBeanClassName());
 
-            generateDto(clazz, null);
+            generateDto(clazz);
         }
     }
 
-    public String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
+    public String generateDto(Class<?> clazz) throws IOException {
         if (jsClassImportRegistry.getGenerated().containsKey(clazz)) {
             jsClassImportRegistry.addImportMap(jsClassImportRegistry.getGenerated().get(clazz));
             return jsClassImportRegistry.getGenerated().get(clazz).getClassName();
@@ -68,19 +68,14 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         jsClassImportRegistry.setCurrentGenerateFor(clazz);
 
         if (clazz.isEnum()) {
-            String result = jsDTOEnumGenerator.generateDto(clazz, appendToFileIfAnnotationNotFound);
+            String result = jsDTOEnumGenerator.generateDto(clazz);
             jsClassImportRegistry.doneFor(clazz);
             return result;
         }
 
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
 
-        Pair<String, String> pair;
-        try {
-            pair = getFileNameAndClassName(jsClientDTO, clazz, appendToFileIfAnnotationNotFound);
-        } catch (Exception e) {
-            return "";
-        }
+        Pair<String, String> pair = getFileNameAndClassName(jsClientDTO, clazz);
 
         String fileName = pair.getFirst();
         String className = pair.getSecond();
@@ -97,7 +92,7 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
         List<String> constructorParameters = new ArrayList<>();
         List<String> constructorSetters = new ArrayList<>();
         for (Field field : fields) {
-            String type = typeCommentGenerator.getFieldTypeComment(field, fileName);
+            String type = typeCommentGenerator.getFieldTypeComment(field);
 
             String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", "@observable " + getFieldName(field, properties) + ": ?" + type);
 
