@@ -20,12 +20,12 @@ public class JsClientGenerator {
     private TemplateReader templateReader;
     private FileUtils fileUtils;
     private MethodRenderer[] methodRenderers;
-    private DTORegistry dtoRegistry;
+    private JsClassImportRegistry jsClassImportRegistry;
 
     @Autowired
     public JsClientGenerator(
             JsJsDTOClassGenerator jsDTOClassGenerator,
-            DTORegistry dtoRegistry,
+            JsClassImportRegistry jsClassImportRegistry,
             TemplateReader templateReader,
             GetMappingRenderer getMappingRenderer,
             PostMappingRenderer postMappingRenderer,
@@ -34,7 +34,7 @@ public class JsClientGenerator {
             SubscribeMappingRenderer subscribeMappingRenderer,
             FileUtils fileUtils
     ) {
-        this.dtoRegistry = dtoRegistry;
+        this.jsClassImportRegistry = jsClassImportRegistry;
         this.templateReader = templateReader;
         this.fileUtils = fileUtils;
         methodRenderers = new MethodRenderer[]{getMappingRenderer, postMappingRenderer, putMappingRenderer, deleteMappingRenderer, subscribeMappingRenderer};
@@ -48,6 +48,8 @@ public class JsClientGenerator {
 
         for (BeanDefinition bd : scanner.findCandidateComponents("com.jhl.mds")) {
             Class<?> clazz = Class.forName(bd.getBeanClassName());
+
+            jsClassImportRegistry.setCurrentGenerateFor(clazz);
 
             JsClientController jsClientController = clazz.getAnnotation(JsClientController.class);
             RequestMapping requestMapping = clazz.getAnnotation(RequestMapping.class);
@@ -70,7 +72,7 @@ public class JsClientGenerator {
                 }
             }
 
-            String renderedClass = renderClass(jsClientController, jsMethods, BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
+            String renderedClass = renderClass(clazz, jsClientController, jsMethods, BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
 
             fileUtils.initClean(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
             fileUtils.append(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js", renderedClass);
@@ -90,23 +92,29 @@ public class JsClientGenerator {
         return result;
     }
 
-    private String renderClass(JsClientController jsClientController, List<String> jsMethods, String renderToFilename) {
+    private String renderClass(Class clazz, JsClientController jsClientController, List<String> jsMethods, String renderToFilename) {
         String renderClassContent = templateReader.getClassTemplate().replaceAll("\\{className}", jsClientController.className());
         renderClassContent = renderClassContent.replaceAll("\\{methods}", StringUtils.join(jsMethods, "\n\n"));
         renderClassContent = renderClassContent.replaceAll("\\{newVariableClassName}", StringUtils.uncapitalize(jsClientController.className()));
 
-        List<DTORegistry.GeneratedDefinition> importDefs = dtoRegistry.getTmpGenerated();
-        Map<String, List<String>> importFromMap = new HashMap<>();
-        for (DTORegistry.GeneratedDefinition def : importDefs) {
-            String relativePath = resolveImportPath(renderToFilename, def.getFileName());
-            if (!importFromMap.containsKey(relativePath)) importFromMap.put(relativePath, new ArrayList<>());
-            importFromMap.get(relativePath).add(def.getClassName());
-        }
-
         List<String> importLines = new ArrayList<>();
 
-        for (Map.Entry<String, List<String>> e : importFromMap.entrySet()) {
-            importLines.add("import {" + StringUtils.join(e.getValue(), ", ") + "} from '" + e.getKey() + "';");
+        List<JsClassImportRegistry.GeneratedDefinition> importDefs = jsClassImportRegistry.getImportMapForClass(clazz);
+        if (importDefs != null) {
+            Map<String, List<String>> importFromMap = new HashMap<>();
+            for (JsClassImportRegistry.GeneratedDefinition def : importDefs) {
+                String relativePath = resolveImportPath(renderToFilename, def.getFileName());
+                if (!importFromMap.containsKey(relativePath)) importFromMap.put(relativePath, new ArrayList<>());
+                importFromMap.get(relativePath).add(def.getClassName());
+            }
+
+
+            for (Map.Entry<String, List<String>> e : importFromMap.entrySet()) {
+                List<String> list = e.getValue();
+                for (int i = 0; i < list.size(); i += 4) {
+                    importLines.add("import {" + StringUtils.join(list.subList(i, Math.min(i + 4, list.size())), ", ") + "} from '" + e.getKey() + "';");
+                }
+            }
         }
 
         renderClassContent = renderClassContent.replaceAll("\\{imports}", StringUtils.join(importLines, "\n"));

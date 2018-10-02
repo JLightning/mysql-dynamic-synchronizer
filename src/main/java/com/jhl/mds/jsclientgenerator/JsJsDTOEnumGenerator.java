@@ -11,20 +11,18 @@ import java.util.*;
 public class JsJsDTOEnumGenerator extends JsDTOGenerator {
 
     private TemplateReader templateReader;
-    private DTORegistry dtoRegistry;
+    private JsClassImportRegistry jsClassImportRegistry;
     private FileUtils fileUtils;
-    private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsJsDTOEnumGenerator(TemplateReader templateReader, DTORegistry dtoRegistry, FileUtils fileUtils) {
+    public JsJsDTOEnumGenerator(TemplateReader templateReader, JsClassImportRegistry jsClassImportRegistry, FileUtils fileUtils) {
         super(templateReader);
         this.templateReader = templateReader;
-        this.dtoRegistry = dtoRegistry;
+        this.jsClassImportRegistry = jsClassImportRegistry;
         this.fileUtils = fileUtils;
     }
 
     public String generateDto(Class<?> clazz, String appendToFileIfAnnotationNotFound) throws IOException {
-        if (generated.containsKey(clazz)) return generated.get(clazz);
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
 
         Pair<String, String> pair;
@@ -74,10 +72,10 @@ public class JsJsDTOEnumGenerator extends JsDTOGenerator {
 
         fileUtils.append(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", renderedClass);
 
-        generated.put(clazz, className);
         processing = null;
 
-        dtoRegistry.addTmpGenerated(new DTORegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
+        jsClassImportRegistry.addGeneratedClass(clazz, new JsClassImportRegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
+        jsClassImportRegistry.addImportMap(new JsClassImportRegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
 
         return className;
     }
