@@ -42,7 +42,7 @@ export default class TaskCreate extends React.Component {
 
     componentDidMount() {
         taskApiClient.getTaskTypes().done(taskTypes => this.taskTypes = taskTypes);
-        taskApiClient.getInsertModes().done(insertModes => this.insertModes = insertModes);
+        mySQLApiClient.getInsertModes().done(insertModes => this.insertModes = insertModes);
     }
 
     componentWillUnmount() {
@@ -113,7 +113,7 @@ export default class TaskCreate extends React.Component {
             postParams.taskId = taskDTO.taskId;
         }
 
-        taskApiClient.createTaskAction(postParams).done(data => {
+        taskApiClient.create(postParams).done(data => {
             location.href = DOMAIN + '/task/detail/?taskId=' + data.taskId;
         });
     }

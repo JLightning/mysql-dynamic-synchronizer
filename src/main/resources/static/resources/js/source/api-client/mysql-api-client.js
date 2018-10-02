@@ -2,6 +2,7 @@
 import AbstractClient from "./abstract-client";
 import {MySQLFieldDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO} from '../dto/common';
 import {SimpleFieldMappingDTO} from '../dto/simple-field-mapping-dto';
+import {MySQLInsertMode} from '../dto/task-dto';
 
 class MySQLApiClient extends AbstractClient {
 
@@ -21,6 +22,14 @@ class MySQLApiClient extends AbstractClient {
      */
     getFieldForServerDatabaseAndTable(serverId : number, database : string, table : string): {done: (MySQLFieldDTO[] => void) => void, error: () => void} {
         return super.get('/api/mysql/fields', {serverId, database, table});
+    }
+
+    /**
+
+     * @returns {{done: (function(function(MySQLInsertMode[]): *): *), error: (function(*): *)}}
+     */
+    getInsertModes(): {done: (MySQLInsertMode[] => void) => void, error: () => void} {
+        return super.get('/api/mysql/get-insert-modes', {});
     }
 
     /**

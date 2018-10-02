@@ -1,5 +1,6 @@
 package com.jhl.mds.controllers.api;
 
+import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.*;
@@ -73,4 +74,10 @@ public class MySQLApiController {
         mySQLDescribeService.validateFilter(mysqlServerDtoConverter.from(server), database, table, filter);
         return ApiResponse.success(mySQLDescribeService.beautifyFilter(filter));
     }
+
+    @GetMapping("/get-insert-modes")
+    public ApiResponse<MySQLInsertMode[]> getInsertModes() {
+        return ApiResponse.success(MySQLInsertMode.values());
+    }
+
 }

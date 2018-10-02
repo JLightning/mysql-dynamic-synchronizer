@@ -39,7 +39,7 @@ export default class TaskDetail extends React.Component {
             }
         });
 
-        taskApiClient.getTaskAction(this.taskId).done(data => this.task = data);
+        taskApiClient.detail(this.taskId).done(data => this.task = data);
     }
 
     render() {

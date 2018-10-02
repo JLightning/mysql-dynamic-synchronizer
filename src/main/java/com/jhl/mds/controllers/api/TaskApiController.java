@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/task")
@@ -75,8 +76,8 @@ public class TaskApiController {
         return ApiResponse.error(e);
     }
 
-    @PostMapping("/create")
-    public ApiResponse<TaskDTO> createTaskAction(@RequestBody TaskDTO dto) {
+    @PutMapping("/")
+    public ApiResponse<TaskDTO> create(@RequestBody TaskDTO dto) {
         try {
             Date now = new Date();
             TaskDTO.Table sourceTaskDTOTable = dto.getSource();
@@ -138,13 +139,20 @@ public class TaskApiController {
         }
     }
 
+    @GetMapping("/")
+    public ApiResponse<List<TaskDTO>> list() {
+        List<Task> tasks = taskRepository.findAll();
+        List<TaskDTO> taskDTOs = tasks.stream().map(task -> taskDTOConverter.from(task)).collect(Collectors.toList());
+        return ApiResponse.success(taskDTOs);
+    }
+
     @DeleteMapping("/{taskId}")
-    public ApiResponse<Boolean> deleteTask(@PathVariable int taskId) {
+    public ApiResponse<Boolean> delete(@PathVariable int taskId) {
         return ApiResponse.success(true);
     }
 
-    @GetMapping("/detail/{taskId}")
-    public ApiResponse<TaskDTO> getTaskAction(@PathVariable int taskId) {
+    @GetMapping("/{taskId}")
+    public ApiResponse<TaskDTO> detail(@PathVariable int taskId) {
         Task task = taskRepository.getOne(taskId);
         List<TaskFieldMapping> taskMapping = Util.defaultIfNull(taskFieldMappingRepository.findByFkTaskId(taskId), new ArrayList<>());
 
@@ -210,11 +218,6 @@ public class TaskApiController {
     @GetMapping("/get-task-types")
     public ApiResponse<TaskType[]> getTaskTypes() {
         return ApiResponse.success(TaskType.values());
-    }
-
-    @GetMapping("/get-insert-modes")
-    public ApiResponse<MySQLInsertMode[]> getInsertModes() {
-        return ApiResponse.success(MySQLInsertMode.values());
     }
 
     @EventListener

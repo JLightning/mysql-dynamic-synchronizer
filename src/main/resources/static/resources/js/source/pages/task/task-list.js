@@ -1,10 +1,10 @@
 import * as React from "react";
 import {Fragment} from "react";
-import taskListApiClient from "../../api-client/task-list-api-client";
 import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import {Link} from "react-router-dom";
 import YesNoModal from "../../common/yes-no-modal";
+import taskApiClient from "../../api-client/task-api-client";
 
 @observer
 export default class TaskList extends React.Component {
@@ -16,7 +16,7 @@ export default class TaskList extends React.Component {
     }
 
     reload() {
-        taskListApiClient.getAllTasks().done(data => this.taskList = data);
+        taskApiClient.list().done(data => this.taskList = data);
     }
 
     render() {

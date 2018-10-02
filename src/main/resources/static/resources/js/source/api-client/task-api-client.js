@@ -17,24 +17,32 @@ class TaskApiClient extends AbstractClient {
      * @param filters {string[]}
      * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
-    createTaskActionFlat(taskId : number, taskName : string, mapping : SimpleFieldMappingDTO[], source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : string[]): {done: (TaskDTO => void) => void, error: () => void} {
-        return super.postJson('/api/task/create', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
+    createFlat(taskId : number, taskName : string, mapping : SimpleFieldMappingDTO[], source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : string[]): {done: (TaskDTO => void) => void, error: () => void} {
+        return super.putJson('/api/task/', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
     }
 
     /**
      * @param dto {TaskDTO}
      * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
-    createTaskAction(dto : TaskDTO): {done: (TaskDTO => void) => void, error: () => void} {
-        return super.postJson('/api/task/create', dto);
+    create(dto : TaskDTO): {done: (TaskDTO => void) => void, error: () => void} {
+        return super.putJson('/api/task/', dto);
     }
 
     /**
      * @param taskId {number}
      * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    deleteTask(taskId : number): {done: (boolean => void) => void, error: () => void} {
+    delete(taskId : number): {done: (boolean => void) => void, error: () => void} {
         return super.delete('/api/task/' + taskId + '', {});
+    }
+
+    /**
+     * @param taskId {number}
+     * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
+     */
+    detail(taskId : number): {done: (TaskDTO => void) => void, error: () => void} {
+        return super.get('/api/task/' + taskId + '', {});
     }
 
     getFullMigrationTaskProgressWs(taskId : number, callback: (FullMigrationProgressDTO) => any): void {
@@ -47,26 +55,18 @@ class TaskApiClient extends AbstractClient {
 
     /**
 
-     * @returns {{done: (function(function(MySQLInsertMode[]): *): *), error: (function(*): *)}}
-     */
-    getInsertModes(): {done: (MySQLInsertMode[] => void) => void, error: () => void} {
-        return super.get('/api/task/get-insert-modes', {});
-    }
-
-    /**
-     * @param taskId {number}
-     * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
-     */
-    getTaskAction(taskId : number): {done: (TaskDTO => void) => void, error: () => void} {
-        return super.get('/api/task/detail/' + taskId + '', {});
-    }
-
-    /**
-
      * @returns {{done: (function(function(TaskType[]): *): *), error: (function(*): *)}}
      */
     getTaskTypes(): {done: (TaskType[] => void) => void, error: () => void} {
         return super.get('/api/task/get-task-types', {});
+    }
+
+    /**
+
+     * @returns {{done: (function(function(TaskDTO[]): *): *), error: (function(*): *)}}
+     */
+    list(): {done: (TaskDTO[] => void) => void, error: () => void} {
+        return super.get('/api/task/', {});
     }
 
     /**
