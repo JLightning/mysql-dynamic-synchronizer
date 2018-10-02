@@ -1,4 +1,6 @@
 // @flow
+
+
 export class RedisServerDTO {
 
     /**

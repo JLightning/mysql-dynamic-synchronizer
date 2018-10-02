@@ -1,7 +1,7 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {TaskDTO, SimpleFieldMappingDTO, Table, TaskType} from '../dto/common';
-import {MySQLInsertMode} from '../dto/common';
+import {SimpleFieldMappingDTO} from '../dto/simple-field-mapping-dto';
+import {TaskDTO, Table, TaskType, MySQLInsertMode} from '../dto/task-dto';
 
 class ToolApiClient extends AbstractClient {
 

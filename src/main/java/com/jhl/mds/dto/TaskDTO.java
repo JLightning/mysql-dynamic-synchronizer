@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsClientDTO(fileName = "task-dto", className = "TaskDTO")
 public class TaskDTO {
     private int taskId;
     private String taskName;

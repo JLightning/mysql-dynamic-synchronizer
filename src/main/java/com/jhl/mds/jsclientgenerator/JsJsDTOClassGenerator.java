@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.BeanPropertyDefinition;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -23,15 +24,24 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
     private TypeCommentGenerator typeCommentGenerator;
     private JsClassImportRegistry jsClassImportRegistry;
     private FileUtils fileUtils;
+    private ImportRenderer importRenderer;
     private Class processing = null;
 
-    public JsJsDTOClassGenerator(TemplateReader templateReader, JsJsDTOEnumGenerator jsDTOEnumGenerator, TypeCommentGenerator typeCommentGenerator, JsClassImportRegistry jsClassImportRegistry, FileUtils fileUtils) {
+    public JsJsDTOClassGenerator(
+            TemplateReader templateReader,
+            JsJsDTOEnumGenerator jsDTOEnumGenerator,
+            TypeCommentGenerator typeCommentGenerator,
+            JsClassImportRegistry jsClassImportRegistry,
+            FileUtils fileUtils,
+            ImportRenderer importRenderer
+    ) {
         super(templateReader);
         this.templateReader = templateReader;
         this.jsDTOEnumGenerator = jsDTOEnumGenerator;
         this.typeCommentGenerator = typeCommentGenerator;
         this.jsClassImportRegistry = jsClassImportRegistry;
         this.fileUtils = fileUtils;
+        this.importRenderer = importRenderer;
         typeCommentGenerator.setJsDTOClassGenerator(this);
     }
 
@@ -54,7 +64,13 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
             return jsClassImportRegistry.getGenerated().get(clazz).getClassName();
         }
 
-        if (clazz.isEnum()) return jsDTOEnumGenerator.generateDto(clazz, appendToFileIfAnnotationNotFound);
+        jsClassImportRegistry.setCurrentGenerateFor(clazz);
+
+        if (clazz.isEnum()) {
+            String result = jsDTOEnumGenerator.generateDto(clazz, appendToFileIfAnnotationNotFound);
+            jsClassImportRegistry.doneFor(clazz);
+            return result;
+        }
 
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
 
@@ -95,9 +111,13 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
 
         String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName), "");
 
+        renderedClass = renderedClass.replaceAll("\\{imports}", StringUtils.join(importRenderer.renderImportForClass(clazz, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"), "\n"));
+
         fileUtils.append(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", renderedClass);
 
         processing = null;
+
+        jsClassImportRegistry.doneFor(clazz);
 
         jsClassImportRegistry.addGeneratedClass(clazz, new JsClassImportRegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));
         jsClassImportRegistry.addImportMap(new JsClassImportRegistry.GeneratedDefinition(className, BASE_CLIENT_JS_DIRECTORY + fileName + ".js"));

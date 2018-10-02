@@ -1,7 +1,8 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {SimpleFieldMappingDTO, Table, TaskType, MySQLInsertMode} from '../dto/common';
-import {TaskDTO, FullMigrationProgressDTO, IncrementalMigrationProgressDTO} from '../dto/common';
+import {FullMigrationProgressDTO, IncrementalMigrationProgressDTO} from '../dto/common';
+import {SimpleFieldMappingDTO} from '../dto/simple-field-mapping-dto';
+import {TaskDTO, Table, TaskType, MySQLInsertMode} from '../dto/task-dto';
 
 class TaskApiClient extends AbstractClient {
 

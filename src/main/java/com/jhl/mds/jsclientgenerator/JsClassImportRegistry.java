@@ -3,7 +3,6 @@ package com.jhl.mds.jsclientgenerator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,12 +16,14 @@ public class JsClassImportRegistry {
     private Map<Class, List<GeneratedDefinition>> tmpGenerated = new HashMap<>();
     @Getter
     private Map<Class, GeneratedDefinition> generated = new HashMap<>();
-    @Setter
-    private Class currentGenerateFor;
+    private List<Class> currentGenerateForList = new ArrayList<>();
 
     public void addImportMap(GeneratedDefinition def) {
-        if (currentGenerateFor == null) return;
-        if (!tmpGenerated.containsKey(currentGenerateFor)) tmpGenerated.put(currentGenerateFor, new ArrayList<>());
+        if (currentGenerateForList.size() == 0) return;
+        Class currentGenerateFor = currentGenerateForList.get(currentGenerateForList.size() - 1);
+        if (!tmpGenerated.containsKey(currentGenerateFor)) {
+            tmpGenerated.put(currentGenerateFor, new ArrayList<>());
+        }
         List<GeneratedDefinition> list = tmpGenerated.get(currentGenerateFor);
         if (!list.contains(def)) list.add(def);
     }
@@ -33,6 +34,16 @@ public class JsClassImportRegistry {
 
     public void addGeneratedClass(Class cls, GeneratedDefinition def) {
         generated.put(cls, def);
+    }
+
+    public void setCurrentGenerateFor(Class cls) {
+        currentGenerateForList.add(cls);
+    }
+
+    public void doneFor(Class cls) {
+        if (currentGenerateForList.size() > 0 && currentGenerateForList.get(currentGenerateForList.size() - 1) == cls) {
+            currentGenerateForList = currentGenerateForList.subList(0, currentGenerateForList.size() - 1);
+        }
     }
 
     @Data

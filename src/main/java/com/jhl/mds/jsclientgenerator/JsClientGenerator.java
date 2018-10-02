@@ -18,6 +18,7 @@ public class JsClientGenerator {
 
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/api-client/";
     private TemplateReader templateReader;
+    private ImportRenderer importRenderer;
     private FileUtils fileUtils;
     private MethodRenderer[] methodRenderers;
     private JsClassImportRegistry jsClassImportRegistry;
@@ -32,10 +33,12 @@ public class JsClientGenerator {
             PutMappingRenderer putMappingRenderer,
             DeleteMappingRenderer deleteMappingRenderer,
             SubscribeMappingRenderer subscribeMappingRenderer,
+            ImportRenderer importRenderer,
             FileUtils fileUtils
     ) {
         this.jsClassImportRegistry = jsClassImportRegistry;
         this.templateReader = templateReader;
+        this.importRenderer = importRenderer;
         this.fileUtils = fileUtils;
         methodRenderers = new MethodRenderer[]{getMappingRenderer, postMappingRenderer, putMappingRenderer, deleteMappingRenderer, subscribeMappingRenderer};
     }
@@ -76,6 +79,8 @@ public class JsClientGenerator {
 
             fileUtils.initClean(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js");
             fileUtils.append(BASE_CLIENT_JS_DIRECTORY + jsClientController.fileName() + ".js", renderedClass);
+
+            jsClassImportRegistry.doneFor(clazz);
         }
     }
 
@@ -97,45 +102,8 @@ public class JsClientGenerator {
         renderClassContent = renderClassContent.replaceAll("\\{methods}", StringUtils.join(jsMethods, "\n\n"));
         renderClassContent = renderClassContent.replaceAll("\\{newVariableClassName}", StringUtils.uncapitalize(jsClientController.className()));
 
-        List<String> importLines = new ArrayList<>();
-
-        List<JsClassImportRegistry.GeneratedDefinition> importDefs = jsClassImportRegistry.getImportMapForClass(clazz);
-        if (importDefs != null) {
-            Map<String, List<String>> importFromMap = new HashMap<>();
-            for (JsClassImportRegistry.GeneratedDefinition def : importDefs) {
-                String relativePath = resolveImportPath(renderToFilename, def.getFileName());
-                if (!importFromMap.containsKey(relativePath)) importFromMap.put(relativePath, new ArrayList<>());
-                importFromMap.get(relativePath).add(def.getClassName());
-            }
-
-
-            for (Map.Entry<String, List<String>> e : importFromMap.entrySet()) {
-                List<String> list = e.getValue();
-                for (int i = 0; i < list.size(); i += 4) {
-                    importLines.add("import {" + StringUtils.join(list.subList(i, Math.min(i + 4, list.size())), ", ") + "} from '" + e.getKey() + "';");
-                }
-            }
-        }
-
-        renderClassContent = renderClassContent.replaceAll("\\{imports}", StringUtils.join(importLines, "\n"));
+        renderClassContent = renderClassContent.replaceAll("\\{imports}", StringUtils.join(importRenderer.renderImportForClass(clazz, renderToFilename), "\n"));
 
         return renderClassContent;
-    }
-
-    private String resolveImportPath(String classFileName, String dtoFileName) {
-        String[] classFileNames = classFileName.split("/");
-        String[] dtoFileNames = dtoFileName.split("/");
-        String result = "";
-        for (int i = 0; i < classFileNames.length - 1; i++) {
-            if (classFileNames[i].equals(dtoFileNames[i])) continue;
-            result += "../";
-        }
-
-        for (int i = 0; i < dtoFileNames.length; i++) {
-            if (classFileNames[i].equals(dtoFileNames[i])) continue;
-            result += dtoFileNames[i] + "/";
-        }
-        result = result.replaceAll("\\.js/$", "");
-        return result;
     }
 }

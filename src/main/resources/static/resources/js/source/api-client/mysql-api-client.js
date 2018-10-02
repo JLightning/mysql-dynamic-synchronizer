@@ -1,7 +1,7 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO} from '../dto/common';
-import {MySQLServerDTO} from '../dto/common';
+import {MySQLFieldDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO} from '../dto/common';
+import {SimpleFieldMappingDTO} from '../dto/simple-field-mapping-dto';
 
 class MySQLApiClient extends AbstractClient {
 

@@ -1,6 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {TaskDTO} from '../dto/common';
+import {TaskDTO} from '../dto/task-dto';
 
 class TaskListApiClient extends AbstractClient {
 

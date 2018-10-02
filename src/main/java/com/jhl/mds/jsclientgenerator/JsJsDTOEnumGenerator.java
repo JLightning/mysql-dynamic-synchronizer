@@ -64,6 +64,8 @@ public class JsJsDTOEnumGenerator extends JsDTOGenerator {
         String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, renderMethodComment(fields, fileName), getToJson(className));
         renderedClass = renderedClass.replaceAll("\n\n\n", "\n");
 
+        renderedClass = renderedClass.replaceAll("\\{imports}", "");
+
         renderedClass += "\n";
         for (Field field : fields) {
             renderedClass += className + "." + field.getName() + " = new " + className + "('" + field.getName() + "');\n";
