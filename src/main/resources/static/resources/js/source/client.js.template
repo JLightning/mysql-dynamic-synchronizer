@@ -21,7 +21,7 @@ export default {newVariableClassName};
 [method_comment_template_param]
      * @param {param} {{type}}
 [dto_class_template]
-export default class {className} {
+export class {className} {
 
 {fields}
 

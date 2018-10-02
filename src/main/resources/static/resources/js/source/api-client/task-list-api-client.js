@@ -1,6 +1,7 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, RedisServerDTO, Table, TaskType, MySQLInsertMode, TaskDTO} from '../dto/common';
+import {RedisServerDTO} from '../dto/redis-server-dto';
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, Table, TaskType, MySQLInsertMode, TaskDTO} from '../dto/common';
 
 class TaskListApiClient extends AbstractClient {
 

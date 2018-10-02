@@ -1,6 +1,7 @@
 // @flow
 import AbstractClient from "./abstract-client";
-import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, RedisServerDTO} from '../dto/common';
+import {RedisServerDTO} from '../dto/redis-server-dto';
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO} from '../dto/common';
 
 class RedisApiClient extends AbstractClient {
 

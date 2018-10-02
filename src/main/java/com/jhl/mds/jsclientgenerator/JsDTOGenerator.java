@@ -100,10 +100,6 @@ public class JsDTOGenerator {
 
         String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName));
 
-        if (appendToFileIfAnnotationNotFound != null && jsClientDTO == null) {
-            renderedClass = renderedClass.replaceAll("export default ", "export ");
-        }
-
         FileWriter fileWriter = new FileWriter(BASE_CLIENT_JS_DIRECTORY + fileName + ".js", true);
         fileWriter.append(renderedClass);
 

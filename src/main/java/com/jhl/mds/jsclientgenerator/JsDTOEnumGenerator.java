@@ -68,10 +68,6 @@ public class JsDTOEnumGenerator {
         String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, renderMethodComment(fields, fileName), getToJson(className));
         renderedClass = renderedClass.replaceAll("\n\n\n", "\n");
 
-        if (appendToFileIfAnnotationNotFound != null && jsClientDTO == null) {
-            renderedClass = renderedClass.replaceAll("export default ", "export ");
-        }
-
         renderedClass += "\n";
         for (Field field : fields) {
             renderedClass += className + "." + field.getName() + " = new " + className + "('" + field.getName() + "');\n";

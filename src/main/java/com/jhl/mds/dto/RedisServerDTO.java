@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"serverId", "name"})
+@JsClientDTO(fileName = "redis-server-dto", className = "RedisServerDTO")
 public class RedisServerDTO {
     private int serverId;
     private String name;
