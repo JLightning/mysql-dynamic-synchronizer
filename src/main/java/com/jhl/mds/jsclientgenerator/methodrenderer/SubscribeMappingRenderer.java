@@ -54,6 +54,7 @@ public class SubscribeMappingRenderer extends MethodRenderer {
         methodParameters.add("callback");
         renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
         renderMethodContent = renderMethodContent.replaceAll("\\{\\{httpParameters}}", "callback");
+        renderMethodContent = renderMethodContent.replaceAll("\\{return_type}", "void");
 
         result.add(renderMethodContent);
 

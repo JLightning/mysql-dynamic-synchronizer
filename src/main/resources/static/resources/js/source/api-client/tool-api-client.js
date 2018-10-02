@@ -1,5 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, RedisServerDTO, Table, TaskType, MySQLInsertMode, TaskDTO} from '../dto/common';
 
 class ToolApiClient extends AbstractClient {
 
@@ -12,16 +13,17 @@ class ToolApiClient extends AbstractClient {
      * @param taskType {TaskType}
      * @param insertMode {MySQLInsertMode}
      * @param filters {string[]}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    syncStructureFlat(taskId : number, taskName : string, mapping : *, source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : *) {
+    syncStructureFlat(taskId : number, taskName : string, mapping : *, source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : *): {done: (boolean => void) => void, error: () => void} {
         return super.postJson('/api/tool/sync-structure', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
     }
 
     /**
      * @param dto {TaskDTO}
-     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    syncStructure(dto : TaskDTO) {
+    syncStructure(dto : TaskDTO): {done: (boolean => void) => void, error: () => void} {
         return super.postJson('/api/tool/sync-structure', dto);
     }
 }

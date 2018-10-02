@@ -1,5 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, RedisServerDTO, Table, TaskType, MySQLInsertMode, TaskDTO} from '../dto/common';
 
 class TaskListApiClient extends AbstractClient {
 
@@ -7,7 +8,7 @@ class TaskListApiClient extends AbstractClient {
 
      * @returns {{done: (function(function(TaskDTO[]): *): *), error: (function(*): *)}}
      */
-    getAllTasks() {
+    getAllTasks(): {done: (TaskDTO[] => void) => void, error: () => void} {
         return super.get('/api/task-list/all', {});
     }
 }

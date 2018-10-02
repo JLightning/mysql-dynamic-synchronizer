@@ -1,5 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
+import {} from '../dto/common';
 
 class MessageApiClient extends AbstractClient {
 
@@ -7,7 +8,7 @@ class MessageApiClient extends AbstractClient {
 
      * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
-    getErrorMessages() {
+    getErrorMessages(): {done: (string[] => void) => void, error: () => void} {
         return super.get('/api/message/errors', {});
     }
 }

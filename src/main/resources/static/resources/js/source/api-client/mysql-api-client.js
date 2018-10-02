@@ -1,5 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO} from '../dto/common';
 
 class MySQLApiClient extends AbstractClient {
 
@@ -7,7 +8,7 @@ class MySQLApiClient extends AbstractClient {
      * @param serverId {number}
      * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
-    getDatabasesForServer(serverId : number) {
+    getDatabasesForServer(serverId : number): {done: (string[] => void) => void, error: () => void} {
         return super.get('/api/mysql/databases', {serverId});
     }
 
@@ -17,7 +18,7 @@ class MySQLApiClient extends AbstractClient {
      * @param table {string}
      * @returns {{done: (function(function(MySQLFieldDTO[]): *): *), error: (function(*): *)}}
      */
-    getFieldForServerDatabaseAndTable(serverId : number, database : string, table : string) {
+    getFieldForServerDatabaseAndTable(serverId : number, database : string, table : string): {done: (MySQLFieldDTO[] => void) => void, error: () => void} {
         return super.get('/api/mysql/fields', {serverId, database, table});
     }
 
@@ -29,8 +30,9 @@ class MySQLApiClient extends AbstractClient {
      * @param targetDatabase {string}
      * @param targetTable {string}
      * @param mapping {SimpleFieldMappingDTO[]}
+     * @returns {{done: (function(function(MySQLFieldWithMappingDTO[]): *): *), error: (function(*): *)}}
      */
-    getMappingFor2TableFlat(sourceServerId : number, sourceDatabase : string, sourceTable : string, targetServerId : number, targetDatabase : string, targetTable : string, mapping : *) {
+    getMappingFor2TableFlat(sourceServerId : number, sourceDatabase : string, sourceTable : string, targetServerId : number, targetDatabase : string, targetTable : string, mapping : *): {done: (MySQLFieldWithMappingDTO[] => void) => void, error: () => void} {
         return super.postJson('/api/mysql/fields-mapping', {sourceServerId, sourceDatabase, sourceTable, targetServerId, targetDatabase, targetTable, mapping});
     }
 
@@ -38,7 +40,7 @@ class MySQLApiClient extends AbstractClient {
      * @param dto {TableFieldsMappingRequestDTO}
      * @returns {{done: (function(function(MySQLFieldWithMappingDTO[]): *): *), error: (function(*): *)}}
      */
-    getMappingFor2Table(dto : TableFieldsMappingRequestDTO) {
+    getMappingFor2Table(dto : TableFieldsMappingRequestDTO): {done: (MySQLFieldWithMappingDTO[] => void) => void, error: () => void} {
         return super.postJson('/api/mysql/fields-mapping', dto);
     }
 
@@ -46,7 +48,7 @@ class MySQLApiClient extends AbstractClient {
 
      * @returns {{done: (function(function(MySQLServerDTO[]): *): *), error: (function(*): *)}}
      */
-    getServers() {
+    getServers(): {done: (MySQLServerDTO[] => void) => void, error: () => void} {
         return super.get('/api/mysql/servers', {});
     }
 
@@ -55,7 +57,7 @@ class MySQLApiClient extends AbstractClient {
      * @param database {string}
      * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
-    getTablesForServerAndDatabase(serverId : number, database : string) {
+    getTablesForServerAndDatabase(serverId : number, database : string): {done: (string[] => void) => void, error: () => void} {
         return super.get('/api/mysql/tables', {serverId, database});
     }
 
@@ -66,7 +68,7 @@ class MySQLApiClient extends AbstractClient {
      * @param filter {string}
      * @returns {{done: (function(function(string): *): *), error: (function(*): *)}}
      */
-    validateFilter(serverId : number, database : string, table : string, filter : string) {
+    validateFilter(serverId : number, database : string, table : string, filter : string): {done: (string => void) => void, error: () => void} {
         return super.post('/api/mysql/validate-filter', {serverId, database, table, filter});
     }
 }

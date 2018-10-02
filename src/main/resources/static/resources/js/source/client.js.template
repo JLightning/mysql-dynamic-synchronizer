@@ -1,5 +1,6 @@
 [class_template]
 import AbstractClient from "./abstract-client";
+{imports}
 
 class {className} extends AbstractClient {
 
@@ -10,7 +11,7 @@ const {newVariableClassName} = new {className}();
 export default {newVariableClassName};
 
 [method_template]
-    {methodName}({methodParameters}) {
+    {methodName}({methodParameters}): {return_type} {
         return super.{methodAction}({methodUri}, {{httpParameters}});
     }
 [method_comment_template]

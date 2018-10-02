@@ -62,6 +62,8 @@ public class TypeCommentGenerator {
             } catch (Exception e) {
                 return "*";
             }
+        } else if (clazz.getName().contains("java.lang")) {
+            return clazz.getSimpleName().toLowerCase();
         }
         return "*";
     }

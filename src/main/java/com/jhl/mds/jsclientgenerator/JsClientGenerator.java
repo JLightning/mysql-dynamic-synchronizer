@@ -2,6 +2,7 @@ package com.jhl.mds.jsclientgenerator;
 
 import com.jhl.mds.jsclientgenerator.methodrenderer.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.SpringApplication;
@@ -27,10 +28,12 @@ public class JsClientGenerator {
     private TemplateReader templateReader;
     private FileCleaner fileCleaner;
     private MethodRenderer[] methodRenderers;
+    private DTORegister dtoRegister;
 
     @Autowired
     public JsClientGenerator(
             JsDTOGenerator jsDTOGenerator,
+            DTORegister dtoRegister,
             TemplateReader templateReader,
             GetMappingRenderer getMappingRenderer,
             PostMappingRenderer postMappingRenderer,
@@ -39,6 +42,7 @@ public class JsClientGenerator {
             SubscribeMappingRenderer subscribeMappingRenderer,
             FileCleaner fileCleaner
     ) {
+        this.dtoRegister = dtoRegister;
         this.templateReader = templateReader;
         this.fileCleaner = fileCleaner;
         methodRenderers = new MethodRenderer[]{getMappingRenderer, postMappingRenderer, putMappingRenderer, deleteMappingRenderer, subscribeMappingRenderer};
@@ -99,10 +103,19 @@ public class JsClientGenerator {
         return result;
     }
 
+    // TODO: fix import from path
     private String renderClass(JsClientController jsClientController, List<String> jsMethods) {
         String renderClassContent = templateReader.getClassTemplate().replaceAll("\\{className}", jsClientController.className());
         renderClassContent = renderClassContent.replaceAll("\\{methods}", StringUtils.join(jsMethods, "\n\n"));
         renderClassContent = renderClassContent.replaceAll("\\{newVariableClassName}", StringUtils.uncapitalize(jsClientController.className()));
+
+        List<DTORegister.GeneratedDefinition> importDefs = dtoRegister.getTmpGenerated();
+        List<String> classToImport = new ArrayList<>();
+        for (DTORegister.GeneratedDefinition def : importDefs) {
+            classToImport.add(def.getClassName());
+        }
+
+        renderClassContent = renderClassContent.replaceAll("\\{imports}", "import {" + StringUtils.join(classToImport, ", ") + "} from '../dto/common';");
 
         return renderClassContent;
     }

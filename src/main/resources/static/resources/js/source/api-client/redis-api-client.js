@@ -1,5 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, RedisServerDTO} from '../dto/common';
 
 class RedisApiClient extends AbstractClient {
 
@@ -10,8 +11,9 @@ class RedisApiClient extends AbstractClient {
      * @param port {string}
      * @param username {string}
      * @param password {string}
+     * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    createFlat(serverId : number, name : string, host : string, port : string, username : string, password : string) {
+    createFlat(serverId : number, name : string, host : string, port : string, username : string, password : string): {done: (RedisServerDTO => void) => void, error: () => void} {
         return super.putJson('/api/redis/', {serverId, name, host, port, username, password});
     }
 
@@ -19,15 +21,15 @@ class RedisApiClient extends AbstractClient {
      * @param dto {RedisServerDTO}
      * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    create(dto : RedisServerDTO) {
+    create(dto : RedisServerDTO): {done: (RedisServerDTO => void) => void, error: () => void} {
         return super.putJson('/api/redis/', dto);
     }
 
     /**
      * @param serverId {number}
-     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    delete(serverId : number) {
+    delete(serverId : number): {done: (boolean => void) => void, error: () => void} {
         return super.delete('/api/redis/' + serverId + '', {});
     }
 
@@ -35,7 +37,7 @@ class RedisApiClient extends AbstractClient {
      * @param serverId {number}
      * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    detail(serverId : number) {
+    detail(serverId : number): {done: (RedisServerDTO => void) => void, error: () => void} {
         return super.get('/api/redis/' + serverId + '', {});
     }
 
@@ -43,7 +45,7 @@ class RedisApiClient extends AbstractClient {
 
      * @returns {{done: (function(function(RedisServerDTO[]): *): *), error: (function(*): *)}}
      */
-    list() {
+    list(): {done: (RedisServerDTO[] => void) => void, error: () => void} {
         return super.get('/api/redis/', {});
     }
 
@@ -54,8 +56,9 @@ class RedisApiClient extends AbstractClient {
      * @param port {string}
      * @param username {string}
      * @param password {string}
+     * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    updateFlat(serverId : number, name : string, host : string, port : string, username : string, password : string) {
+    updateFlat(serverId : number, name : string, host : string, port : string, username : string, password : string): {done: (RedisServerDTO => void) => void, error: () => void} {
         return super.postJson('/api/redis/', {serverId, name, host, port, username, password});
     }
 
@@ -63,7 +66,7 @@ class RedisApiClient extends AbstractClient {
      * @param dto {RedisServerDTO}
      * @returns {{done: (function(function(RedisServerDTO): *): *), error: (function(*): *)}}
      */
-    update(dto : RedisServerDTO) {
+    update(dto : RedisServerDTO): {done: (RedisServerDTO => void) => void, error: () => void} {
         return super.postJson('/api/redis/', dto);
     }
 }

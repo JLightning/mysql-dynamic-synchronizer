@@ -1,5 +1,6 @@
 // @flow
 import AbstractClient from "./abstract-client";
+import {MySQLFieldDTO, SimpleFieldMappingDTO, TableFieldsMappingRequestDTO, MySQLFieldWithMappingDTO, MySQLServerDTO, RedisServerDTO, Table, TaskType, MySQLInsertMode, TaskDTO} from '../dto/common';
 
 class TaskApiClient extends AbstractClient {
 
@@ -12,8 +13,9 @@ class TaskApiClient extends AbstractClient {
      * @param taskType {TaskType}
      * @param insertMode {MySQLInsertMode}
      * @param filters {string[]}
+     * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
-    createTaskActionFlat(taskId : number, taskName : string, mapping : *, source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : *) {
+    createTaskActionFlat(taskId : number, taskName : string, mapping : *, source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : *): {done: (TaskDTO => void) => void, error: () => void} {
         return super.postJson('/api/task/create', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
     }
 
@@ -21,23 +23,23 @@ class TaskApiClient extends AbstractClient {
      * @param dto {TaskDTO}
      * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
-    createTaskAction(dto : TaskDTO) {
+    createTaskAction(dto : TaskDTO): {done: (TaskDTO => void) => void, error: () => void} {
         return super.postJson('/api/task/create', dto);
     }
 
     /**
      * @param taskId {number}
-     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    deleteTask(taskId : number) {
+    deleteTask(taskId : number): {done: (boolean => void) => void, error: () => void} {
         return super.delete('/api/task/' + taskId + '', {});
     }
 
-    getFullMigrationTaskProgressWs(taskId : number, callback) {
+    getFullMigrationTaskProgressWs(taskId : number, callback): void {
         return super.subscribe('/app/channel/task/full-migration-progress/' + taskId + '', callback);
     }
 
-    getIncrementalMigrationProgressWs(taskId : number, callback) {
+    getIncrementalMigrationProgressWs(taskId : number, callback): void {
         return super.subscribe('/app/channel/task/incremental-migration-progress/' + taskId + '', callback);
     }
 
@@ -45,7 +47,7 @@ class TaskApiClient extends AbstractClient {
 
      * @returns {{done: (function(function(MySQLInsertMode[]): *): *), error: (function(*): *)}}
      */
-    getInsertModes() {
+    getInsertModes(): {done: (MySQLInsertMode[] => void) => void, error: () => void} {
         return super.get('/api/task/get-insert-modes', {});
     }
 
@@ -53,7 +55,7 @@ class TaskApiClient extends AbstractClient {
      * @param taskId {number}
      * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
-    getTaskAction(taskId : number) {
+    getTaskAction(taskId : number): {done: (TaskDTO => void) => void, error: () => void} {
         return super.get('/api/task/detail/' + taskId + '', {});
     }
 
@@ -61,39 +63,39 @@ class TaskApiClient extends AbstractClient {
 
      * @returns {{done: (function(function(TaskType[]): *): *), error: (function(*): *)}}
      */
-    getTaskTypes() {
+    getTaskTypes(): {done: (TaskType[] => void) => void, error: () => void} {
         return super.get('/api/task/get-task-types', {});
     }
 
     /**
      * @param taskId {number}
-     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    startFullMigrationTask(taskId : number) {
+    startFullMigrationTask(taskId : number): {done: (boolean => void) => void, error: () => void} {
         return super.get('/api/task/detail/' + taskId + '/start-full-migration', {});
     }
 
     /**
      * @param taskId {number}
-     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    startIncrementalMigrationTask(taskId : number) {
+    startIncrementalMigrationTask(taskId : number): {done: (boolean => void) => void, error: () => void} {
         return super.get('/api/task/detail/' + taskId + '/start-incremental-migration', {});
     }
 
     /**
      * @param taskId {number}
-     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    stopIncrementalMigrationTask(taskId : number) {
+    stopIncrementalMigrationTask(taskId : number): {done: (boolean => void) => void, error: () => void} {
         return super.get('/api/task/detail/' + taskId + '/stop-incremental-migration', {});
     }
 
     /**
      * @param taskId {number}
-     * @returns {{done: (function(function(*): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    truncateAndStartFullMigrationTask(taskId : number) {
+    truncateAndStartFullMigrationTask(taskId : number): {done: (boolean => void) => void, error: () => void} {
         return super.get('/api/task/detail/' + taskId + '/truncate-and-start-full-migration', {});
     }
 }

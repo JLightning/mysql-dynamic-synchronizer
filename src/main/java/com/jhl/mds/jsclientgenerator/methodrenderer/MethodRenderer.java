@@ -62,6 +62,17 @@ public abstract class MethodRenderer {
 
         String comment = typeCommentGenerator.renderMethodComment(fields, "common");
 
+        String returnType;
+        try {
+            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), (ParameterizedType) method.getGenericReturnType(), "common");
+        } catch (ClassCastException e) {
+            returnType = typeCommentGenerator.getTypeComment(method.getReturnType(), null, "common");
+        }
+
+        comment = comment.replaceAll("\\*/", "* @returns {{done: (function(function(" + returnType + "): *): *), error: (function(*): *)}}\n     */");
+
+        renderMethodContent = renderMethodContent.replaceAll("\\{return_type}", "{done: (" + returnType + " => void) => void, error: () => void}");
+
         renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
         renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(httpParameters, ", "));
 
@@ -93,6 +104,7 @@ public abstract class MethodRenderer {
             renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(httpParameters, ", "));
         }
 
+        renderMethodContent = renderMethodContent.replaceAll("\\{return_type}", "{done: (" + returnType + " => void) => void, error: () => void}");
 
         return comment + "\n" + renderMethodContent;
     }
