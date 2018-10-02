@@ -3,18 +3,12 @@ import {computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
 import redisApiClient from "../../../api-client/redis-api-client";
 import Validator from "../../../util/validator";
+import {RedisServerDTO} from "../../../dto/common";
 
 @observer
 export default class RedisServerAdd extends React.Component {
 
-    @observable server = {
-        serverId: 0,
-        name: '',
-        host: '',
-        port: '',
-        username: '',
-        password: '',
-    };
+    @observable server: RedisServerDTO = new RedisServerDTO();
 
     constructor(props) {
         super(props);
@@ -24,7 +18,7 @@ export default class RedisServerAdd extends React.Component {
     componentDidMount() {
         console.log("test", this.server.serverId);
         if (this.server.serverId !== 0) {
-            redisApiClient.detail(this.server.serverId).done(server => this.server = server);
+            redisApiClient.detail(this.server.serverId).done((server: RedisServerDTO) => this.server = server);
         }
     }
 

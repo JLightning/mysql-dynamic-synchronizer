@@ -4,11 +4,12 @@ import {observable} from 'mobx';
 import redisApiClient from "../../../api-client/redis-api-client";
 import YesNoModal from "../../../common/yes-no-modal";
 import {Link} from "react-router-dom";
+import {RedisServerDTO} from "../../../dto/common";
 
 @observer
 export default class ReidsServerList extends React.Component {
 
-    @observable serverList = [];
+    @observable serverList: RedisServerDTO[] = [];
 
     componentDidMount() {
         this.reload();
