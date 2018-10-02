@@ -3,12 +3,12 @@ import {computed, observable} from 'mobx';
 import {observer} from 'mobx-react';
 import redisApiClient from "../../../api-client/redis-api-client";
 import Validator from "../../../util/validator";
-import {RedisServerDTO} from "../../../dto/common";
+import {RedisServerDTO} from "../../../dto/redis-server-dto";
 
 @observer
 export default class RedisServerAdd extends React.Component {
 
-    @observable server: RedisServerDTO = new RedisServerDTO();
+    @observable server: RedisServerDTO = new RedisServerDTO(0);
 
     constructor(props) {
         super(props);

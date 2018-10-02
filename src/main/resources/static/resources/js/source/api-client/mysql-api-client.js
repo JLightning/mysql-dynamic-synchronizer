@@ -33,7 +33,7 @@ class MySQLApiClient extends AbstractClient {
      * @param mapping {SimpleFieldMappingDTO[]}
      * @returns {{done: (function(function(MySQLFieldWithMappingDTO[]): *): *), error: (function(*): *)}}
      */
-    getMappingFor2TableFlat(sourceServerId : number, sourceDatabase : string, sourceTable : string, targetServerId : number, targetDatabase : string, targetTable : string, mapping : *): {done: (MySQLFieldWithMappingDTO[] => void) => void, error: () => void} {
+    getMappingFor2TableFlat(sourceServerId : number, sourceDatabase : string, sourceTable : string, targetServerId : number, targetDatabase : string, targetTable : string, mapping : SimpleFieldMappingDTO[]): {done: (MySQLFieldWithMappingDTO[] => void) => void, error: () => void} {
         return super.postJson('/api/mysql/fields-mapping', {sourceServerId, sourceDatabase, sourceTable, targetServerId, targetDatabase, targetTable, mapping});
     }
 

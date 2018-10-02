@@ -80,12 +80,7 @@ public class JsDTOGenerator {
         for (Field field : fields) {
             String defaultValue = getDefaultValueForField(field);
 
-            String type;
-            try {
-                type = typeCommentGenerator.getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName);
-            } catch (ClassCastException e) {
-                type = typeCommentGenerator.getTypeComment(field.getType(), null, fileName);
-            }
+            String type = typeCommentGenerator.getTypeComment(field, fileName);
 
             String renderedField = templateReader.getDtoFieldTemplate().replaceAll("\\{field}", field.getName() + " : ?" + type);
 

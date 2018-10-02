@@ -47,7 +47,7 @@ public abstract class MethodRenderer {
         return "";
     }
 
-    void renderMethodWithRequestBody(Method method, List<String> result, String methodAction, String methodUri, Parameter requestBodyParameter) {
+    String renderMethodWithRequestBody(Method method, String methodAction, String methodUri, Parameter requestBodyParameter) {
         String renderMethodContent = templateReader.getMethodTemplate().replaceAll("\\{methodName}", method.getName() + "Flat");
         renderMethodContent = renderMethodContent.replaceAll("\\{methodAction}", methodAction);
         renderMethodContent = renderMethodContent.replaceAll("\\{methodUri}", "'" + methodUri + "'");
@@ -56,7 +56,7 @@ public abstract class MethodRenderer {
         List<String> methodParameters = new ArrayList<>();
         List<String> httpParameters = new ArrayList<>();
         for (Field field : fields) {
-            methodParameters.add(getMethodParametter(field.getName(), field.getType()));
+            methodParameters.add(getMethodParametter(field.getName(), field));
             httpParameters.add(field.getName());
         }
 
@@ -76,9 +76,7 @@ public abstract class MethodRenderer {
         renderMethodContent = renderMethodContent.replaceAll("\\{methodParameters}", StringUtils.join(methodParameters, ", "));
         renderMethodContent = renderMethodContent.replaceAll("\\{httpParameters}", StringUtils.join(httpParameters, ", "));
 
-        renderMethodContent = comment + "\n" + renderMethodContent;
-
-        result.add(renderMethodContent);
+        return comment + "\n" + renderMethodContent;
     }
 
     String renderMethod(Method method, String methodAction, String methodUri, List<String> methodParameters, List<String> httpParameters, Parameter requestBodyParameter) {
@@ -111,5 +109,9 @@ public abstract class MethodRenderer {
 
     String getMethodParametter(String name, Class clazz) {
         return name + " : " + typeCommentGenerator.getTypeComment(clazz, null, "common");
+    }
+
+    String getMethodParametter(String name, Field field) {
+        return name + " : " + typeCommentGenerator.getTypeComment(field, "common");
     }
 }

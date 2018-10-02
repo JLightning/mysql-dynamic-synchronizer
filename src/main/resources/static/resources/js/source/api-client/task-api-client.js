@@ -16,7 +16,7 @@ class TaskApiClient extends AbstractClient {
      * @param filters {string[]}
      * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
-    createTaskActionFlat(taskId : number, taskName : string, mapping : *, source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : *): {done: (TaskDTO => void) => void, error: () => void} {
+    createTaskActionFlat(taskId : number, taskName : string, mapping : SimpleFieldMappingDTO[], source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : string[]): {done: (TaskDTO => void) => void, error: () => void} {
         return super.postJson('/api/task/create', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
     }
 

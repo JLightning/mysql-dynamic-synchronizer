@@ -58,7 +58,7 @@ public class DeleteMappingRenderer extends MethodRenderer {
         }
 
         if (requestBodyParameter != null) {
-            renderMethodWithRequestBody(method, result, methodAction, methodUri, requestBodyParameter);
+            result.add(renderMethodWithRequestBody(method, methodAction, methodUri, requestBodyParameter));
         }
 
         String renderMethodContent = renderMethod(method, methodAction, methodUri, methodParameters, httpParameters, requestBodyParameter);

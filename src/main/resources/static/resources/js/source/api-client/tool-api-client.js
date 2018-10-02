@@ -16,7 +16,7 @@ class ToolApiClient extends AbstractClient {
      * @param filters {string[]}
      * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
      */
-    syncStructureFlat(taskId : number, taskName : string, mapping : *, source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : *): {done: (boolean => void) => void, error: () => void} {
+    syncStructureFlat(taskId : number, taskName : string, mapping : SimpleFieldMappingDTO[], source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : string[]): {done: (boolean => void) => void, error: () => void} {
         return super.postJson('/api/tool/sync-structure', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
     }
 

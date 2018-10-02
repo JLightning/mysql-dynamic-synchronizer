@@ -26,6 +26,22 @@ public class TypeCommentGenerator {
         this.jsDTOGenerator = jsDTOGenerator;
     }
 
+    public String getTypeComment(Field field, String fileName) {
+        try {
+            return getTypeComment(field.getType(), (ParameterizedType) field.getGenericType(), fileName);
+        } catch (ClassCastException e) {
+            return getTypeComment(field.getType(), null, fileName);
+        }
+    }
+
+    public String getTypeComment(Parameter parameter, String fileName) {
+        try {
+            return getTypeComment(parameter.getType(), (ParameterizedType) parameter.getParameterizedType(), fileName);
+        } catch (ClassCastException e) {
+            return getTypeComment(parameter.getType(), null, fileName);
+        }
+    }
+
     public String getTypeComment(Class clazz, ParameterizedType parameterizedType, String fileName) {
         if (clazz.isPrimitive()) {
             if (clazz == boolean.class) {
