@@ -4,14 +4,11 @@ import com.jhl.mds.jsclientgenerator.methodrenderer.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.annotation.PostConstruct;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -27,7 +24,7 @@ public class JsClientGenerator {
 
     @Autowired
     public JsClientGenerator(
-            JsDTOGenerator jsDTOGenerator,
+            JsJsDTOClassGenerator jsDTOClassGenerator,
             DTORegistry dtoRegistry,
             TemplateReader templateReader,
             GetMappingRenderer getMappingRenderer,

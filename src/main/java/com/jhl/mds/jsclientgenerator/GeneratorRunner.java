@@ -8,20 +8,20 @@ import javax.annotation.PostConstruct;
 public class GeneratorRunner {
 
     private JsClientGenerator jsClientGenerator;
-    private JsDTOGenerator jsDTOGenerator;
+    private JsJsDTOClassGenerator jsDTOClassGenerator;
 
     public GeneratorRunner(
             JsClientGenerator jsClientGenerator,
-            JsDTOGenerator jsDTOGenerator
+            JsJsDTOClassGenerator jsDTOClassGenerator
     ) {
         this.jsClientGenerator = jsClientGenerator;
-        this.jsDTOGenerator = jsDTOGenerator;
+        this.jsDTOClassGenerator = jsDTOClassGenerator;
     }
 
     @PostConstruct
     public void init() throws Exception {
         jsClientGenerator.start();
-        jsDTOGenerator.start();
+        jsDTOClassGenerator.start();
     }
 
     public static void main(String[] args) {

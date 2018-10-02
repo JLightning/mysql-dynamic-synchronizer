@@ -15,15 +15,15 @@ import java.util.Map;
 @Service
 public class TypeCommentGenerator {
 
-    private JsDTOGenerator jsDTOGenerator;
+    private JsJsDTOClassGenerator jsDTOClassGenerator;
     private TemplateReader templateReader;
 
     public TypeCommentGenerator(TemplateReader templateReader) {
         this.templateReader = templateReader;
     }
 
-    public void setJsDTOGenerator(JsDTOGenerator jsDTOGenerator) {
-        this.jsDTOGenerator = jsDTOGenerator;
+    public void setJsDTOClassGenerator(JsJsDTOClassGenerator jsDTOClassGenerator) {
+        this.jsDTOClassGenerator = jsDTOClassGenerator;
     }
 
     public String getTypeComment(Field field, String fileName) {
@@ -66,7 +66,7 @@ public class TypeCommentGenerator {
             }
         } else if (clazz.getName().contains("com.jhl")) {
             try {
-                return jsDTOGenerator.generateDto(clazz, fileName);
+                return jsDTOClassGenerator.generateDto(clazz, fileName);
             } catch (Exception e) {
                 return "{}";
             }

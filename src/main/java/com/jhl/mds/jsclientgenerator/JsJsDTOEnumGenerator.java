@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 @Service
-public class JsDTOEnumGenerator extends DTOGenerator {
+public class JsJsDTOEnumGenerator extends JsDTOGenerator {
 
     private TemplateReader templateReader;
     private DTORegistry dtoRegistry;
@@ -15,7 +15,7 @@ public class JsDTOEnumGenerator extends DTOGenerator {
     private Map<Class, String> generated = new HashMap<>();
     private Class processing = null;
 
-    public JsDTOEnumGenerator(TemplateReader templateReader, DTORegistry dtoRegistry, FileUtils fileUtils) {
+    public JsJsDTOEnumGenerator(TemplateReader templateReader, DTORegistry dtoRegistry, FileUtils fileUtils) {
         super(templateReader);
         this.templateReader = templateReader;
         this.dtoRegistry = dtoRegistry;
