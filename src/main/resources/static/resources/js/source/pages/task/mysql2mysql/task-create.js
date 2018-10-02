@@ -11,6 +11,7 @@ import PropTypes from 'prop-types';
 import {TaskDTO} from "../../../dto/task-dto";
 import {Table as TableDTO} from "../../../dto/table";
 import Validator from "../../../util/validator";
+import {SimpleFieldMappingDTO} from "../../../dto/simple-field-mapping-dto";
 
 @observer
 export default class TaskCreate extends React.Component {
@@ -20,19 +21,17 @@ export default class TaskCreate extends React.Component {
     @observable fields = [];
     @observable taskTypes = [];
     @observable insertModes = [];
-    @observable insertMode = '';
-    @observable taskName = '';
     autorunDisposers = [];
 
     constructor(props) {
         super(props);
         if (typeof taskDTO !== 'undefined') {
             this.taskDTO = taskDTO;
-            this.taskName = taskDTO.taskName;
+            this.task.taskName = taskDTO.taskName;
             this.task.source = taskDTO.source;
             this.task.target = taskDTO.target;
             this.task.taskType = taskDTO.taskType;
-            this.insertMode = taskDTO.insertMode;
+            this.task.insertMode = taskDTO.insertMode;
             this.filters = taskDTO.filters;
 
             this.getMapping();
@@ -52,7 +51,7 @@ export default class TaskCreate extends React.Component {
 
     @computed get readyToSubmit() {
         console.log('compute readyToSubmit');
-        return this.fields.length > 0 && this.taskName !== '' && this.insertMode !== '' && this.task.taskType !== '' ;
+        return this.fields.length > 0 && this.task.taskName !== '' && this.task.insertMode !== '' && this.task.taskType !== '' ;
     }
 
     getMapping() {
@@ -98,16 +97,15 @@ export default class TaskCreate extends React.Component {
     }
 
     submit() {
-        const mapping = this.fields.filter(field => field.mappable).map(field => {
-            return {sourceField: field.sourceField, targetField: field.targetField}
-        });
+        const mapping = this.fields.filter(field => field.mappable).map(field => new SimpleFieldMappingDTO(field.sourceField, field.targetField));
+
         const postParams = {
-            taskName: this.taskName,
+            taskName: this.task.taskName,
             mapping: mapping,
             source: this.task.source,
             target: this.task.target,
             taskType: this.task.taskType,
-            insertMode: this.insertMode,
+            insertMode: this.task.insertMode,
             filters: this.task.filters
         };
 
@@ -135,8 +133,8 @@ export default class TaskCreate extends React.Component {
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
                         <input type="text" className="form-control" id="name" name="name" placeholder="Enter Task Name"
-                               defaultValue={this.taskName}
-                               onChange={e => this.taskName = e.target.value}/>
+                               defaultValue={this.task.taskName}
+                               onChange={e => this.task.taskName = e.target.value}/>
                     </div>
 
                     <div className="row">
@@ -145,8 +143,8 @@ export default class TaskCreate extends React.Component {
                                 <label htmlFor="name">Task Type</label>
                                 <Select className="fullWidth" btnTitle="Select Task Type"
                                         options={this.taskTypes.map((type, idx) => new SelectOption(idx, type))}
-                                        onItemClick={o => this.taskType = o.value}
-                                        value={this.taskTypes.indexOf(this.taskType)}/>
+                                        onItemClick={o => this.task.taskType = o.value}
+                                        value={this.taskTypes.indexOf(this.task.taskType)}/>
                             </div>
                         </div>
                         <div className="col">
@@ -154,8 +152,8 @@ export default class TaskCreate extends React.Component {
                                 <label htmlFor="name">Insert Mode</label>
                                 <Select className="fullWidth" btnTitle="Select Insert Mode"
                                         options={this.insertModes.map((mode, idx) => new SelectOption(idx, mode))}
-                                        onItemClick={o => this.insertMode = o.value}
-                                        value={this.insertModes.indexOf(this.insertMode)}/>
+                                        onItemClick={o => this.task.insertMode = o.value}
+                                        value={this.insertModes.indexOf(this.task.insertMode)}/>
                             </div>
                         </div>
                     </div>
