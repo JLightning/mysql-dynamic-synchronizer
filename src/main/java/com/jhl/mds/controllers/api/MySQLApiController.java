@@ -39,6 +39,11 @@ public class MySQLApiController {
         return ApiResponse.error(e);
     }
 
+    @GetMapping("/")
+    public ApiResponse<List<MySQLServerDTO>> list() {
+        return ApiResponse.success(mySQLServerRepository.findAll().stream().map(mysqlServerDtoConverter::from).collect(Collectors.toList()));
+    }
+
     @PutMapping("/")
     public ApiResponse<MySQLServerDTO> create(@RequestBody MySQLServerDTO dto) {
         MySQLServer mySQLServer = mysqlServerDtoConverter.toDAO(dto);
@@ -66,11 +71,6 @@ public class MySQLApiController {
     public ApiResponse<Boolean> delete(@PathVariable int serverId) {
         mySQLServerRepository.deleteById(serverId);
         return ApiResponse.success(true);
-    }
-
-    @GetMapping("/servers")
-    public ApiResponse<List<MySQLServerDTO>> getServers() {
-        return ApiResponse.success(mySQLServerRepository.findAll().stream().map(mysqlServerDtoConverter::from).collect(Collectors.toList()));
     }
 
     @GetMapping("/databases")

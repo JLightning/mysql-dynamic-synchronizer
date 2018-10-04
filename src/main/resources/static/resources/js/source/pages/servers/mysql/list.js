@@ -4,6 +4,7 @@ import {observable} from 'mobx';
 import mySQLApiClient from "../../../api-client/mysql-api-client";
 import {MySQLServerDTO} from "../../../dto/my-sqlserver-dto";
 import Table from "../../../common/table";
+import {Link} from "react-router-dom";
 
 @observer
 export default class MysqlServerList extends React.Component {
@@ -11,7 +12,7 @@ export default class MysqlServerList extends React.Component {
     @observable serverList: MySQLServerDTO[] = [];
 
     componentDidMount() {
-        mySQLApiClient.getServers().done(data => this.serverList = data);
+        mySQLApiClient.list().done(data => this.serverList = data);
     }
 
     render() {
@@ -38,7 +39,7 @@ class Row extends React.Component {
                 <td>{server.host}</td>
                 <td>{server.port}</td>
                 <td>
-                    <a className="text-white btn btn-primary btn-sm">Edit</a>
+                    <Link to={"/server/mysql/edit/" + server.serverId} className="text-white btn btn-primary btn-sm">Edit</Link>
                     <a className="text-white btn btn-danger btn-sm delete-server ml-1" href="#">Remove</a>
                 </td>
             </tr>

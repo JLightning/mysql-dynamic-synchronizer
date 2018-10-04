@@ -95,20 +95,20 @@ class MySQLApiClient extends AbstractClient {
     }
 
     /**
-
-     * @returns {{done: (function(function(MySQLServerDTO[]): *): *), error: (function(*): *)}}
-     */
-    getServers(): {done: (MySQLServerDTO[] => void) => void, error: () => void} {
-        return super.get('/api/mysql/servers', {});
-    }
-
-    /**
      * @param serverId {number}
      * @param database {string}
      * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
     getTablesForServerAndDatabase(serverId : number, database : string): {done: (string[] => void) => void, error: () => void} {
         return super.get('/api/mysql/tables', {serverId, database});
+    }
+
+    /**
+
+     * @returns {{done: (function(function(MySQLServerDTO[]): *): *), error: (function(*): *)}}
+     */
+    list(): {done: (MySQLServerDTO[] => void) => void, error: () => void} {
+        return super.get('/api/mysql/', {});
     }
 
     /**
