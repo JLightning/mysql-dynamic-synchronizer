@@ -19,15 +19,20 @@ services:
     command:
       - '--user=mysql'
   postgres:
-      image: postgres:9.6.9
-      container_name: mds_postgres
-      ports:
-        - "5432:5432"
-      environment:
-        POSTGRES_USERNAME: root
-        POSTGRES_PASSWORD: root
-      volumes:
-        - ./data/postgresql:/var/lib/postgresql
+    image: postgres:9.6.9
+    container_name: mds_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USERNAME: root
+      POSTGRES_PASSWORD: root
+    volumes:
+      - ./data/postgresql:/var/lib/postgresql
+  redis:
+    image: redis:4.0.11
+    container_name: mds_redis
+    ports:
+      - "6379:6379"
   node:
     image: node:8.12.0-jessie
     container_name: mds_node
