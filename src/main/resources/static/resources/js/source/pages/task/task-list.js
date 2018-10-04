@@ -5,11 +5,12 @@ import {observable} from 'mobx';
 import {Link} from "react-router-dom";
 import YesNoModal from "../../common/yes-no-modal";
 import taskApiClient from "../../api-client/task-api-client";
+import {TaskDTO} from "../../dto/task-dto";
 
 @observer
 export default class TaskList extends React.Component {
 
-    @observable taskList = [];
+    @observable taskList: TaskDTO[] = [];
 
     componentDidMount() {
         this.reload();
@@ -64,7 +65,7 @@ class Row extends React.Component {
                     <td>{task.target.serverId}</td>
                     <td>{task.target.database}</td>
                     <td>{task.target.table}</td>
-                    <td>TMP</td>
+                    <td>{task.mapping.map((_mapping, idx) => <span key={idx}>{_mapping.sourceField} -> {_mapping.targetField}, </span>)}</td>
                     <td>
                         <div>
                             <Link to={"/task/detail/" + task.taskId}

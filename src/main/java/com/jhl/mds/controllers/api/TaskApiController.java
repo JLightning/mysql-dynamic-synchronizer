@@ -26,9 +26,7 @@ import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -142,7 +140,14 @@ public class TaskApiController {
     @GetMapping("/")
     public ApiResponse<List<TaskDTO>> list() {
         List<Task> tasks = taskRepository.findAll();
-        List<TaskDTO> taskDTOs = tasks.stream().map(task -> taskDTOConverter.from(task)).collect(Collectors.toList());
+        Map<Integer, List<TaskFieldMapping>> mappingMap = taskFieldMappingRepository.findAll().stream().collect(Collectors.toMap(TaskFieldMapping::getFkTaskId, Arrays::asList, (l1, l2) -> {
+            List<TaskFieldMapping> arr = new ArrayList<>();
+            arr.addAll(l1);
+            arr.addAll(l2);
+            return arr;
+        }));
+
+        List<TaskDTO> taskDTOs = tasks.stream().map(task -> taskDTOConverter.from(task, mappingMap.get(task.getTaskId()))).collect(Collectors.toList());
         return ApiResponse.success(taskDTOs);
     }
 

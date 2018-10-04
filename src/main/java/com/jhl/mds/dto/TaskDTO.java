@@ -77,6 +77,10 @@ public class TaskDTO {
             return builder.build();
         }
 
+        public TaskDTO from(Task task, List<TaskFieldMapping> taskFieldMappings) {
+            return from(task, taskFieldMappings, null);
+        }
+
         public TaskDTO from(Task task) {
             return from(task, null, null);
         }
