@@ -13,11 +13,12 @@ import {Table as TableDTO} from "../../../dto/table";
 import Validator from "../../../util/validator";
 import {SimpleFieldMappingDTO} from "../../../dto/simple-field-mapping-dto";
 import {MySQLFieldWithMappingDTO} from "../../../dto/my-sqlfield-with-mapping-dto";
+import {TaskType} from "../../../dto/task-type";
 
 @observer
 export default class TaskCreate extends React.Component {
 
-    @observable task: TaskDTO = new TaskDTO(0, '', [], new TableDTO(), new TableDTO(), '', '', []);
+    @observable task: TaskDTO = new TaskDTO(0, '', [], new TableDTO(), new TableDTO(), '', '', '', []);
 
     @observable fields: MySQLFieldWithMappingDTO[] = [];
     @observable taskTypes = [];
@@ -95,6 +96,7 @@ export default class TaskCreate extends React.Component {
 
         const postTask = this.task;
         postTask.mapping = mapping;
+        postTask.taskType = TaskType.MYSQL_TO_MYSQL;
 
         taskApiClient.create(postTask).done(data => {
             location.href = DOMAIN + '/task/detail/' + data.taskId;

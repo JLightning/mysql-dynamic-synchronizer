@@ -6,15 +6,11 @@ export class TaskType {
     /**
      * @type {TaskType}
      */
-    static FULL_MIGRATION : ?TaskType = null;
+    static MYSQL_TO_MYSQL : ?TaskType = null;
     /**
      * @type {TaskType}
      */
-    static INCREMENTAL_MIGRATION : ?TaskType = null;
-    /**
-     * @type {TaskType}
-     */
-    static FULL_INCREMENTAL_MIGRATION : ?TaskType = null;
+    static MYSQL_TO_REDIS : ?TaskType = null;
     /**
      * @type {string}
      */
@@ -32,7 +28,6 @@ export class TaskType {
      }
 }
 
-TaskType.FULL_MIGRATION = new TaskType('FULL_MIGRATION');
-TaskType.INCREMENTAL_MIGRATION = new TaskType('INCREMENTAL_MIGRATION');
-TaskType.FULL_INCREMENTAL_MIGRATION = new TaskType('FULL_INCREMENTAL_MIGRATION');
+TaskType.MYSQL_TO_MYSQL = new TaskType('MYSQL_TO_MYSQL');
+TaskType.MYSQL_TO_REDIS = new TaskType('MYSQL_TO_REDIS');
 

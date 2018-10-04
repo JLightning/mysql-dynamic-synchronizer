@@ -39,6 +39,7 @@ public class DatabaseMigration100 extends AbstractDatabaseMigration {
                     "fk_target_server INTEGER," +
                     "target_database VARCHAR(255)," +
                     "target_table VARCHAR(255)," +
+                    "migration_type INTEGER," +
                     "task_type INTEGER," +
                     "insert_mode VARCHAR(80)," +
                     "full_migration_progress DOUBLE," +

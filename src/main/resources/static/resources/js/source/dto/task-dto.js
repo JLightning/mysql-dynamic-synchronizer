@@ -1,6 +1,7 @@
 // @flow
 import {MySQLInsertMode} from './my-sqlinsert-mode';
 import {SimpleFieldMappingDTO} from './simple-field-mapping-dto';
+import {MigrationType} from './migration-type';
 import {TaskType} from './task-type';
 import {Table} from './table';
 import {observable} from 'mobx';
@@ -30,6 +31,10 @@ export class TaskDTO {
     /**
      * @type {string}
      */
+    @observable migrationType: ?string = null;
+    /**
+     * @type {string}
+     */
     @observable taskType: ?string = null;
     /**
      * @type {string}
@@ -46,16 +51,18 @@ export class TaskDTO {
      * @param mapping {SimpleFieldMappingDTO[]}
      * @param source {Table}
      * @param target {Table}
+     * @param migrationType {MigrationType}
      * @param taskType {TaskType}
      * @param insertMode {MySQLInsertMode}
      * @param filters {string[]}
      */
-    constructor(taskId: ?number, taskName: ?string, mapping: ?SimpleFieldMappingDTO[], source: ?Table, target: ?Table, taskType: ?string, insertMode: ?string, filters: ?string[]) {
+    constructor(taskId: ?number, taskName: ?string, mapping: ?SimpleFieldMappingDTO[], source: ?Table, target: ?Table, migrationType: ?string, taskType: ?string, insertMode: ?string, filters: ?string[]) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.mapping = mapping;
         this.source = source;
         this.target = target;
+        this.migrationType = migrationType;
         this.taskType = taskType;
         this.insertMode = insertMode;
         this.filters = filters;

@@ -11,6 +11,43 @@ class MySQLApiClient extends AbstractClient {
 
     /**
      * @param serverId {number}
+     * @param name {string}
+     * @param host {string}
+     * @param port {string}
+     * @param username {string}
+     * @param password {string}
+     * @returns {{done: (function(function(MySQLServerDTO): *): *), error: (function(*): *)}}
+     */
+    createFlat(serverId : number, name : string, host : string, port : string, username : string, password : string): {done: (MySQLServerDTO => void) => void, error: () => void} {
+        return super.putJson('/api/mysql/', {serverId, name, host, port, username, password});
+    }
+
+    /**
+     * @param dto {MySQLServerDTO}
+     * @returns {{done: (function(function(MySQLServerDTO): *): *), error: (function(*): *)}}
+     */
+    create(dto : MySQLServerDTO): {done: (MySQLServerDTO => void) => void, error: () => void} {
+        return super.putJson('/api/mysql/', dto);
+    }
+
+    /**
+     * @param serverId {number}
+     * @returns {{done: (function(function(boolean): *): *), error: (function(*): *)}}
+     */
+    delete(serverId : number): {done: (boolean => void) => void, error: () => void} {
+        return super.delete('/api/mysql/' + serverId + '', {});
+    }
+
+    /**
+     * @param serverId {number}
+     * @returns {{done: (function(function(MySQLServerDTO): *): *), error: (function(*): *)}}
+     */
+    detail(serverId : number): {done: (MySQLServerDTO => void) => void, error: () => void} {
+        return super.get('/api/mysql/' + serverId + '', {});
+    }
+
+    /**
+     * @param serverId {number}
      * @returns {{done: (function(function(string[]): *): *), error: (function(*): *)}}
      */
     getDatabasesForServer(serverId : number): {done: (string[] => void) => void, error: () => void} {
@@ -72,6 +109,27 @@ class MySQLApiClient extends AbstractClient {
      */
     getTablesForServerAndDatabase(serverId : number, database : string): {done: (string[] => void) => void, error: () => void} {
         return super.get('/api/mysql/tables', {serverId, database});
+    }
+
+    /**
+     * @param serverId {number}
+     * @param name {string}
+     * @param host {string}
+     * @param port {string}
+     * @param username {string}
+     * @param password {string}
+     * @returns {{done: (function(function(MySQLServerDTO): *): *), error: (function(*): *)}}
+     */
+    updateFlat(serverId : number, name : string, host : string, port : string, username : string, password : string): {done: (MySQLServerDTO => void) => void, error: () => void} {
+        return super.postJson('/api/mysql/', {serverId, name, host, port, username, password});
+    }
+
+    /**
+     * @param dto {MySQLServerDTO}
+     * @returns {{done: (function(function(MySQLServerDTO): *): *), error: (function(*): *)}}
+     */
+    update(dto : MySQLServerDTO): {done: (MySQLServerDTO => void) => void, error: () => void} {
+        return super.postJson('/api/mysql/', dto);
     }
 
     /**

@@ -2,6 +2,7 @@
 import AbstractClient from "./abstract-client";
 import {FullMigrationProgressDTO} from '../dto/full-migration-progress-dto';
 import {Table} from '../dto/table';
+import {MigrationType} from '../dto/migration-type';
 import {TaskType} from '../dto/task-type';
 import {SimpleFieldMappingDTO} from '../dto/simple-field-mapping-dto';
 import {MySQLInsertMode} from '../dto/my-sqlinsert-mode';
@@ -16,13 +17,14 @@ class TaskApiClient extends AbstractClient {
      * @param mapping {SimpleFieldMappingDTO[]}
      * @param source {Table}
      * @param target {Table}
+     * @param migrationType {MigrationType}
      * @param taskType {TaskType}
      * @param insertMode {MySQLInsertMode}
      * @param filters {string[]}
      * @returns {{done: (function(function(TaskDTO): *): *), error: (function(*): *)}}
      */
-    createFlat(taskId : number, taskName : string, mapping : SimpleFieldMappingDTO[], source : Table, target : Table, taskType : TaskType, insertMode : MySQLInsertMode, filters : string[]): {done: (TaskDTO => void) => void, error: () => void} {
-        return super.putJson('/api/task/', {taskId, taskName, mapping, source, target, taskType, insertMode, filters});
+    createFlat(taskId : number, taskName : string, mapping : SimpleFieldMappingDTO[], source : Table, target : Table, migrationType : MigrationType, taskType : TaskType, insertMode : MySQLInsertMode, filters : string[]): {done: (TaskDTO => void) => void, error: () => void} {
+        return super.putJson('/api/task/', {taskId, taskName, mapping, source, target, migrationType, taskType, insertMode, filters});
     }
 
     /**
@@ -59,9 +61,9 @@ class TaskApiClient extends AbstractClient {
 
     /**
 
-     * @returns {{done: (function(function(TaskType[]): *): *), error: (function(*): *)}}
+     * @returns {{done: (function(function(MigrationType[]): *): *), error: (function(*): *)}}
      */
-    getTaskTypes(): {done: (TaskType[] => void) => void, error: () => void} {
+    getTaskTypes(): {done: (MigrationType[] => void) => void, error: () => void} {
         return super.get('/api/task/get-task-types', {});
     }
 

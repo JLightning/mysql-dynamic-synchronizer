@@ -27,6 +27,7 @@ public class Task {
     private int fkTargetServer;
     private String targetDatabase;
     private String targetTable;
+    private int migrationType;
     private int taskType;
     private String insertMode;
     private double fullMigrationProgress;

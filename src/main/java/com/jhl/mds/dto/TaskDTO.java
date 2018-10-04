@@ -1,6 +1,7 @@
 package com.jhl.mds.dto;
 
 import com.jhl.mds.consts.MySQLInsertMode;
+import com.jhl.mds.consts.MigrationType;
 import com.jhl.mds.consts.TaskType;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
@@ -26,6 +27,7 @@ public class TaskDTO {
     private List<SimpleFieldMappingDTO> mapping;
     private Table source;
     private Table target;
+    private MigrationType migrationType;
     private TaskType taskType;
     private MySQLInsertMode insertMode;
     private List<String> filters;
@@ -57,6 +59,7 @@ public class TaskDTO {
                             .database(task.getTargetDatabase())
                             .table(task.getTargetTable())
                             .build())
+                    .migrationType(MigrationType.getByCode(task.getTaskType()))
                     .taskType(TaskType.getByCode(task.getTaskType()))
                     .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()));
 

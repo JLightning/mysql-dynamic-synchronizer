@@ -1,7 +1,6 @@
 package com.jhl.mds.controllers.api;
 
-import com.jhl.mds.consts.MySQLInsertMode;
-import com.jhl.mds.consts.TaskType;
+import com.jhl.mds.consts.MigrationType;
 import com.jhl.mds.dao.entities.Task;
 import com.jhl.mds.dao.entities.TaskFieldMapping;
 import com.jhl.mds.dao.entities.TaskFilter;
@@ -94,6 +93,7 @@ public class TaskApiController {
                     .fkTargetServer(targetTaskDTOTable.getServerId())
                     .targetDatabase(targetTaskDTOTable.getDatabase())
                     .targetTable(targetTaskDTOTable.getTable())
+                    .migrationType(dto.getMigrationType().getCode())
                     .taskType(dto.getTaskType().getCode())
                     .insertMode(dto.getInsertMode().toString())
                     .fullMigrationProgress(0)
@@ -216,8 +216,8 @@ public class TaskApiController {
     }
 
     @GetMapping("/get-task-types")
-    public ApiResponse<TaskType[]> getTaskTypes() {
-        return ApiResponse.success(TaskType.values());
+    public ApiResponse<MigrationType[]> getTaskTypes() {
+        return ApiResponse.success(MigrationType.values());
     }
 
     @EventListener

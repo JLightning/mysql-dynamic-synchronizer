@@ -10,6 +10,7 @@ import TableStructureSync from "./table-structure-sync";
 import MysqlServerList from "./pages/servers/mysql/list";
 import RedisServerAdd from "./pages/servers/redis/add";
 import RedisServerList from "./pages/servers/redis/list";
+import MySQLServerAdd from "./pages/servers/mysql/add";
 
 class App extends React.Component {
 
@@ -25,6 +26,8 @@ class App extends React.Component {
                         <Route path="/task/detail/:taskId" component={TaskDetail}/>
 
                         <Route path="/server/mysql/list" component={MysqlServerList}/>
+                        <Route path="/server/mysql/add" component={MySQLServerAdd}/>
+                        <Route path="/server/mysql/edit/:serverId" component={MySQLServerAdd}/>
 
                         <Route path="/server/redis/list" component={RedisServerList}/>
                         <Route path="/server/redis/add" component={RedisServerAdd}/>

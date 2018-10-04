@@ -2,6 +2,7 @@ package com.jhl.mds.controllers.api;
 
 import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dao.entities.MySQLServer;
+import com.jhl.mds.dao.entities.RedisServer;
 import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dto.*;
 import com.jhl.mds.jsclientgenerator.JsClientController;
@@ -36,6 +37,35 @@ public class MySQLApiController {
     @ExceptionHandler(Exception.class)
     public ApiResponse exceptionHandler(Exception e) {
         return ApiResponse.error(e);
+    }
+
+    @PutMapping("/")
+    public ApiResponse<MySQLServerDTO> create(@RequestBody MySQLServerDTO dto) {
+        MySQLServer mySQLServer = mysqlServerDtoConverter.toDAO(dto);
+        mySQLServerRepository.save(mySQLServer);
+        dto.setServerId(mySQLServer.getServerId());
+        return ApiResponse.success(dto);
+    }
+
+    @PostMapping("/")
+    public ApiResponse<MySQLServerDTO> update(@RequestBody MySQLServerDTO dto) {
+        MySQLServer mySQLServer = mysqlServerDtoConverter.toDAO(dto);
+        mySQLServerRepository.save(mySQLServer);
+        dto.setServerId(mySQLServer.getServerId());
+        return ApiResponse.success(dto);
+    }
+
+    @GetMapping("/{serverId}")
+    public ApiResponse<MySQLServerDTO> detail(@PathVariable int serverId) {
+        MySQLServer mysqlServer = mySQLServerRepository.findByServerId(serverId);
+        MySQLServerDTO dto = mysqlServerDtoConverter.from(mysqlServer);
+        return ApiResponse.success(dto);
+    }
+
+    @DeleteMapping("/{serverId}")
+    public ApiResponse<Boolean> delete(@PathVariable int serverId) {
+        mySQLServerRepository.deleteById(serverId);
+        return ApiResponse.success(true);
     }
 
     @GetMapping("/servers")
