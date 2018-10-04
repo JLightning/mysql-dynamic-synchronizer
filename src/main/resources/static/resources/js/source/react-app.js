@@ -21,6 +21,7 @@ class App extends React.Component {
                         <Route exact path="/task/list" component={TaskList}/>
                         <Route exact path="/task/create" component={TaskCreateChooser}/>
                         <Route path="/task/create/mysql-to-mysql" component={TaskCreateMysql2Mysql}/>
+                        <Route path="/task/edit/mysql-to-mysql/:taskId" component={TaskCreateMysql2Mysql}/>
                         <Route path="/task/detail/:taskId" component={TaskDetail}/>
 
                         <Route path="/server/mysql/list" component={MysqlServerList}/>

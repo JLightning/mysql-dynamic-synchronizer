@@ -12,29 +12,22 @@ import {TaskDTO} from "../../../dto/task-dto";
 import {Table as TableDTO} from "../../../dto/table";
 import Validator from "../../../util/validator";
 import {SimpleFieldMappingDTO} from "../../../dto/simple-field-mapping-dto";
+import {MySQLFieldWithMappingDTO} from "../../../dto/my-sqlfield-with-mapping-dto";
 
 @observer
 export default class TaskCreate extends React.Component {
 
     @observable task: TaskDTO = new TaskDTO(0, '', [], new TableDTO(), new TableDTO(), '', '', []);
 
-    @observable fields = [];
+    @observable fields: MySQLFieldWithMappingDTO[] = [];
     @observable taskTypes = [];
     @observable insertModes = [];
     autorunDisposers = [];
 
     constructor(props) {
         super(props);
-        if (typeof taskDTO !== 'undefined') {
-            this.taskDTO = taskDTO;
-            this.task.taskName = taskDTO.taskName;
-            this.task.source = taskDTO.source;
-            this.task.target = taskDTO.target;
-            this.task.taskType = taskDTO.taskType;
-            this.task.insertMode = taskDTO.insertMode;
-            this.filters = taskDTO.filters;
-
-            this.getMapping();
+        if (!Validator.isNull(props.match.params.taskId)) {
+            taskApiClient.detail(props.match.params.taskId).done((data: TaskDTO) => this.task = data);
         }
 
         this.autorunDisposers.push(autorun(() => this.getMapping()));
@@ -51,24 +44,25 @@ export default class TaskCreate extends React.Component {
 
     @computed get readyToSubmit() {
         console.log('compute readyToSubmit');
-        return this.fields.length > 0 && this.task.taskName !== '' && this.task.insertMode !== '' && this.task.taskType !== '' ;
+        return this.fields.length > 0 && this.task.taskName !== '' && this.task.insertMode !== '' && this.task.taskType !== '';
     }
 
     getMapping() {
-        let emptySourceTable = typeof this.task.source.serverId === 'undefined' || typeof this.task.source.database === 'undefined' || typeof this.task.source.table === 'undefined';
-        let emptyTargetTable = typeof this.task.target.serverId === 'undefined' || typeof this.task.target.database === 'undefined' || typeof this.task.target.table === 'undefined';
+        let source = this.task.source;
+        let target = this.task.target;
 
-        let table = this.task.source;
+        let emptySourceTable = Validator.isEmptyString(source.serverId) || Validator.isEmptyString(source.database) || Validator.isEmptyString(source.table);
+        let emptyTargetTable = Validator.isEmptyString(target.serverId) || Validator.isEmptyString(target.database) || Validator.isEmptyString(target.table);
+
+        let table = source;
         let sub = 'sourceField';
         if (!emptySourceTable && !emptyTargetTable) {
-            const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
-            mySQLApiClient.getMappingFor2TableFlat(this.task.source.serverId, this.task.source.database, this.task.source.table,
-                this.task.target.serverId, this.task.target.database, this.task.target.table, mapping)
+            mySQLApiClient.getMappingFor2TableFlat(source.serverId, source.database, source.table, target.serverId, target.database, target.table, this.task.mapping)
                 .done(fields => this.fields = fields);
 
             return;
         } else if (emptySourceTable) {
-            table = this.task.target;
+            table = target;
             sub = 'targetField';
         }
         if (emptySourceTable && emptyTargetTable) {
@@ -99,22 +93,11 @@ export default class TaskCreate extends React.Component {
     submit() {
         const mapping = this.fields.filter(field => field.mappable).map(field => new SimpleFieldMappingDTO(field.sourceField, field.targetField));
 
-        const postParams = {
-            taskName: this.task.taskName,
-            mapping: mapping,
-            source: this.task.source,
-            target: this.task.target,
-            taskType: this.task.taskType,
-            insertMode: this.task.insertMode,
-            filters: this.task.filters
-        };
+        const postTask = this.task;
+        postTask.mapping = mapping;
 
-        if (typeof taskDTO !== 'undefined') {
-            postParams.taskId = taskDTO.taskId;
-        }
-
-        taskApiClient.create(postParams).done(data => {
-            location.href = DOMAIN + '/task/detail/?taskId=' + data.taskId;
+        taskApiClient.create(postTask).done(data => {
+            location.href = DOMAIN + '/task/detail/' + data.taskId;
         });
     }
 
