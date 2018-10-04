@@ -45,7 +45,7 @@ export default class TaskCreate extends React.Component {
 
     @computed get readyToSubmit() {
         console.log('compute readyToSubmit');
-        return this.fields.length > 0 && this.task.taskName !== '' && this.task.insertMode !== '' && this.task.taskType !== '';
+        return this.fields.length > 0 && this.task.taskName !== '' && this.task.insertMode !== '' && this.task.migrationType !== '';
     }
 
     getMapping() {
@@ -128,8 +128,8 @@ export default class TaskCreate extends React.Component {
                                 <label htmlFor="name">Task Type</label>
                                 <Select className="fullWidth" btnTitle="Select Task Type"
                                         options={this.taskTypes.map((type, idx) => new SelectOption(idx, type))}
-                                        onItemClick={o => this.task.taskType = o.value}
-                                        value={this.taskTypes.indexOf(this.task.taskType)}/>
+                                        onItemClick={o => this.task.migrationType = o.value}
+                                        value={this.taskTypes.indexOf(this.task.migrationType)}/>
                             </div>
                         </div>
                         <div className="col">
