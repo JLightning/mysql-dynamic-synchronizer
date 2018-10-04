@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 public class JsJsDTOEnumGenerator extends JsDTOGenerator {
@@ -27,16 +29,12 @@ public class JsJsDTOEnumGenerator extends JsDTOGenerator {
         JsClientDTO jsClientDTO = clazz.getAnnotation(JsClientDTO.class);
 
         Pair<String, String> pair;
-        try {
-            pair = getFileNameAndClassName(jsClientDTO, clazz);
-        } catch (Exception e) {
-            return "";
-        }
+        pair = getFileNameAndClassName(jsClientDTO, clazz);
 
         String fileName = pair.getFirst();
         String className = pair.getSecond();
 
-        if (clazz == processing) return className;
+        if (clazz == processing) return "string";
         processing = clazz;
 
         fileUtils.initClean(BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
