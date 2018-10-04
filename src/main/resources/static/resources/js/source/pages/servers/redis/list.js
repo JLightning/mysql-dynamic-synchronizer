@@ -40,7 +40,7 @@ class Row extends React.Component {
     @observable showDeleteModal = false;
 
     render() {
-        const server = this.props.server;
+        const server: RedisServerDTO = this.props.server;
         return (
             <Fragment>
                 <tr>

@@ -31,7 +31,7 @@ export default class MysqlServerList extends React.Component {
 @observer
 class Row extends React.Component {
     render() {
-        const server = this.props.server;
+        const server: MySQLServerDTO = this.props.server;
         return (
             <tr>
                 <th scope="row">{server.serverId}</th>
