@@ -3,6 +3,7 @@ import {observer} from 'mobx-react';
 import {observable} from 'mobx';
 import mySQLApiClient from "../../../api-client/mysql-api-client";
 import {MySQLServerDTO} from "../../../dto/my-sqlserver-dto";
+import Table from "../../../common/table";
 
 @observer
 export default class MysqlServerList extends React.Component {
@@ -16,22 +17,11 @@ export default class MysqlServerList extends React.Component {
     render() {
         return (
             <div className="container mt-3">
-                <table className="table">
-                    <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Host</th>
-                        <th scope="col">Port</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                <Table th={["#", "Name", "Host", "Port", "Action"]}>
                     {
                         this.serverList.map(server => <Row key={server.serverId} server={server}/>)
                     }
-                    </tbody>
-                </table>
+                </Table>
             </div>
         )
     }

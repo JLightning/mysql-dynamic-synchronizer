@@ -5,6 +5,7 @@ import redisApiClient from "../../../api-client/redis-api-client";
 import YesNoModal from "../../../common/yes-no-modal";
 import {Link} from "react-router-dom";
 import {RedisServerDTO} from "../../../dto/redis-server-dto";
+import Table from "../../../common/table";
 
 @observer
 export default class ReidsServerList extends React.Component {
@@ -22,23 +23,12 @@ export default class ReidsServerList extends React.Component {
     render() {
         return (
             <div className="container mt-3">
-                <table className="table">
-                    <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Name</th>
-                        <th scope="col">Host</th>
-                        <th scope="col">Port</th>
-                        <th scope="col">Action</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                <Table th={["#", "Name", "Host", "Port", "Action"]}>
                     {
                         this.serverList.map(server => <Row key={server.serverId} server={server}
                                                            reload={this.reload.bind(this)}/>)
                     }
-                    </tbody>
-                </table>
+                </Table>
             </div>
         )
     }
