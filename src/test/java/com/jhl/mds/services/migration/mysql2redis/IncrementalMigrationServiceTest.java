@@ -29,7 +29,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .target(new RedisServerDTO(0, "", "localhost", "6379", "", ""))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("'key_name_' + id", "key"),
-                        new SimpleFieldMappingDTO("random_number", "value")
+                        new SimpleFieldMappingDTO("_row", "value")
                 ))
                 .build();
 

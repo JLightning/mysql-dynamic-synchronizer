@@ -31,7 +31,7 @@ public class CustomMapping {
             bindings.put(e.getKey(), e.getValue());
         }
         if (input.contains("_row")) {
-            input = "var _row = " + objectMapper.writeValueAsString(data) + ";" + input;
+            input = "var _row = '" + objectMapper.writeValueAsString(data) + "';" + input;
         }
         input = "var json = JSON.stringify;" + input;
 
