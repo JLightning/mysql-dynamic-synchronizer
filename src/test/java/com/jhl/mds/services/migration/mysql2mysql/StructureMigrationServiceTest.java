@@ -18,7 +18,6 @@ public class StructureMigrationServiceTest extends BaseTest {
     @Autowired
     private StructureMigrationService structureMigrationService;
 
-    @Test
     public void executeTest() throws Exception {
         prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
@@ -38,17 +37,5 @@ public class StructureMigrationServiceTest extends BaseTest {
                 .build();
 
         structureMigrationService.execute(dto, null, null, null);
-    }
-
-    @Test
-    public void test() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File templateFile = new File(classLoader.getResource("test.sql").getFile());
-
-        BufferedReader br = new BufferedReader(new FileReader(templateFile));
-        String line;
-        while ((line = br.readLine()) != null) {
-            System.out.println("line = " + line);
-        }
     }
 }

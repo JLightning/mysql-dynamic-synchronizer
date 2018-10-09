@@ -10,6 +10,7 @@ import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<String, Object>, String> {
 
+    @Nullable
     private final Map<String, MySQLFieldDTO> targetFieldMap;
     @Getter
     private final List<String> columns;
@@ -55,7 +57,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<St
                 } else {
                     value = customMapping.resolve(sourceColumn, data).get();
                 }
-            } else if (!targetFieldMap.get(targetColumn).isNullable() && includeDefault) {
+            } else if (targetFieldMap != null && !targetFieldMap.get(targetColumn).isNullable() && includeDefault) {
                 value = mySQLFieldDefaultValueService.getDefaultValue(targetFieldMap.get(targetColumn));
             }
             if (value != null || includeDefault) {
@@ -96,6 +98,11 @@ public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<St
             List<String> columns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
 
             return new MigrationMapperService(mySQLFieldDefaultValueService, customMapping, mapping, targetFieldMap, columns);
+        }
+
+        public MigrationMapperService create(List<SimpleFieldMappingDTO> mapping) {
+            List<String> columns = mapping.stream().map(SimpleFieldMappingDTO::getTargetField).collect(Collectors.toList());
+            return new MigrationMapperService(mySQLFieldDefaultValueService, customMapping, mapping, null, columns);
         }
     }
 }

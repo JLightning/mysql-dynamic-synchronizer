@@ -27,6 +27,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
         MigrationDTO dto = MigrationDTO.builder()
+                .taskId((int) (Math.random() * 10000))
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(new TableInfoDTO(serverDTO, "mds", targetTable))
                 .mapping(Arrays.asList(
@@ -57,6 +58,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
         MigrationDTO dto = MigrationDTO.builder()
+                .taskId((int) (Math.random() * 10000))
                 .source(new TableInfoDTO(getSourceServerDTO(), "mds", sourceTable))
                 .target(new TableInfoDTO(getSourceServerDTO(), "mds", targetTable))
                 .mapping(Arrays.asList(

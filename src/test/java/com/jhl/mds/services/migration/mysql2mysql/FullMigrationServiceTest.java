@@ -1,8 +1,11 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
+import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.MySQLInsertMode;
-import com.jhl.mds.dto.*;
+import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.SimpleFieldMappingDTO;
+import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Assert;
@@ -29,10 +32,11 @@ public class FullMigrationServiceTest extends BaseTest {
 
     @Autowired
     private MySQLConnectionPool mySQLConnectionPool;
+    private String sourceTable, targetTable;
 
-    public void prepareData(Connection conn, Statement st) throws SQLException {
-        st.execute("TRUNCATE mds.tablea;");
-        st.execute("TRUNCATE mds.tableb;");
+    public void prepareData(Connection conn, Statement st) throws Exception {
+        sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+        targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
         Random rand = new Random();
 
@@ -49,7 +53,7 @@ public class FullMigrationServiceTest extends BaseTest {
                     final String finalValues = values.toString();
                     checkTime("test_insert_" + j, () -> {
                         try {
-                            st.execute(String.format("INSERT INTO mds.tablea(`id`, `random_number`) VALUES %s;", finalValues));
+                            st.execute(String.format("INSERT INTO mds." + sourceTable + "(`id`, `random_number`) VALUES %s;", finalValues));
                         } catch (SQLException e) {
                             e.printStackTrace();
                         }
@@ -71,8 +75,9 @@ public class FullMigrationServiceTest extends BaseTest {
         prepareData(conn, st);
 
         MigrationDTO dto = MigrationDTO.builder()
-                .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
-                .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
+                .taskId((int) (Math.random() * 10000))
+                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
+                .target(new TableInfoDTO(serverDTO, "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 10", "random_number")
@@ -89,7 +94,7 @@ public class FullMigrationServiceTest extends BaseTest {
             }
         });
 
-        ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds.tableb");
+        ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds." + targetTable);
         result.next();
         Assert.assertEquals(LIMIT / 2, result.getInt(1));
     }
