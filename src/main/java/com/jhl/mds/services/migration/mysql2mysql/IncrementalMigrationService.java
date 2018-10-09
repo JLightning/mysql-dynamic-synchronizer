@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@Service
+@Service("mysql2MysqlIncrementalMigrationService")
 public class IncrementalMigrationService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
