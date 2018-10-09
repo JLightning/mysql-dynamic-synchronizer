@@ -6,7 +6,7 @@ import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Assert;
 import org.junit.Test;
@@ -74,7 +74,7 @@ public class FullMigrationServiceTest extends BaseTest {
 
         prepareData(conn, st);
 
-        MigrationDTO dto = MigrationDTO.builder()
+        MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
                 .taskId((int) (Math.random() * 10000))
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(new TableInfoDTO(serverDTO, "mds", targetTable))

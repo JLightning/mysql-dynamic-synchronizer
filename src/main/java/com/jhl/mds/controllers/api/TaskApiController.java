@@ -8,7 +8,7 @@ import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskFilterRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.*;
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.events.ProgressUpdateEvent;
 import com.jhl.mds.jsclientgenerator.JsClientController;
@@ -43,7 +43,7 @@ public class TaskApiController {
     private FullMigrationService fullMigrationService;
     private IncrementalMigrationService incrementalMigrationService;
     private TaskDTO.Converter taskDTOConverter;
-    private MigrationDTO.Converter fullMigrationDTOConverter;
+    private MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter;
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
@@ -55,7 +55,7 @@ public class TaskApiController {
             FullMigrationService fullMigrationService,
             IncrementalMigrationService incrementalMigrationService,
             TaskDTO.Converter taskDTOConverter,
-            MigrationDTO.Converter fullMigrationDTOConverter,
+            MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter,
             SimpMessagingTemplate simpMessagingTemplate
     ) {
         this.taskRepository = taskRepository;
@@ -173,8 +173,8 @@ public class TaskApiController {
     @GetMapping("/detail/{taskId}/start-full-migration")
     public ApiResponse<Boolean> startFullMigrationTask(@PathVariable int taskId) {
         try {
-            MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
-            fullMigrationService.queue(migrationDTO);
+            MySQL2MySQLMigrationDTO mySQL2MySQLMigrationDTO = fullMigrationDTOConverter.from(taskId);
+            fullMigrationService.queue(mySQL2MySQLMigrationDTO);
         } catch (Exception e) {
             return ApiResponse.error(e);
         }
@@ -185,10 +185,10 @@ public class TaskApiController {
     @GetMapping("/detail/{taskId}/truncate-and-start-full-migration")
     public ApiResponse<Boolean> truncateAndStartFullMigrationTask(@PathVariable int taskId) {
         try {
-            MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
-            mySQLCommonService.truncateTable(migrationDTO.getTarget());
+            MySQL2MySQLMigrationDTO mySQL2MySQLMigrationDTO = fullMigrationDTOConverter.from(taskId);
+            mySQLCommonService.truncateTable(mySQL2MySQLMigrationDTO.getTarget());
 
-            fullMigrationService.queue(migrationDTO);
+            fullMigrationService.queue(mySQL2MySQLMigrationDTO);
         } catch (Exception e) {
             return ApiResponse.error(e);
         }
@@ -198,8 +198,8 @@ public class TaskApiController {
 
     @GetMapping("/detail/{taskId}/start-incremental-migration")
     public ApiResponse<Boolean> startIncrementalMigrationTask(@PathVariable int taskId) {
-        MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
-        incrementalMigrationService.run(migrationDTO);
+        MySQL2MySQLMigrationDTO mySQL2MySQLMigrationDTO = fullMigrationDTOConverter.from(taskId);
+        incrementalMigrationService.run(mySQL2MySQLMigrationDTO);
 
         taskRepository.updateIncrementalMigrationActive(taskId, true);
 
@@ -208,8 +208,8 @@ public class TaskApiController {
 
     @GetMapping("/detail/{taskId}/stop-incremental-migration")
     public ApiResponse<Boolean> stopIncrementalMigrationTask(@PathVariable int taskId) {
-        MigrationDTO migrationDTO = fullMigrationDTOConverter.from(taskId);
-        incrementalMigrationService.stop(migrationDTO);
+        MySQL2MySQLMigrationDTO mySQL2MySQLMigrationDTO = fullMigrationDTOConverter.from(taskId);
+        incrementalMigrationService.stop(mySQL2MySQLMigrationDTO);
 
         taskRepository.updateIncrementalMigrationActive(taskId, false);
 
@@ -228,8 +228,8 @@ public class TaskApiController {
 
     @EventListener
     @Async
-    public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<MigrationDTO> event) {
-        MigrationDTO dto = event.getDto();
+    public void onFullMigrationTaskProgressUpdate(ProgressUpdateEvent<MySQL2MySQLMigrationDTO> event) {
+        MySQL2MySQLMigrationDTO dto = event.getDto();
         FullMigrationProgressDTO fullMigrationProgressDTO = new FullMigrationProgressDTO(event.isRunning(), Math.round(event.getProgress()));
         simpMessagingTemplate.convertAndSend("/app/channel/task/full-migration-progress/" + dto.getTaskId(), fullMigrationProgressDTO);
     }

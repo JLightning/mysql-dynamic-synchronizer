@@ -8,7 +8,7 @@ import com.jhl.mds.dao.entities.TaskStatistics;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dao.repositories.TaskStatisticsRepository;
 import com.jhl.mds.dto.IncrementalMigrationProgressDTO;
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
@@ -22,6 +22,7 @@ import com.jhl.mds.services.mysql.binlog.MySQLBinLogUpdateMapperService;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
 import com.jhl.mds.util.pipeline.PipelineGrouperService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service("mysql2MysqlIncrementalMigrationService")
+@Slf4j
 public class IncrementalMigrationService {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private Map<Integer, ExecutorService> executorServiceMap = new HashMap<>();
     @Value("${mds.incremental.autostart:true}")
     private boolean enableAutoStart;
@@ -54,7 +55,7 @@ public class IncrementalMigrationService {
     private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
     private MySQLDescribeService mySQLDescribeService;
-    private MigrationDTO.Converter fullMigrationDTOConverter;
+    private MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter;
     private Set<Integer> runningTask = new HashSet<>();
     private Map<Integer, MySQLBinLogListener> listenerMap = new HashMap<>();
     private final Map<Integer, Set> insertingPrimaryKeyMap = new HashMap<>();
@@ -73,7 +74,7 @@ public class IncrementalMigrationService {
             MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
             MySQLDescribeService mySQLDescribeService,
-            MigrationDTO.Converter fullMigrationDTOConverter
+            MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter
     ) {
         this.eventPublisher = eventPublisher;
         this.taskRepository = taskRepository;
@@ -93,7 +94,7 @@ public class IncrementalMigrationService {
     @PostConstruct
     private void init() {
         if (enableAutoStart) {
-            logger.info("Start incremental migration service");
+            log.info("Start incremental migration service");
             List<Task> tasks = taskRepository.findByIncrementalMigrationActive(true);
             for (Task task : tasks) {
                 run(fullMigrationDTOConverter.from(task));
@@ -101,8 +102,8 @@ public class IncrementalMigrationService {
         }
     }
 
-    public synchronized void run(MigrationDTO dto) {
-        logger.info("Run incremental migration for: " + dto);
+    public synchronized void run(MySQL2MySQLMigrationDTO dto) {
+        log.info("Run incremental migration for: " + dto);
         if (runningTask.contains(dto.getTaskId())) {
             throw new RuntimeException("Task has already been running");
         }
@@ -136,7 +137,7 @@ public class IncrementalMigrationService {
     }
 
     @SuppressWarnings("unchecked")
-    private void insert(MigrationDTO dto, WriteRowsEventData eventData) {
+    private void insert(MySQL2MySQLMigrationDTO dto, WriteRowsEventData eventData) {
         try {
             List<MySQLFieldDTO> sourceFields = mySQLDescribeService.getFields(dto.getSource());
 
@@ -147,9 +148,9 @@ public class IncrementalMigrationService {
 
             Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
 
-            Pipeline<MigrationDTO, WriteRowsEventData, WriteRowsEventData> pipeline = Pipeline.of(dto, WriteRowsEventData.class);
+            Pipeline<MySQL2MySQLMigrationDTO, WriteRowsEventData, WriteRowsEventData> pipeline = Pipeline.of(dto, WriteRowsEventData.class);
             pipeline.append(mySQLBinLogInsertMapperService)
-                    .append((PipeLineTaskRunner<MigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
                         synchronized (insertingPrimaryKeys) {
                             Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(input, sourceFields);
                             insertingPrimaryKeys.add(primaryKeyValue);
@@ -182,7 +183,7 @@ public class IncrementalMigrationService {
     }
 
     // TODO: make sure update run after insert
-    private void update(MigrationDTO dto, UpdateRowsEventData eventData) {
+    private void update(MySQL2MySQLMigrationDTO dto, UpdateRowsEventData eventData) {
         try {
             List<MySQLFieldDTO> sourceFields = mySQLDescribeService.getFields(dto.getSource());
 
@@ -191,9 +192,9 @@ public class IncrementalMigrationService {
 
             Set insertingPrimaryKeys = getInsertingPrimaryKeysForTask(dto.getTaskId());
 
-            Pipeline<MigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
+            Pipeline<MySQL2MySQLMigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
             pipeline.append(mySQLBinLogUpdateMapperService)
-                    .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
                         Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(input.getFirst(), sourceFields);
                         synchronized (insertingPrimaryKeys) {
                             while (insertingPrimaryKeys.contains(primaryKeyValue)) {
@@ -202,7 +203,7 @@ public class IncrementalMigrationService {
                         }
                         next.accept(input);
                     })
-                    .append((PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();
                         key = migrationMapperService.map(key, false);
@@ -222,7 +223,7 @@ public class IncrementalMigrationService {
     }
 
     // TODO: fix synchronization
-    private void updateStatistics(MigrationDTO dto, long insertDelta, long updateDelta, long deleteDelta) {
+    private void updateStatistics(MySQL2MySQLMigrationDTO dto, long insertDelta, long updateDelta, long deleteDelta) {
         synchronized (IncrementalMigrationService.this) {
             taskStatisticsRepository.updateStatistics(dto.getTaskId(), insertDelta, updateDelta, deleteDelta, new Date());
         }
@@ -230,7 +231,7 @@ public class IncrementalMigrationService {
         eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true, insertDelta, updateDelta, 0L, true));
     }
 
-    public synchronized void stop(MigrationDTO dto) {
+    public synchronized void stop(MySQL2MySQLMigrationDTO dto) {
         mySQLBinLogPool.removeListener(dto.getSource(), listenerMap.get(dto.getTaskId()));
         listenerMap.remove(dto.getTaskId());
 

@@ -1,7 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.dto.*;
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
-public class StructureMigrationService implements PipeLineTaskRunner<MigrationDTO, Object, Void> {
+public class StructureMigrationService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Object, Void> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
@@ -48,7 +48,7 @@ public class StructureMigrationService implements PipeLineTaskRunner<MigrationDT
 
     // TODO: support more indexes
     @Override
-    public void execute(MigrationDTO context, Object input, Consumer<Void> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(MySQL2MySQLMigrationDTO context, Object input, Consumer<Void> next, Consumer<Exception> errorHandler) throws Exception {
         TableInfoDTO targetTableInfo = context.getTarget();
         Connection targetConn = mySQLConnectionPool.getConnection(targetTableInfo.getServer());
         Statement st = targetConn.createStatement();

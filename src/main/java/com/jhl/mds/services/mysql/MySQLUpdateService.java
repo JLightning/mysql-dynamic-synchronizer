@@ -1,6 +1,6 @@
 package com.jhl.mds.services.mysql;
 
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLUpdateService implements PipeLineTaskRunner<MigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Long> {
+public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Long> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
@@ -24,7 +24,7 @@ public class MySQLUpdateService implements PipeLineTaskRunner<MigrationDTO, Pair
     }
 
     @Override
-    public void execute(MigrationDTO context, Pair<Map<String, Object>, Map<String, Object>> input, Consumer<Long> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(MySQL2MySQLMigrationDTO context, Pair<Map<String, Object>, Map<String, Object>> input, Consumer<Long> next, Consumer<Exception> errorHandler) throws Exception {
         TableInfoDTO tableInfo = context.getTarget();
         try {
             Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());

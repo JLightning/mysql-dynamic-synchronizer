@@ -3,7 +3,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.MySQLInsertMode;
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -26,7 +26,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
-        MigrationDTO dto = MigrationDTO.builder()
+        MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
                 .taskId((int) (Math.random() * 10000))
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(new TableInfoDTO(serverDTO, "mds", targetTable))
@@ -57,7 +57,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MigrationDTO dto = MigrationDTO.builder()
+        MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
                 .taskId((int) (Math.random() * 10000))
                 .source(new TableInfoDTO(getSourceServerDTO(), "mds", sourceTable))
                 .target(new TableInfoDTO(getSourceServerDTO(), "mds", targetTable))

@@ -1,7 +1,7 @@
 package com.jhl.mds.controllers.api;
 
 import com.jhl.mds.dto.ApiResponse;
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.TaskDTO;
 import com.jhl.mds.jsclientgenerator.JsClientController;
 import com.jhl.mds.services.migration.mysql2mysql.StructureMigrationService;
@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/tool")
 public class ToolApiController {
 
-    private MigrationDTO.Converter fullMigrationDTOConverter;
+    private MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter;
     private StructureMigrationService structureMigrationService;
 
     @Autowired
     public ToolApiController(
-            MigrationDTO.Converter fullMigrationDTOConverter,
+            MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter,
             StructureMigrationService structureMigrationService
     ) {
         this.fullMigrationDTOConverter = fullMigrationDTOConverter;
@@ -32,8 +32,8 @@ public class ToolApiController {
 
     @PostMapping("/sync-structure")
     public ApiResponse<Boolean> syncStructure(@RequestBody TaskDTO dto) throws Exception {
-        MigrationDTO migrationDTO = fullMigrationDTOConverter.from(dto);
-        structureMigrationService.execute(migrationDTO, null, null, null);
+        MySQL2MySQLMigrationDTO mySQL2MySQLMigrationDTO = fullMigrationDTOConverter.from(dto);
+        structureMigrationService.execute(mySQL2MySQLMigrationDTO, null, null, null);
         return ApiResponse.success(true);
     }
 }

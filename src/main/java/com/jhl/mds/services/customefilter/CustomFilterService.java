@@ -1,6 +1,6 @@
 package com.jhl.mds.services.customefilter;
 
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.PipelineCancelException;
 import org.springframework.stereotype.Service;
@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @Service
-public class CustomFilterService implements PipeLineTaskRunner<MigrationDTO, Map<String, Object>, Map<String, Object>> {
+public class CustomFilterService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Map<String, Object>, Map<String, Object>> {
 
     private CustomFilterPool customFilterPool;
 
@@ -19,7 +19,7 @@ public class CustomFilterService implements PipeLineTaskRunner<MigrationDTO, Map
     }
 
     @Override
-    public void execute(MigrationDTO context, Map<String, Object> input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(MySQL2MySQLMigrationDTO context, Map<String, Object> input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
         List<String> filters = context.getFilters();
         if (filters != null) {
             for (String filter : filters) {

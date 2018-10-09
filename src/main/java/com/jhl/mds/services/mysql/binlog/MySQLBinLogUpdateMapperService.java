@@ -1,7 +1,6 @@
 package com.jhl.mds.services.mysql.binlog;
 
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
-import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQLSourceMigrationDTO;

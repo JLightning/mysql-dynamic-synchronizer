@@ -4,7 +4,7 @@ import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.dto.migration.MigrationDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -23,7 +23,7 @@ public class StructureMigrationServiceTest extends BaseTest {
         getStatement().execute("USE mds");
         getStatement().execute("DROP TABLE IF EXISTS " + targetTable);
 
-        MigrationDTO dto = MigrationDTO.builder()
+        MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
                 .source(new TableInfoDTO(getSourceServerDTO(), TEST_DATABASE, sourceTable))
                 .target(new TableInfoDTO(getSourceServerDTO(), TEST_DATABASE, targetTable))
                 .mapping(Arrays.asList(
