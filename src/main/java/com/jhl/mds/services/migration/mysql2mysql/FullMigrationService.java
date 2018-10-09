@@ -26,6 +26,7 @@ public class FullMigrationService {
     private ApplicationEventPublisher eventPublisher;
     private MySQLReadService mySQLReadService;
     private CustomFilterService customFilterService;
+    private MapToStringService mapToStringService;
     private MySQLInsertService mySQLInsertService;
     private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
@@ -35,6 +36,7 @@ public class FullMigrationService {
             ApplicationEventPublisher eventPublisher,
             MySQLReadService mySQLReadService,
             CustomFilterService customFilterService,
+            MapToStringService mapToStringService,
             MySQLInsertService mySQLInsertService,
             TaskRepository taskRepository,
             MigrationMapperService.Factory migrationMapperServiceFactory
@@ -42,6 +44,7 @@ public class FullMigrationService {
         this.eventPublisher = eventPublisher;
         this.mySQLReadService = mySQLReadService;
         this.customFilterService = customFilterService;
+        this.mapToStringService = mapToStringService;
         this.mySQLInsertService = mySQLInsertService;
         this.taskRepository = taskRepository;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
@@ -87,6 +90,7 @@ public class FullMigrationService {
             pipeline.append(mySQLReadService)
                     .append(customFilterService)
                     .append(mapperService)
+                    .append(mapToStringService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
                     .append((context, input, next, errorHandler) -> finishCallback.accept(input))

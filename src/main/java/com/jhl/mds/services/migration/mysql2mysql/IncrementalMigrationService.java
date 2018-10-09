@@ -49,6 +49,7 @@ public class IncrementalMigrationService {
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
+    private MapToStringService mapToStringService;
     private MySQLPrimaryKeyService mySQLPrimaryKeyService;
     private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
@@ -67,6 +68,7 @@ public class IncrementalMigrationService {
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
+            MapToStringService mapToStringService,
             MySQLPrimaryKeyService mySQLPrimaryKeyService,
             MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
@@ -80,6 +82,7 @@ public class IncrementalMigrationService {
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
+        this.mapToStringService = mapToStringService;
         this.mySQLPrimaryKeyService = mySQLPrimaryKeyService;
         this.mySQLInsertService = mySQLInsertService;
         this.mySQLUpdateService = mySQLUpdateService;
@@ -155,6 +158,7 @@ public class IncrementalMigrationService {
                         next.accept(input);
                     })
                     .append(migrationMapperService)
+                    .append(mapToStringService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
                     .append((context, input, next, errorHandler) -> {

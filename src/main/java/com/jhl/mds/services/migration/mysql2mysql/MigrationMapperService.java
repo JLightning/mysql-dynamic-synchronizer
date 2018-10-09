@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<String, Object>, String> {
+public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<String, Object>, Map<String, Object>> {
 
     @Nullable
     private final Map<String, MySQLFieldDTO> targetFieldMap;
@@ -74,8 +74,8 @@ public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<St
 
     @Override
     @SuppressWarnings("unchecked")
-    public void execute(Object context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
-        next.accept(mapToString(input));
+    public void execute(Object context, Map<String, Object> input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
+        next.accept(map(input, true));
     }
 
     @Service
