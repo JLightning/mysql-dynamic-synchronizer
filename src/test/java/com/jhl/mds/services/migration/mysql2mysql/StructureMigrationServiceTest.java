@@ -20,7 +20,7 @@ public class StructureMigrationServiceTest extends BaseTest {
 
     @Test
     public void executeTest() throws Exception {
-        prepareTable(TableTemplate.TEMPLATE_1);
+        prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
         getStatement().execute("USE mds");
         getStatement().execute("DROP TABLE IF EXISTS task_tmp");

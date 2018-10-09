@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Arrays;
 
 public class IncrementalMigrationServiceTest extends BaseTest {
@@ -22,8 +21,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
     @Test
     public void insertTest() throws Exception {
-        String sourceTable = prepareTable(TableTemplate.TEMPLATE_1);
-        String targetTable = prepareTable(TableTemplate.TEMPLATE_1);
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+        String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
         MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
@@ -54,8 +53,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
     @Test
     public void updateTest() throws Exception {
-        String sourceTable = prepareTable(TableTemplate.TEMPLATE_1);
-        String targetTable = prepareTable(TableTemplate.TEMPLATE_1);
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+        String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
         MigrationDTO dto = MigrationDTO.builder()
                 .source(new TableInfoDTO(getSourceServerDTO(), "mds", sourceTable))
