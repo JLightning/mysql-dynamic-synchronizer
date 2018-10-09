@@ -74,7 +74,7 @@ public abstract class BaseTest {
         return tableName;
     }
 
-    private String generateRandomTableName() {
+    protected String generateRandomTableName() {
         return "table_" + (int) (Math.random() * 10000);
     }
 
