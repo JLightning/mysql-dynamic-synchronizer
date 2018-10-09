@@ -1,0 +1,5 @@
+CREATE TABLE {table_name} (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `random_number` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=100001 DEFAULT CHARSET=utf8

@@ -1,6 +1,7 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
+import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
@@ -19,20 +20,16 @@ public class IncrementalMigrationServiceTest extends BaseTest {
     @Autowired
     private IncrementalMigrationService incrementalMigrationService;
 
-    public void prepareData() throws SQLException {
-        getStatement().execute("TRUNCATE mds.tablea;");
-        getStatement().execute("TRUNCATE mds.tableb;");
-    }
-
     @Test
     public void insertTest() throws Exception {
-        prepareData();
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_1);
+        String targetTable = prepareTable(TableTemplate.TEMPLATE_1);
 
         MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
         MigrationDTO dto = MigrationDTO.builder()
-                .source(new TableInfoDTO(serverDTO, "mds", "tablea"))
-                .target(new TableInfoDTO(serverDTO, "mds", "tableb"))
+                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
+                .target(new TableInfoDTO(serverDTO, "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
@@ -45,23 +42,24 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Thread.sleep(500);
 
         for (int i = 0; i < 100; i++) {
-            getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (1)");
+            getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (1)");
         }
 
         Thread.sleep(2000);
 
-        ResultSet result = getStatement().executeQuery("SELECT COUNT(1) FROM mds.tableb");
+        ResultSet result = getStatement().executeQuery("SELECT COUNT(1) FROM mds." + targetTable);
         result.next();
         Assert.assertEquals(100, result.getInt(1));
     }
 
     @Test
     public void updateTest() throws Exception {
-        prepareData();
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_1);
+        String targetTable = prepareTable(TableTemplate.TEMPLATE_1);
 
         MigrationDTO dto = MigrationDTO.builder()
-                .source(new TableInfoDTO(getSourceServerDTO(), "mds", "tablea"))
-                .target(new TableInfoDTO(getSourceServerDTO(), "mds", "tableb"))
+                .source(new TableInfoDTO(getSourceServerDTO(), "mds", sourceTable))
+                .target(new TableInfoDTO(getSourceServerDTO(), "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
@@ -73,12 +71,12 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         Thread.sleep(500);
 
-        getStatement().execute("INSERT INTO mds.tablea(`random_number`) VALUES (2)");
-        getStatement().execute("UPDATE mds.tablea SET random_number = 8");
+        getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (2)");
+        getStatement().execute("UPDATE mds." + targetTable + " SET random_number = 8");
 
         Thread.sleep(500);
 
-        ResultSet result = getStatement().executeQuery("SELECT * FROM mds.tableb");
+        ResultSet result = getStatement().executeQuery("SELECT * FROM mds." + targetTable);
         result.next();
         Assert.assertEquals(16, result.getInt(2));
     }

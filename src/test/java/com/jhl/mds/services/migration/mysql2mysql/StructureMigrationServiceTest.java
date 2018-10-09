@@ -1,12 +1,16 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.mds.BaseTest;
+import com.jhl.mds.TableTemplate;
 import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.util.Arrays;
 
 public class StructureMigrationServiceTest extends BaseTest {
@@ -16,6 +20,8 @@ public class StructureMigrationServiceTest extends BaseTest {
 
     @Test
     public void executeTest() throws Exception {
+        prepareTable(TableTemplate.TEMPLATE_1);
+
         getStatement().execute("USE mds");
         getStatement().execute("DROP TABLE IF EXISTS task_tmp");
 
@@ -32,5 +38,17 @@ public class StructureMigrationServiceTest extends BaseTest {
                 .build();
 
         structureMigrationService.execute(dto, null, null, null);
+    }
+
+    @Test
+    public void test() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File templateFile = new File(classLoader.getResource("test.sql").getFile());
+
+        BufferedReader br = new BufferedReader(new FileReader(templateFile));
+        String line;
+        while ((line = br.readLine()) != null) {
+            System.out.println("line = " + line);
+        }
     }
 }
