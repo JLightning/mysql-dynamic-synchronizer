@@ -72,7 +72,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Thread.sleep(500);
 
         getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (2)");
-        getStatement().execute("UPDATE mds." + targetTable + " SET random_number = 8");
+        getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = 8");
 
         Thread.sleep(500);
 
