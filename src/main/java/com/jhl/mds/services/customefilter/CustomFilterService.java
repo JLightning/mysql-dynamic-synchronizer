@@ -1,6 +1,6 @@
 package com.jhl.mds.services.customefilter;
 
-import com.jhl.mds.dto.MigrationDTO;
+import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.PipelineCancelException;
 import org.springframework.stereotype.Service;

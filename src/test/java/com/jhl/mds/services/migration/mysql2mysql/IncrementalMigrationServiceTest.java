@@ -3,7 +3,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.MySQLInsertMode;
-import com.jhl.mds.dto.MigrationDTO;
+import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;

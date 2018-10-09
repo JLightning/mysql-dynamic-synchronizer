@@ -1,7 +1,7 @@
 package com.jhl.mds.controllers.api;
 
 import com.jhl.mds.dto.ApiResponse;
-import com.jhl.mds.dto.MigrationDTO;
+import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.dto.TaskDTO;
 import com.jhl.mds.jsclientgenerator.JsClientController;
 import com.jhl.mds.services.migration.mysql2mysql.StructureMigrationService;

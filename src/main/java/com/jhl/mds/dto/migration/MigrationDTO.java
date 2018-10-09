@@ -1,4 +1,4 @@
-package com.jhl.mds.dto;
+package com.jhl.mds.dto.migration;
 
 import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dao.entities.MySQLServer;
@@ -8,7 +8,10 @@ import com.jhl.mds.dao.repositories.MySQLServerRepository;
 import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskFilterRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
-import com.jhl.mds.jsclientgenerator.JsClientDTO;
+import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.SimpleFieldMappingDTO;
+import com.jhl.mds.dto.TableInfoDTO;
+import com.jhl.mds.dto.TaskDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,7 +26,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MigrationDTO {
+public class MigrationDTO implements MySQLSourceMigrationDTO {
 
     private int taskId;
     private TableInfoDTO source;

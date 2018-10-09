@@ -8,6 +8,7 @@ import com.jhl.mds.dao.repositories.TaskFieldMappingRepository;
 import com.jhl.mds.dao.repositories.TaskFilterRepository;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.*;
+import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.events.ProgressUpdateEvent;
 import com.jhl.mds.jsclientgenerator.JsClientController;

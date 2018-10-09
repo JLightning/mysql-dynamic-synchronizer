@@ -1,6 +1,5 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
-import com.jhl.mds.dto.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -20,7 +19,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MigrationMapperService implements PipeLineTaskRunner<MigrationDTO, Map<String, Object>, String> {
+public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<String, Object>, String> {
 
     private final Map<String, MySQLFieldDTO> targetFieldMap;
     @Getter
@@ -30,18 +29,16 @@ public class MigrationMapperService implements PipeLineTaskRunner<MigrationDTO, 
     private CustomMappingPool customMapping;
 
     public MigrationMapperService(
-            MySQLDescribeService mySQLDescribeService,
             MySQLFieldDefaultValueService mySQLFieldDefaultValueService,
             CustomMappingPool customMapping,
-            TableInfoDTO tableInfo,
-            List<SimpleFieldMappingDTO> mapping
-    ) throws SQLException {
+            List<SimpleFieldMappingDTO> mapping,
+            Map<String, MySQLFieldDTO> targetFieldMap,
+            List<String> columns) {
         this.mySQLFieldDefaultValueService = mySQLFieldDefaultValueService;
         this.mapping = mapping;
         this.customMapping = customMapping;
-        List<MySQLFieldDTO> targetFields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
-        targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
-        columns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
+        this.targetFieldMap = targetFieldMap;
+        this.columns = columns;
     }
 
     public Map<String, Object> map(Map<String, Object> data, boolean includeDefault) throws Exception {
@@ -75,7 +72,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<MigrationDTO, 
 
     @Override
     @SuppressWarnings("unchecked")
-    public void execute(MigrationDTO context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(Object context, Map<String, Object> input, Consumer<String> next, Consumer<Exception> errorHandler) throws Exception {
         next.accept(mapToString(input));
     }
 
@@ -94,7 +91,11 @@ public class MigrationMapperService implements PipeLineTaskRunner<MigrationDTO, 
         }
 
         public MigrationMapperService create(TableInfoDTO tableInfo, List<SimpleFieldMappingDTO> mapping) throws SQLException {
-            return new MigrationMapperService(mySQLDescribeService, mySQLFieldDefaultValueService, customMapping, tableInfo, mapping);
+            List<MySQLFieldDTO> targetFields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
+            Map<String, MySQLFieldDTO> targetFieldMap = targetFields.stream().collect(Collectors.toMap(MySQLFieldDTO::getField, o -> o));
+            List<String> columns = targetFields.stream().map(MySQLFieldDTO::getField).collect(Collectors.toList());
+
+            return new MigrationMapperService(mySQLFieldDefaultValueService, customMapping, mapping, targetFieldMap, columns);
         }
     }
 }

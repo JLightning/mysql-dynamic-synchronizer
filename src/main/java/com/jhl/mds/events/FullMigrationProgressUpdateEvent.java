@@ -1,6 +1,6 @@
 package com.jhl.mds.events;
 
-import com.jhl.mds.dto.MigrationDTO;
+import com.jhl.mds.dto.migration.MigrationDTO;
 
 public class FullMigrationProgressUpdateEvent extends ProgressUpdateEvent<MigrationDTO> {
 

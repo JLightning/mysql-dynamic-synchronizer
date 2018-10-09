@@ -1,9 +1,10 @@
 package com.jhl.mds.services.mysql.binlog;
 
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
-import com.jhl.mds.dto.MigrationDTO;
+import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
+import com.jhl.mds.dto.migration.MySQLSourceMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.springframework.data.util.Pair;
@@ -15,7 +16,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<MigrationDTO, UpdateRowsEventData, Pair<Map<String, Object>, Map<String, Object>>> {
+public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<MySQLSourceMigrationDTO, UpdateRowsEventData, Pair<Map<String, Object>, Map<String, Object>>> {
 
     private MySQLDescribeService mySQLDescribeService;
 
@@ -24,7 +25,7 @@ public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<Migrat
     }
 
     @Override
-    public void execute(MigrationDTO context, UpdateRowsEventData eventData, Consumer<Pair<Map<String, Object>, Map<String, Object>>> next, Consumer<Exception> errorHandler) throws Exception {
+    public void execute(MySQLSourceMigrationDTO context, UpdateRowsEventData eventData, Consumer<Pair<Map<String, Object>, Map<String, Object>>> next, Consumer<Exception> errorHandler) throws Exception {
         List<Pair<Map<String, Object>, Map<String, Object>>> list = mapUpdateDataToField(context.getSource(), eventData);
         for (Pair<Map<String, Object>, Map<String, Object>> item : list) {
             next.accept(item);

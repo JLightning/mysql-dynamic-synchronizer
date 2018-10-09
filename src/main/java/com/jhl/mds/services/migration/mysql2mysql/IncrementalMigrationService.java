@@ -8,7 +8,7 @@ import com.jhl.mds.dao.entities.TaskStatistics;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dao.repositories.TaskStatisticsRepository;
 import com.jhl.mds.dto.IncrementalMigrationProgressDTO;
-import com.jhl.mds.dto.MigrationDTO;
+import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.services.mysql.MySQLDescribeService;

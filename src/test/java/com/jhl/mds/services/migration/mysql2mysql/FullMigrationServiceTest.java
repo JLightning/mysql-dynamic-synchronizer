@@ -3,6 +3,7 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dto.*;
+import com.jhl.mds.dto.migration.MigrationDTO;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import org.junit.Assert;
 import org.junit.Test;
