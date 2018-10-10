@@ -15,6 +15,7 @@ public class MySQLStringUtil {
         List<Object> list = new ArrayList<>();
         for (Object value : values) {
             if (value != null) value = "'" + value + "'";
+            else value = "NULL";
             list.add(value);
         }
         return "(" + StringUtils.join(list, ", ") + ")";

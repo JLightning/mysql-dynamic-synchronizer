@@ -98,5 +98,12 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = 2");
 
         Thread.sleep(3000);
+
+        Jedis jedis = redisConnectionPool.getConnection(redisServerDTO);
+        Set<String> keys = jedis.keys(keyPrefix + "*");
+
+        Assert.assertEquals(100, keys.size());
+
+        jedis.flushAll();
     }
 }
