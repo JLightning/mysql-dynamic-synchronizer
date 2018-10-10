@@ -19,10 +19,8 @@ public class RedisInsertService implements PipeLineTaskRunner<MySQL2RedisMigrati
         this.redisConnectionPool = redisConnectionPool;
     }
 
-    // TODO: fix for multithread support
     @Override
-    public synchronized void execute(MySQL2RedisMigrationDTO context, Map<String, Object> input, Consumer<Boolean> next, Consumer<Exception> errorHandler) throws Exception {
-        System.out.println("input = " + input);
+    public void execute(MySQL2RedisMigrationDTO context, Map<String, Object> input, Consumer<Boolean> next, Consumer<Exception> errorHandler) throws Exception {
         Jedis jedis = redisConnectionPool.getConnection(context.getTarget());
         jedis.set(String.valueOf(input.get("key")), String.valueOf(input.get("value")));
 
