@@ -1,6 +1,7 @@
 package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.MySQLServerDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -12,11 +13,11 @@ import java.sql.SQLException;
 import java.util.*;
 
 @Service
+@Slf4j
 public class MySQLConnectionPool {
 
     private static final int MAX_POOL_SIZE = Runtime.getRuntime().availableProcessors();
     private final Random rand = new Random();
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private Map<MySQLServerDTO, List<Connection>> connections = new HashMap<>();
 
     public Connection getConnection(MySQLServerDTO dto) throws SQLException {
@@ -34,12 +35,12 @@ public class MySQLConnectionPool {
     public void destroy() {
         for (Map.Entry<MySQLServerDTO, List<Connection>> entry : connections.entrySet()) {
             try {
-                logger.info("Close connection for mysql server: {}", entry.getKey());
+                log.info("Close connection for mysql server: {}", entry.getKey());
                 for (Connection conn : entry.getValue()) {
                     conn.close();
                 }
             } catch (SQLException e) {
-                logger.error("Cannot close connection for mysql server: {}, exception: {}", entry.getKey(), e.getMessage());
+                log.error("Cannot close connection for mysql server: {}, exception: {}", entry.getKey(), e.getMessage());
                 e.printStackTrace();
             }
         }
