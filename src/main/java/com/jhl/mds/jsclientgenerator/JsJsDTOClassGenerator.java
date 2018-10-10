@@ -105,7 +105,7 @@ public class JsJsDTOClassGenerator extends JsDTOGenerator {
             constructorSetters.add(templateReader.getDtoConstructorSetterTemplate().replaceAll("\\{parameter}", getFieldName(field, properties)));
         }
 
-        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields, fileName), "");
+        String renderedClass = renderClass(className, fieldStr, constructorParameters, constructorSetters, typeCommentGenerator.renderMethodComment(fields), "");
 
         List<String> importLines = importRenderer.renderImportForClass(clazz, BASE_CLIENT_JS_DIRECTORY + fileName + ".js");
         importLines.add("import {observable} from 'mobx';");

@@ -2,6 +2,7 @@ package com.jhl.mds.jsclientgenerator;
 
 import com.jhl.mds.jsclientgenerator.methodrenderer.*;
 import com.jhl.mds.jsclientgenerator.util.FileUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -15,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 @SpringBootApplication
+@Slf4j
 public class JsClientGenerator {
 
     private static final String BASE_CLIENT_JS_DIRECTORY = "./src/main/resources/static/resources/js/source/api-client/";
@@ -92,7 +94,7 @@ public class JsClientGenerator {
                 List<String> rendered = methodRenderer.renderMethod(baseUri, method, annotation);
                 if (rendered != null) result.addAll(rendered);
             } catch (Exception e) {
-
+                e.printStackTrace();
             }
         }
         return result;

@@ -1,6 +1,7 @@
 package com.jhl.mds.jsclientgenerator;
 
 import com.jhl.mds.dto.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class TypeCommentGenerator {
 
     private JsJsDTOClassGenerator jsDTOClassGenerator;
@@ -94,7 +96,7 @@ public class TypeCommentGenerator {
         return "*";
     }
 
-    public String renderMethodComment(Field[] fields, String fileName) {
+    public String renderMethodComment(Field[] fields) {
         List<String> params = new ArrayList<>();
         for (Field field : fields) {
             String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", field.getName());
@@ -110,7 +112,7 @@ public class TypeCommentGenerator {
         return templateReader.getMethodCommentTemplate().replaceAll("\\{params}", StringUtils.join(params, "\n"));
     }
 
-    public String renderMethodComment(Parameter[] parameters, String[] parameterNames, String fileName) {
+    public String renderMethodComment(Parameter[] parameters, String[] parameterNames) {
         Map<String, String> nameMap = new HashMap<>();
         for (int i = 0; i < parameterNames.length; i++) {
             nameMap.put("arg" + i, parameterNames[i]);
@@ -119,7 +121,8 @@ public class TypeCommentGenerator {
         List<String> params = new ArrayList<>();
         for (Parameter field : parameters) {
             if (field.getAnnotations().length > 0) {
-                String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", nameMap.get(field.getName()));
+                String paramName = nameMap.get(field.getName()) == null ? field.getName() : nameMap.get(field.getName());
+                String renderedParam = templateReader.getMethodCommentTemplateParam().replaceAll("\\{param}", paramName);
                 renderedParam = renderedParam.replaceAll("\\{type}", getTypeComment(field.getType(), null));
 
                 params.add(renderedParam);
