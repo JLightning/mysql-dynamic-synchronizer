@@ -27,13 +27,14 @@ public class IncrementalMigrationServiceTest extends BaseTest {
     @Autowired
     private RedisConnectionPool redisConnectionPool;
 
+    Random rand = new Random();
+
     @Test
     public void insertTest() throws Exception {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
         MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
-        Random rand = new Random();
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
         RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
@@ -63,5 +64,39 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Assert.assertEquals(100, keys.size());
 
         jedis.flushAll();
+    }
+
+    @Test
+    public void updateTest() throws Exception {
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+
+        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
+
+        String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
+
+        RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
+        MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
+                .taskId((int) (Math.random() * 10000))
+                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
+                .target(redisServerDTO)
+                .mapping(Arrays.asList(
+                        new SimpleFieldMappingDTO("'" + keyPrefix + "' + id", "key"),
+                        new SimpleFieldMappingDTO("json(_row)", "value")
+                ))
+                .build();
+
+        incrementalMigrationService.run(dto);
+
+        Thread.sleep(500);
+
+        for (int i = 0; i < 100; i++) {
+            getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (1)");
+        }
+
+        Thread.sleep(500);
+
+        getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = 2");
+
+        Thread.sleep(3000);
     }
 }

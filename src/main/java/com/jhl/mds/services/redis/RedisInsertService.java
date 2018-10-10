@@ -25,5 +25,7 @@ public class RedisInsertService implements PipeLineTaskRunner<MySQL2RedisMigrati
         jedis.set(String.valueOf(input.get("key")), String.valueOf(input.get("value")));
 
         jedis.close();
+
+        next.accept(true);
     }
 }

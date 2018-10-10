@@ -7,9 +7,12 @@ import com.jhl.mds.services.migration.mysql2mysql.MigrationMapperService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
+import com.jhl.mds.services.mysql.binlog.MySQLBinLogUpdateMapperService;
 import com.jhl.mds.services.redis.RedisInsertService;
+import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -28,17 +31,20 @@ public class IncrementalMigrationService {
     private MySQLBinLogPool mySQLBinLogPool;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
+    private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
     private RedisInsertService redisInsertService;
 
     public IncrementalMigrationService(
             MySQLBinLogPool mySQLBinLogPool,
             MigrationMapperService.Factory migrationMapperServiceFactory,
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
+            MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
             RedisInsertService redisInsertService
     ) {
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
+        this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
         this.redisInsertService = redisInsertService;
     }
 
@@ -59,7 +65,7 @@ public class IncrementalMigrationService {
 
             @Override
             public void update(UpdateRowsEventData eventData) {
-//                executor.submit(() -> com.jhl.mds.services.migration.mysql2mysql.IncrementalMigrationService.this.update(dto, eventData));
+                executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
             }
         };
 
@@ -78,6 +84,29 @@ public class IncrementalMigrationService {
                     .execute(eventData)
                     .waitForFinish();
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void update(MySQL2RedisMigrationDTO dto, UpdateRowsEventData eventData) {
+        MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getMapping());
+
+        Pipeline<MySQL2RedisMigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
+        try {
+            pipeline.append(mySQLBinLogUpdateMapperService)
+                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Map<String, Object>>) (context, input, next, errorHandler) -> {
+                        Map<String, Object> key = input.getFirst();
+                        Map<String, Object> value = input.getSecond();
+                        key = migrationMapperService.map(key, false);
+                        value = migrationMapperService.map(value, false);
+
+//                        next.accept(Pair.of(key, value));
+                        next.accept(value);
+                    })
+                    .append(redisInsertService)
+                    .execute(eventData)
+                    .waitForFinish();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
