@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+// TODO: fix the lock for multiple insert on same primary key, support no primary key
 @Service
 public class MySQLEventPrimaryKeyLock {
 

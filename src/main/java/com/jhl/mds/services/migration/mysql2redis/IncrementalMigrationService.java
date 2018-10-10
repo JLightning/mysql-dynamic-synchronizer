@@ -2,8 +2,10 @@ package com.jhl.mds.services.migration.mysql2redis;
 
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
 import com.jhl.mds.services.migration.mysql2mysql.MigrationMapperService;
+import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
 import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
@@ -32,6 +34,7 @@ public class IncrementalMigrationService {
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
+    private MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock;
     private RedisInsertService redisInsertService;
 
     public IncrementalMigrationService(
@@ -39,12 +42,14 @@ public class IncrementalMigrationService {
             MigrationMapperService.Factory migrationMapperServiceFactory,
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
+            MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock,
             RedisInsertService redisInsertService
     ) {
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
+        this.mySQLEventPrimaryKeyLock = mySQLEventPrimaryKeyLock;
         this.redisInsertService = redisInsertService;
     }
 
@@ -77,12 +82,20 @@ public class IncrementalMigrationService {
         try {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getMapping());
 
+            Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
+
             Pipeline<MySQL2RedisMigrationDTO, WriteRowsEventData, WriteRowsEventData> pipeline = Pipeline.of(dto, WriteRowsEventData.class);
             pipeline.append(mySQLBinLogInsertMapperService)
+                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
+                        tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input));
+                        next.accept(input);
+                    })
                     .append(migrationMapperService)
                     .append(redisInsertService)
                     .execute(eventData)
                     .waitForFinish();
+
+            mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -92,8 +105,15 @@ public class IncrementalMigrationService {
         MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getMapping());
 
         Pipeline<MySQL2RedisMigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
+
+        Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
+
         try {
             pipeline.append(mySQLBinLogUpdateMapperService)
+                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                        tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input.getFirst()));
+                        next.accept(input);
+                    })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Map<String, Object>>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();
@@ -106,6 +126,8 @@ public class IncrementalMigrationService {
                     .append(redisInsertService)
                     .execute(eventData)
                     .waitForFinish();
+
+            mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,7 @@
 package com.jhl.mds.services.migration.mysql2redis;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.dto.MySQLServerDTO;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import redis.clients.jedis.Jedis;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -93,8 +96,6 @@ public class IncrementalMigrationServiceTest extends BaseTest {
             getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (1)");
         }
 
-        Thread.sleep(500);
-
         getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = 2");
 
         Thread.sleep(3000);
@@ -103,6 +104,14 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Set<String> keys = jedis.keys(keyPrefix + "*");
 
         Assert.assertEquals(100, keys.size());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        for (String key: keys) {
+            String value = jedis.get(key);
+            Map<String, Object> m = objectMapper.readValue(value, new TypeReference<Map<String, Object>>(){});
+            Assert.assertEquals(2, m.get("random_number"));
+        }
 
         jedis.flushAll();
     }
