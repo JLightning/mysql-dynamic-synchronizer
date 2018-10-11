@@ -86,7 +86,6 @@ public class IncrementalMigrationService {
         mySQLBinLogPool.addListener(dto.getSource(), listener);
     }
 
-    @SuppressWarnings("unchecked")
     private void insert(MySQL2RedisMigrationDTO dto, WriteRowsEventData eventData) {
         try {
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getMapping());
@@ -105,7 +104,7 @@ public class IncrementalMigrationService {
                     .waitForFinish();
 
             mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -160,7 +159,7 @@ public class IncrementalMigrationService {
                     .waitForFinish();
 
             mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
