@@ -42,7 +42,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
         MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
-                .taskId((int) (Math.random() * 10000))
+                .taskId(randomTaskId())
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(redisServerDTO)
                 .mapping(Arrays.asList(
@@ -79,7 +79,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
         MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
-                .taskId((int) (Math.random() * 10000))
+                .taskId(randomTaskId())
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(redisServerDTO)
                 .mapping(Arrays.asList(
@@ -127,7 +127,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
         MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
-                .taskId((int) (Math.random() * 10000))
+                .taskId(randomTaskId())
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(redisServerDTO)
                 .mapping(Arrays.asList(

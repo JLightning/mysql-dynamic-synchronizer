@@ -88,4 +88,8 @@ public abstract class BaseTest {
             statement.execute("DROP TABLE `" + TEST_DATABASE + "`.`" + table + "`");
         }
     }
+
+    protected int randomTaskId() {
+        return (int) (Math.random() * 10000);
+    }
 }

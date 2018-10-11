@@ -75,7 +75,7 @@ public class FullMigrationServiceTest extends BaseTest {
         prepareData(conn, st);
 
         MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
-                .taskId((int) (Math.random() * 10000))
+                .taskId(randomTaskId())
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(new TableInfoDTO(serverDTO, "mds", targetTable))
                 .mapping(Arrays.asList(
