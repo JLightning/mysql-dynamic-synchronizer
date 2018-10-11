@@ -3,6 +3,7 @@ package com.jhl.mds.services.mysql;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.util.Pair;
@@ -14,9 +15,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 @Service
+@Slf4j
 public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Long> {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
 
     public MySQLUpdateService(MySQLConnectionPool mySQLConnectionPool) {
@@ -46,7 +47,7 @@ public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrati
             }
 
             String sql = String.format("UPDATE %s.%s SET %s WHERE %s", tableInfo.getDatabase(), tableInfo.getTable(), setPart, wherePart);
-            logger.info("Run query: " + sql);
+            log.info("Run query: " + sql);
 
             st.execute(sql);
             st.close();

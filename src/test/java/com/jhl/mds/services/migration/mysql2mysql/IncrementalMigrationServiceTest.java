@@ -3,10 +3,11 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.MySQLInsertMode;
-import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.ResultSet;
 import java.util.Arrays;
 
+@Slf4j
 public class IncrementalMigrationServiceTest extends BaseTest {
 
     @Autowired
@@ -80,5 +82,36 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         ResultSet result = getStatement().executeQuery("SELECT * FROM mds." + targetTable);
         result.next();
         Assert.assertEquals(16, result.getInt(2));
+    }
+
+    @Test
+    public void deleteTest() throws Exception {
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+        String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+
+        MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
+                .taskId((int) (Math.random() * 10000))
+                .source(new TableInfoDTO(getSourceServerDTO(), "mds", sourceTable))
+                .target(new TableInfoDTO(getSourceServerDTO(), "mds", targetTable))
+                .mapping(Arrays.asList(
+                        new SimpleFieldMappingDTO("id + 1", "id"),
+                        new SimpleFieldMappingDTO("random_number * 2", "random_number")
+                ))
+                .insertMode(MySQLInsertMode.REPLACE)
+                .build();
+
+        incrementalMigrationService.run(dto);
+
+        Thread.sleep(500);
+
+        for (int i = 0; i < 100; i++) {
+            getStatement().execute(String.format("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (%d)", i));
+        }
+        getStatement().execute("DELETE FROM mds." + sourceTable);
+
+        Thread.sleep(2000);
+
+        ResultSet result = getStatement().executeQuery("SELECT * FROM mds." + targetTable);
+        Assert.assertFalse(result.next());
     }
 }

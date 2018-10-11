@@ -33,5 +33,7 @@ public class StructureMigrationServiceTest extends BaseTest {
                 .build();
 
         structureMigrationService.execute(dto, null, null, null);
+
+        addCreatedTable(targetTable);
     }
 }

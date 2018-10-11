@@ -2,6 +2,7 @@ package com.jhl.mds.services.mysql.binlog;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
+import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
@@ -52,7 +53,7 @@ public class MySQLBinLogConnection {
                     if (listenerMap.containsKey(tableInfo)) {
                         List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
                         for (MySQLBinLogListener listener : listeners) {
-                            listener.insert(event.getData());
+                            listener.insert(writeRowsEventData);
                         }
                     }
                     break;
@@ -62,10 +63,19 @@ public class MySQLBinLogConnection {
                     if (listenerMap.containsKey(tableInfo)) {
                         List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
                         for (MySQLBinLogListener listener : listeners) {
-                            listener.update(event.getData());
+                            listener.update(updateRowsEventData);
                         }
                     }
                     break;
+                case EXT_DELETE_ROWS:
+                    DeleteRowsEventData deleteRowsEventData = event.getData();
+                    tableInfo = tableMap.get(deleteRowsEventData.getTableId());
+                    if (listenerMap.containsKey(tableInfo)) {
+                        List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
+                        for (MySQLBinLogListener listener : listeners) {
+                            listener.delete(deleteRowsEventData);
+                        }
+                    }
             }
         });
 

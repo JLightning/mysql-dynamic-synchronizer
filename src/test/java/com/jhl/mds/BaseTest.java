@@ -78,6 +78,10 @@ public abstract class BaseTest {
         return "table_" + (int) (Math.random() * 10000);
     }
 
+    protected void addCreatedTable(String table) {
+        createdTables.add(table);
+    }
+
     @After
     public void cleanCratedTables() throws SQLException {
         for (String table : createdTables) {

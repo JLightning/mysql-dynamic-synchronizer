@@ -1,5 +1,6 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
+import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.consts.MySQLConstants;
@@ -12,10 +13,7 @@ import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
 import com.jhl.mds.services.mysql.*;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogUpdateMapperService;
+import com.jhl.mds.services.mysql.binlog.*;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
 import com.jhl.mds.util.pipeline.PipelineGrouperService;
@@ -46,11 +44,12 @@ public class IncrementalMigrationService {
     private MySQLBinLogPool mySQLBinLogPool;
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
+    private MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MapToStringService mapToStringService;
     private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
-    private MySQLDescribeService mySQLDescribeService;
+    private MySQLDeleteService mySQLDeleteService;
     private MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter;
     private MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock;
     private Set<Integer> runningTask = new HashSet<>();
@@ -64,11 +63,12 @@ public class IncrementalMigrationService {
             MySQLBinLogPool mySQLBinLogPool,
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
+            MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
             MapToStringService mapToStringService,
             MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
-            MySQLDescribeService mySQLDescribeService,
+            MySQLDeleteService mySQLDeleteService,
             MySQL2MySQLMigrationDTO.Converter fullMigrationDTOConverter,
             MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock
     ) {
@@ -78,11 +78,12 @@ public class IncrementalMigrationService {
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
+        this.mySQLBinLogDeleteMapperService = mySQLBinLogDeleteMapperService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.mapToStringService = mapToStringService;
         this.mySQLInsertService = mySQLInsertService;
         this.mySQLUpdateService = mySQLUpdateService;
-        this.mySQLDescribeService = mySQLDescribeService;
+        this.mySQLDeleteService = mySQLDeleteService;
         this.fullMigrationDTOConverter = fullMigrationDTOConverter;
         this.mySQLEventPrimaryKeyLock = mySQLEventPrimaryKeyLock;
     }
@@ -119,6 +120,11 @@ public class IncrementalMigrationService {
             public void update(UpdateRowsEventData eventData) {
                 executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
             }
+
+            @Override
+            public void delete(DeleteRowsEventData eventData) {
+                executor.submit(() -> IncrementalMigrationService.this.delete(dto, eventData));
+            }
         };
 
         listenerMap.put(dto.getTaskId(), listener);
@@ -134,8 +140,6 @@ public class IncrementalMigrationService {
 
     private void insert(MySQL2MySQLMigrationDTO dto, WriteRowsEventData eventData) {
         try {
-            List<MySQLFieldDTO> sourceFields = mySQLDescribeService.getFields(dto.getSource());
-
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
@@ -151,9 +155,7 @@ public class IncrementalMigrationService {
                     .append(mapToStringService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
-                    .append((context, input, next, errorHandler) -> {
-                        updateStatistics(dto, 1, 0, 0);
-                    })
+                    .append((context, input, next, errorHandler) -> updateStatistics(dto, 1, 0, 0))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -163,11 +165,8 @@ public class IncrementalMigrationService {
         }
     }
 
-    // TODO: make sure update run after insert
     private void update(MySQL2MySQLMigrationDTO dto, UpdateRowsEventData eventData) {
         try {
-            List<MySQLFieldDTO> sourceFields = mySQLDescribeService.getFields(dto.getSource());
-
             MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
             dto.setTargetColumns(migrationMapperService.getColumns());
 
@@ -188,9 +187,32 @@ public class IncrementalMigrationService {
                         next.accept(Pair.of(key, value));
                     })
                     .append(mySQLUpdateService)
-                    .append((context, input, next, errorHandler) -> {
-                        updateStatistics(dto, 0, 1, 0);
+                    .append((context, input, next, errorHandler) -> updateStatistics(dto, 0, 1, 0))
+                    .execute(eventData)
+                    .waitForFinish();
+
+            mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void delete(MySQL2MySQLMigrationDTO dto, DeleteRowsEventData eventData) {
+        try {
+            MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getTarget(), dto.getMapping());
+            dto.setTargetColumns(migrationMapperService.getColumns());
+
+            Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
+
+            Pipeline<MySQL2MySQLMigrationDTO, DeleteRowsEventData, DeleteRowsEventData> pipeline = Pipeline.of(dto, DeleteRowsEventData.class);
+            pipeline.append(mySQLBinLogDeleteMapperService)
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
+                        tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input));
+                        next.accept(input);
                     })
+                    .append(migrationMapperService)
+                    .append(mySQLDeleteService)
+                    .append((context, input, next, errorHandler) -> updateStatistics(dto, 0, 0, 1))
                     .execute(eventData)
                     .waitForFinish();
 
