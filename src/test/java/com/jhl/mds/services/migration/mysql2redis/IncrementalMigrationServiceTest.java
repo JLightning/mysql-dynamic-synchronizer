@@ -107,12 +107,50 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         ObjectMapper objectMapper = new ObjectMapper();
 
-        for (String key: keys) {
+        for (String key : keys) {
             String value = jedis.get(key);
-            Map<String, Object> m = objectMapper.readValue(value, new TypeReference<Map<String, Object>>(){});
+            Map<String, Object> m = objectMapper.readValue(value, new TypeReference<Map<String, Object>>() {
+            });
             Assert.assertEquals(2, m.get("random_number"));
         }
 
         jedis.flushAll();
+    }
+
+    @Test
+    public void deleteTest() throws Exception {
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+
+        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
+
+        String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
+
+        RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
+        MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
+                .taskId((int) (Math.random() * 10000))
+                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
+                .target(redisServerDTO)
+                .mapping(Arrays.asList(
+                        new SimpleFieldMappingDTO("'" + keyPrefix + "' + id", "key"),
+                        new SimpleFieldMappingDTO("json(_row)", "value")
+                ))
+                .build();
+
+        incrementalMigrationService.run(dto);
+
+        Thread.sleep(500);
+
+        for (int i = 0; i < 100; i++) {
+            getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (1)");
+        }
+
+        getStatement().execute("DELETE FROM mds." + sourceTable);
+
+        Thread.sleep(2000);
+
+        Jedis jedis = redisConnectionPool.getConnection(redisServerDTO);
+        Set<String> keys = jedis.keys(keyPrefix + "*");
+
+        Assert.assertEquals(0, keys.size());
     }
 }

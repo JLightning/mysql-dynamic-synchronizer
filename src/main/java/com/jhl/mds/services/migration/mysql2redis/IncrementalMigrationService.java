@@ -1,15 +1,13 @@
 package com.jhl.mds.services.migration.mysql2redis;
 
+import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
-import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
 import com.jhl.mds.services.migration.mysql2mysql.MigrationMapperService;
 import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogInsertMapperService;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogListener;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogPool;
-import com.jhl.mds.services.mysql.binlog.MySQLBinLogUpdateMapperService;
+import com.jhl.mds.services.mysql.binlog.*;
+import com.jhl.mds.services.redis.RedisDeleteService;
 import com.jhl.mds.services.redis.RedisInsertService;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
@@ -34,23 +32,29 @@ public class IncrementalMigrationService {
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService;
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
+    private MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService;
     private MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock;
     private RedisInsertService redisInsertService;
+    private RedisDeleteService redisDeleteService;
 
     public IncrementalMigrationService(
             MySQLBinLogPool mySQLBinLogPool,
             MigrationMapperService.Factory migrationMapperServiceFactory,
             MySQLBinLogInsertMapperService mySQLBinLogInsertMapperService,
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
+            MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService,
             MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock,
-            RedisInsertService redisInsertService
+            RedisInsertService redisInsertService,
+            RedisDeleteService redisDeleteService
     ) {
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.mySQLBinLogInsertMapperService = mySQLBinLogInsertMapperService;
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
+        this.mySQLBinLogDeleteMapperService = mySQLBinLogDeleteMapperService;
         this.mySQLEventPrimaryKeyLock = mySQLEventPrimaryKeyLock;
         this.redisInsertService = redisInsertService;
+        this.redisDeleteService = redisDeleteService;
     }
 
     public synchronized void run(MySQL2RedisMigrationDTO dto) {
@@ -71,6 +75,11 @@ public class IncrementalMigrationService {
             @Override
             public void update(UpdateRowsEventData eventData) {
                 executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
+            }
+
+            @Override
+            public void delete(DeleteRowsEventData eventData) {
+                executor.submit(() -> IncrementalMigrationService.this.delete(dto, eventData));
             }
         };
 
@@ -129,6 +138,29 @@ public class IncrementalMigrationService {
 
             mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
         } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void delete(MySQL2RedisMigrationDTO dto, DeleteRowsEventData eventData) {
+        try {
+            MigrationMapperService migrationMapperService = migrationMapperServiceFactory.create(dto.getMapping());
+
+            Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
+
+            Pipeline<MySQL2RedisMigrationDTO, DeleteRowsEventData, DeleteRowsEventData> pipeline = Pipeline.of(dto, DeleteRowsEventData.class);
+            pipeline.append(mySQLBinLogDeleteMapperService)
+                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
+                        tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input));
+                        next.accept(input);
+                    })
+                    .append(migrationMapperService)
+                    .append(redisDeleteService)
+                    .execute(eventData)
+                    .waitForFinish();
+
+            mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

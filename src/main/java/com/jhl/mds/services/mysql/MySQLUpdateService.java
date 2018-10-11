@@ -43,7 +43,11 @@ public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrati
             StringBuilder wherePart = new StringBuilder();
             for (Map.Entry<String, Object> e : key.entrySet()) {
                 if (wherePart.length() > 0) wherePart.append(" AND ");
-                wherePart.append(e.getKey()).append(" = ").append(e.getValue());
+                if (e.getValue() != null) {
+                    wherePart.append(e.getKey()).append(" = ").append(e.getValue());
+                } else {
+                    wherePart.append(e.getKey()).append(" IS NULL");
+                }
             }
 
             String sql = String.format("UPDATE %s.%s SET %s WHERE %s", tableInfo.getDatabase(), tableInfo.getTable(), setPart, wherePart);
