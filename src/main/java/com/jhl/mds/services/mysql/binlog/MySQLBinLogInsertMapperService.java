@@ -24,13 +24,13 @@ public class MySQLBinLogInsertMapperService implements PipeLineTaskRunner<MySQLS
 
     @Override
     public void execute(MySQLSourceMigrationDTO context, WriteRowsEventData eventData, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
-        List<Map<String, Object>> list = mapDeleteDataToField(context.getSource(), eventData);
+        List<Map<String, Object>> list = mapInsertDataToField(context.getSource(), eventData);
         for (Map<String, Object> item : list) {
             next.accept(item);
         }
     }
 
-    public List<Map<String, Object>> mapDeleteDataToField(TableInfoDTO tableInfo, WriteRowsEventData eventData) throws SQLException {
+    public List<Map<String, Object>> mapInsertDataToField(TableInfoDTO tableInfo, WriteRowsEventData eventData) throws SQLException {
         List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
 
         List<Map<String, Object>> result = new ArrayList<>();
