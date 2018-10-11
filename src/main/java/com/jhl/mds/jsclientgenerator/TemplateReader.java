@@ -109,6 +109,8 @@ public class TemplateReader {
         dtoClassTemplate = dtoClassTemplateBuilder.toString();
         dtoFieldTemplate = dtoFieldTemplateBuilder.toString();
         dtoConstructorSetterTemplate = dtoConstructorSetterTemplateBuilder.toString();
+
+        br.close();
     }
 
     private enum TemplateType {
