@@ -160,7 +160,7 @@ public class IncrementalMigrationService {
                     .waitForFinish();
 
             mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -192,7 +192,7 @@ public class IncrementalMigrationService {
                     .waitForFinish();
 
             mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -217,7 +217,7 @@ public class IncrementalMigrationService {
                     .waitForFinish();
 
             mySQLEventPrimaryKeyLock.unlock(dto, tmpInsertingPrimaryKeys);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
