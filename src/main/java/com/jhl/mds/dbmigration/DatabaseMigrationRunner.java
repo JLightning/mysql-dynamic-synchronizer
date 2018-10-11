@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @SpringBootApplication
+// TODO: beautify≠
 public class DatabaseMigrationRunner {
 
     private static final String DB_VERSION_FILENAME = "./db_migration.txt";
