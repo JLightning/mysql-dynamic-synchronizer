@@ -8,7 +8,6 @@ CREATE TABLE redis_server (
   password   VARCHAR(127),
   created_at TIMESTAMP,
   updated_at TIMESTAMP
-             ");"
 );
 CREATE UNIQUE INDEX redis_server_hpup
   ON redis_server (host, port, username, password);
