@@ -12,7 +12,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
-@ComponentScan(basePackages = "com.jhl.mds", excludeFilters = @ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = "com.jhl.mds.dbmigration.*"))
+@ComponentScan(basePackages = "com.jhl.mds", excludeFilters = {
+        @ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = "com.jhl.mds.dbmigration.*"),
+        @ComponentScan.Filter(type = FilterType.ASPECTJ, pattern = "com.jhl.mds.jsclientgenerator.*.*")
+})
 public class Application {
 
     public static void main(String[] args) {
