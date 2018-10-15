@@ -57,12 +57,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class MySQLFieldDefaultValueService {
 
-    public static final String NULL = "NULL";
-
     public String getDefaultValue(MySQLFieldDTO fieldDTO) {
         String type = fieldDTO.getType().split("\\(")[0].toUpperCase();
         if (fieldDTO.isNullable() || fieldDTO.getDefaultValue() != null) {
-            return NULL;
+            return null;
         }
         switch (type) {
             case "TINYINT":
@@ -70,7 +68,7 @@ public class MySQLFieldDefaultValueService {
             case "MEDIUMINT":
             case "INT":
             case "BIGINT":
-                if (fieldDTO.getExtra().equals("auto_increment")) return NULL;
+                if (fieldDTO.getExtra().equals("auto_increment")) return null;
                 return "0";
             case "DECIMAL":
             case "FLOAT":
@@ -96,7 +94,7 @@ public class MySQLFieldDefaultValueService {
             case "LONGTEXT":
                 return "";
             default:
-                return NULL;
+                return null;
         }
     }
 }

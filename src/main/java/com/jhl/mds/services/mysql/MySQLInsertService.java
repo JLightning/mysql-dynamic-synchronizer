@@ -7,6 +7,7 @@ import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,9 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Service
+@Slf4j
 public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, List<String>, Long> {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
 
     @Autowired
@@ -51,7 +52,8 @@ public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrati
 
             String sql = String.format("%s INTO %s(%s) VALUES %s;", context.getInsertMode().getSyntax(), tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
 //            logger.info("Run query: " + sql);
-            logger.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
+            log.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
+            log.info(sql);
 
             st.execute(sql);
             st.close();
@@ -59,7 +61,7 @@ public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrati
             next.accept((long) input.size());
 
         } catch (Exception e) {
-            logger.error(String.format("Error when inserting %d rows to %s.%s: %s", input.size(), tableInfo.getDatabase(), tableInfo.getTable(), ExceptionUtils.getStackTrace(e)));
+            log.error(String.format("Error when inserting %d rows to %s.%s: %s", input.size(), tableInfo.getDatabase(), tableInfo.getTable(), ExceptionUtils.getStackTrace(e)));
             errorHandler.accept(new WriteServiceException(e, input.size()));
         }
     }
