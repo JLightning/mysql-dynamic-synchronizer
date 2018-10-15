@@ -17,6 +17,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 
 public class IncrementalMigrationServiceListTest extends BaseTest {
 
@@ -105,5 +106,42 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
         }
 
         jedis.flushAll();
+    }
+
+    @Test
+    public void deleteTest() throws Exception {
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+
+        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
+
+        String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
+
+        RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
+        MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
+                .taskId(randomTaskId())
+                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
+                .target(redisServerDTO)
+                .redisKeyType(RedisKeyType.LIST)
+                .mapping(Arrays.asList(
+                        new SimpleFieldMappingDTO("'" + keyPrefix + "'", "key"),
+                        new SimpleFieldMappingDTO("json(_row)", "value")
+                ))
+                .build();
+
+        incrementalMigrationService.run(dto);
+
+        Thread.sleep(500);
+
+        for (int i = 0; i < 100; i++) {
+            getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (1)");
+        }
+
+        getStatement().execute("DELETE FROM mds." + sourceTable);
+
+        Thread.sleep(2000);
+
+        Jedis jedis = redisConnectionPool.getConnection(redisServerDTO);
+
+        Assert.assertEquals(0L, jedis.llen(keyPrefix).longValue());
     }
 }

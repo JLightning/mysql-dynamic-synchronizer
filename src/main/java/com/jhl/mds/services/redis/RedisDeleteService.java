@@ -27,6 +27,11 @@ public class RedisDeleteService implements PipeLineTaskRunner<MySQL2RedisMigrati
             case STRING:
                 jedis.del(String.valueOf(input.get("key")));
                 break;
+            case LIST:
+                String key = String.valueOf(input.get("key"));
+                String value = String.valueOf(input.get("value"));
+                jedis.lrem(key, 0, value);
+                break;
         }
 
         jedis.close();
