@@ -19,7 +19,6 @@ public class RedisUpdateService implements PipeLineTaskRunner<MySQL2RedisMigrati
             RedisConnectionPool redisConnectionPool,
             RedisListUtil redisListUtil
     ) {
-        super();
         this.redisConnectionPool = redisConnectionPool;
         this.redisListUtil = redisListUtil;
     }
