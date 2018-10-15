@@ -2,6 +2,7 @@ package com.jhl.mds.util.pipeline;
 
 import lombok.NonNull;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,9 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
+@Slf4j
 public class Pipeline<Context, FirstInput, Input> {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @NonNull
     private Context context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
@@ -127,7 +128,7 @@ public class Pipeline<Context, FirstInput, Input> {
                 finished.wait();
             }
         }
-        logger.info("Pipeline for: " + context + " finished after: " + Duration.between(startTime, Instant.now()));
+        log.info("Pipeline for: " + context + " finished after: " + Duration.between(startTime, Instant.now()));
     }
 }
 
