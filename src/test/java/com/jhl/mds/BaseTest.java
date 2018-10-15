@@ -1,5 +1,6 @@
 package com.jhl.mds;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import lombok.AccessLevel;
@@ -31,6 +32,7 @@ public abstract class BaseTest {
 
     public final static String TEST_DATABASE = "mds";
     protected Random rand = new Random();
+    protected ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     private MySQLConnectionPool mySQLConnectionPool;
     private Connection connection;
