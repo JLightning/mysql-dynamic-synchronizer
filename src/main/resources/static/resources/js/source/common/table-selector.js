@@ -32,7 +32,7 @@ export default class TableSelector extends React.Component<Table> {
     }
 
     getServers() {
-        mySQLApiClient.getServers().done(data => this.servers = data);
+        mySQLApiClient.list().done(data => this.servers = data);
     }
 
     serverSelected(serverId) {
