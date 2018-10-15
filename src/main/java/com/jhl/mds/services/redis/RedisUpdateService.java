@@ -47,7 +47,7 @@ public class RedisUpdateService implements PipeLineTaskRunner<MySQL2RedisMigrati
                         break switchLabel;
                     }
                 }
-                jedis.lpush(key, secondValue);
+                jedis.rpush(key, secondValue);
                 break;
         }
 
