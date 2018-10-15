@@ -9,6 +9,7 @@ import com.jhl.mds.dao.entities.TaskStatistics;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dao.repositories.TaskStatisticsRepository;
 import com.jhl.mds.dto.IncrementalMigrationProgressDTO;
+import com.jhl.mds.dto.PairOfMap;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
@@ -174,17 +175,17 @@ public class IncrementalMigrationService {
 
             Pipeline<MySQL2MySQLMigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
             pipeline.append(mySQLBinLogUpdateMapperService)
-                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input.getFirst()));
                         next.accept(input);
                     })
-                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Pair<Map<String, Object>, Map<String, Object>>, Pair<Map<String, Object>, Map<String, Object>>>) (context, input, next, errorHandler) -> {
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();
                         key = migrationMapperService.map(key, false);
                         value = migrationMapperService.map(value, false);
 
-                        next.accept(Pair.of(key, value));
+                        next.accept(PairOfMap.of(key, value));
                     })
                     .append(mySQLUpdateService)
                     .append((context, input, next, errorHandler) -> updateStatistics(dto, 0, 1, 0))

@@ -2,11 +2,11 @@ package com.jhl.mds.services.mysql.binlog;
 
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.jhl.mds.dto.MySQLFieldDTO;
+import com.jhl.mds.dto.PairOfMap;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQLSourceMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @Service
-public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<MySQLSourceMigrationDTO, UpdateRowsEventData, Pair<Map<String, Object>, Map<String, Object>>> {
+public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<MySQLSourceMigrationDTO, UpdateRowsEventData, PairOfMap> {
 
     private MySQLDescribeService mySQLDescribeService;
 
@@ -24,18 +24,18 @@ public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<MySQLS
     }
 
     @Override
-    public void execute(MySQLSourceMigrationDTO context, UpdateRowsEventData eventData, Consumer<Pair<Map<String, Object>, Map<String, Object>>> next, Consumer<Exception> errorHandler) throws Exception {
-        List<Pair<Map<String, Object>, Map<String, Object>>> list = mapUpdateDataToField(context.getSource(), eventData);
-        for (Pair<Map<String, Object>, Map<String, Object>> item : list) {
+    public void execute(MySQLSourceMigrationDTO context, UpdateRowsEventData eventData, Consumer<PairOfMap> next, Consumer<Exception> errorHandler) throws Exception {
+        List<PairOfMap> list = mapUpdateDataToField(context.getSource(), eventData);
+        for (PairOfMap item : list) {
             next.accept(item);
         }
     }
 
 
-    public List<Pair<Map<String, Object>, Map<String, Object>>> mapUpdateDataToField(TableInfoDTO tableInfo, UpdateRowsEventData eventData) throws SQLException {
+    public List<PairOfMap> mapUpdateDataToField(TableInfoDTO tableInfo, UpdateRowsEventData eventData) throws SQLException {
         List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(tableInfo.getServer(), tableInfo.getDatabase(), tableInfo.getTable());
 
-        List<Pair<Map<String, Object>, Map<String, Object>>> result = new ArrayList<>();
+        List<PairOfMap> result = new ArrayList<>();
 
         BitSet includedColumns = eventData.getIncludedColumns();
         Map<Integer, MySQLFieldDTO> includedFields = new HashMap<>();
@@ -59,7 +59,7 @@ public class MySQLBinLogUpdateMapperService implements PipeLineTaskRunner<MySQLS
                 valueObj.put(includedFields.get(i).getField(), value[i]);
             }
 
-            result.add(Pair.of(keyObj, valueObj));
+            result.add(PairOfMap.of(keyObj, valueObj));
         }
         return result;
     }
