@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
+import com.jhl.mds.consts.RedisKeyType;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.RedisServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
@@ -18,19 +19,16 @@ import redis.clients.jedis.Jedis;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 @Slf4j
-public class IncrementalMigrationServiceTest extends BaseTest {
+public class IncrementalMigrationServiceStringTest extends BaseTest {
 
     @Autowired
     private IncrementalMigrationService incrementalMigrationService;
 
     @Autowired
     private RedisConnectionPool redisConnectionPool;
-
-    Random rand = new Random();
 
     @Test
     public void insertTest() throws Exception {
@@ -45,6 +43,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .taskId(randomTaskId())
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(redisServerDTO)
+                .redisKeyType(RedisKeyType.STRING)
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("'" + keyPrefix + "' + id", "key"),
                         new SimpleFieldMappingDTO("json(_row)", "value")
@@ -82,6 +81,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .taskId(randomTaskId())
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(redisServerDTO)
+                .redisKeyType(RedisKeyType.STRING)
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("'" + keyPrefix + "' + id", "key"),
                         new SimpleFieldMappingDTO("json(_row)", "value")
@@ -130,6 +130,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .taskId(randomTaskId())
                 .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
                 .target(redisServerDTO)
+                .redisKeyType(RedisKeyType.STRING)
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("'" + keyPrefix + "' + id", "key"),
                         new SimpleFieldMappingDTO("json(_row)", "value")

@@ -1,5 +1,6 @@
 package com.jhl.mds.dto.migration;
 
+import com.jhl.mds.consts.RedisKeyType;
 import com.jhl.mds.dto.RedisServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -21,4 +22,5 @@ public class MySQL2RedisMigrationDTO implements MySQLSourceMigrationDTO {
     private RedisServerDTO target;
     private List<SimpleFieldMappingDTO> mapping;
     private List<String> filters;
+    private RedisKeyType redisKeyType;
 }

@@ -22,7 +22,15 @@ public class RedisInsertService implements PipeLineTaskRunner<MySQL2RedisMigrati
     @Override
     public void execute(MySQL2RedisMigrationDTO context, Map<String, Object> input, Consumer<Boolean> next, Consumer<Exception> errorHandler) throws Exception {
         Jedis jedis = redisConnectionPool.getConnection(context.getTarget());
-        jedis.set(String.valueOf(input.get("key")), String.valueOf(input.get("value")));
+
+        switch (context.getRedisKeyType()) {
+            case STRING:
+                jedis.set(String.valueOf(input.get("key")), String.valueOf(input.get("value")));
+                break;
+            case LIST:
+                jedis.rpush(String.valueOf(input.get("key")), String.valueOf(input.get("value")));
+                break;
+        }
 
         jedis.close();
 

@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -29,6 +30,7 @@ import java.util.List;
 public abstract class BaseTest {
 
     public final static String TEST_DATABASE = "mds";
+    protected Random rand = new Random();
     @Autowired
     private MySQLConnectionPool mySQLConnectionPool;
     private Connection connection;
