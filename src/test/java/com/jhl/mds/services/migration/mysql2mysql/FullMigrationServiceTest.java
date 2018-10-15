@@ -80,7 +80,8 @@ public class FullMigrationServiceTest extends BaseTest {
                 .target(new TableInfoDTO(serverDTO, "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
-                        new SimpleFieldMappingDTO("random_number * 10", "random_number")
+                        new SimpleFieldMappingDTO("random_number * 10", "random_number"),
+                        new SimpleFieldMappingDTO("created_at", "created_at")
                 ))
                 .filters(Collections.singletonList("id % 2 == 1"))
                 .insertMode(MySQLInsertMode.REPLACE)
