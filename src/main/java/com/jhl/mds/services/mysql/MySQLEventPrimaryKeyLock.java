@@ -3,15 +3,16 @@ package com.jhl.mds.services.mysql;
 import com.jhl.mds.dto.migration.MySQLSourceMigrationDTO;
 import org.springframework.stereotype.Service;
 
+import java.sql.SQLException;
 import java.util.*;
 
 // TODO: fix the lock for multiple insert on same primary key, support no primary key
 @Service
 public class MySQLEventPrimaryKeyLock {
 
+    private final Map<Integer, Set<Object>> primaryKeyLock = new HashMap<>();
     private MySQLDescribeService mySQLDescribeService;
     private MySQLPrimaryKeyService mySQLPrimaryKeyService;
-    private final Map<Integer, Set<Object>> primaryKeyLock = new HashMap<>();
 
     public MySQLEventPrimaryKeyLock(
             MySQLDescribeService mySQLDescribeService,
@@ -21,18 +22,22 @@ public class MySQLEventPrimaryKeyLock {
         this.mySQLPrimaryKeyService = mySQLPrimaryKeyService;
     }
 
-    public Object lock(MySQLSourceMigrationDTO context, Map<String, Object> data) throws Exception {
-        Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(data, mySQLDescribeService.getFields(context.getSource()));
+    public Object lock(MySQLSourceMigrationDTO context, Object lockKey) throws InterruptedException {
         final Set<Object> lock = getPrimaryKeyLock(context.getTaskId());
         synchronized (lock) {
-            while (lock.contains(primaryKeyValue)) {
+            while (lock.contains(lockKey)) {
                 lock.wait();
             }
 
-            lock.add(primaryKeyValue);
+            lock.add(lockKey);
         }
 
-        return primaryKeyValue;
+        return lockKey;
+    }
+
+    public Object lock(MySQLSourceMigrationDTO context, Map<String, Object> data) throws InterruptedException, SQLException {
+        Object primaryKeyValue = mySQLPrimaryKeyService.getPrimaryKeyValue(data, mySQLDescribeService.getFields(context.getSource()));
+        return lock(context, primaryKeyValue);
     }
 
     public void unlock(MySQLSourceMigrationDTO context, Collection<?> primaryKeyValue) {

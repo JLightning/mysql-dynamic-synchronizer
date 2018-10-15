@@ -14,13 +14,9 @@ import com.jhl.mds.services.redis.RedisUpdateService;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -69,7 +65,7 @@ public class IncrementalMigrationService {
         }
         runningTask.add(dto.getTaskId());
 
-        ExecutorService executor = getExecutorServiceForTaskId(dto.getTaskId());
+        ExecutorService executor = getExecutorServiceForTaskId(dto.getTaskId(), dto.isSequential());
 
         MySQLBinLogListener listener = new MySQLBinLogListener() {
             @Override
@@ -168,9 +164,9 @@ public class IncrementalMigrationService {
         }
     }
 
-    private synchronized ExecutorService getExecutorServiceForTaskId(int taskId) {
+    private synchronized ExecutorService getExecutorServiceForTaskId(int taskId, boolean sequential) {
         if (!executorServiceMap.containsKey(taskId))
-            executorServiceMap.put(taskId, Executors.newFixedThreadPool(4));
+            executorServiceMap.put(taskId, Executors.newFixedThreadPool(sequential ? 1 : 4));
         return executorServiceMap.get(taskId);
     }
 }

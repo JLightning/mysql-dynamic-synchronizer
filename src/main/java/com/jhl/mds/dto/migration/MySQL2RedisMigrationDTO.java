@@ -23,4 +23,5 @@ public class MySQL2RedisMigrationDTO implements MySQLSourceMigrationDTO {
     private List<SimpleFieldMappingDTO> mapping;
     private List<String> filters;
     private RedisKeyType redisKeyType;
+    private boolean sequential;
 }
