@@ -22,7 +22,12 @@ public class RedisDeleteService implements PipeLineTaskRunner<MySQL2RedisMigrati
     @Override
     public void execute(MySQL2RedisMigrationDTO context, Map<String, Object> input, Consumer<Boolean> next, Consumer<Exception> errorHandler) throws Exception {
         Jedis jedis = redisConnectionPool.getConnection(context.getTarget());
-        jedis.del(String.valueOf(input.get("key")));
+
+        switch (context.getRedisKeyType()) {
+            case STRING:
+                jedis.del(String.valueOf(input.get("key")));
+                break;
+        }
 
         jedis.close();
 
