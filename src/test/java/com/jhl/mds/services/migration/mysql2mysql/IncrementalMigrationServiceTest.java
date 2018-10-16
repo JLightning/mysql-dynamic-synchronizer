@@ -52,6 +52,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         ResultSet result = getStatement().executeQuery("SELECT COUNT(1) FROM mds." + targetTable);
         result.next();
         Assert.assertEquals(100, result.getInt(1));
+
+        incrementalMigrationService.stop(dto);
     }
 
     @Test
@@ -82,6 +84,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         ResultSet result = getStatement().executeQuery("SELECT * FROM mds." + targetTable);
         result.next();
         Assert.assertEquals(16, result.getInt(2));
+
+        incrementalMigrationService.stop(dto);
     }
 
     @Test
@@ -113,5 +117,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         ResultSet result = getStatement().executeQuery("SELECT * FROM mds." + targetTable);
         Assert.assertFalse(result.next());
+
+        incrementalMigrationService.stop(dto);
     }
 }

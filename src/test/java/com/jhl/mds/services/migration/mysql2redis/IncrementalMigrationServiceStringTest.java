@@ -66,6 +66,8 @@ public class IncrementalMigrationServiceStringTest extends BaseTest {
         Assert.assertEquals(100, keys.size());
 
         jedis.flushAll();
+
+        incrementalMigrationService.stop(dto);
     }
 
     @Test
@@ -115,6 +117,8 @@ public class IncrementalMigrationServiceStringTest extends BaseTest {
         }
 
         jedis.flushAll();
+
+        incrementalMigrationService.stop(dto);
     }
 
     @Test
@@ -153,5 +157,7 @@ public class IncrementalMigrationServiceStringTest extends BaseTest {
         Set<String> keys = jedis.keys(keyPrefix + "*");
 
         Assert.assertEquals(0, keys.size());
+
+        incrementalMigrationService.stop(dto);
     }
 }

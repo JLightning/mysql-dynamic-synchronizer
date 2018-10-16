@@ -3,8 +3,6 @@ package com.jhl.mds.util.pipeline;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -19,6 +17,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class Pipeline<Context, FirstInput, Input> {
 
+    private final AtomicBoolean finished = new AtomicBoolean(false);
     @NonNull
     private Context context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
@@ -31,9 +30,9 @@ public class Pipeline<Context, FirstInput, Input> {
     @Setter
     private boolean threadEnable = true;
     private AtomicInteger invokeCount = new AtomicInteger();
-    private final AtomicBoolean finished = new AtomicBoolean(false);
     private List<PipelineGrouperService> pipelineGrouperServiceList = new ArrayList<>();
     private Instant startTime;
+    private ExecutorService[] executorServices;
 
     private Pipeline(Context context) {
         this.context = context;
@@ -61,7 +60,7 @@ public class Pipeline<Context, FirstInput, Input> {
     public Pipeline<Context, FirstInput, Input> execute(FirstInput input) {
         startTime = Instant.now();
 
-        ExecutorService[] executorServices = new ExecutorService[taskList.size() + 1];
+        executorServices = new ExecutorService[taskList.size() + 1];
         for (int i = 0; i < taskList.size(); i++) {
             executorServices[i] = Executors.newFixedThreadPool(4);
         }
@@ -127,6 +126,9 @@ public class Pipeline<Context, FirstInput, Input> {
             while (!finished.get()) {
                 finished.wait();
             }
+        }
+        for (ExecutorService executorService : executorServices) {
+            if (executorService != null) executorService.shutdownNow();
         }
         log.info("Pipeline for: " + context + " finished after: " + Duration.between(startTime, Instant.now()));
     }

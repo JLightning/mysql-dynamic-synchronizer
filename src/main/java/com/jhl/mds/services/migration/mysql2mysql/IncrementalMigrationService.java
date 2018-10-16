@@ -237,6 +237,9 @@ public class IncrementalMigrationService {
 
         runningTask.remove(dto.getTaskId());
 
+        executorServiceMap.get(dto.getTaskId()).shutdownNow();
+        executorServiceMap.remove(dto.getTaskId());
+
         eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), false, null, null, null, false));
     }
 

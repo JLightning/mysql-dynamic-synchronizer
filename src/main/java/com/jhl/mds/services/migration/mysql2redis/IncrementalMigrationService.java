@@ -4,6 +4,7 @@ import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.dto.PairOfMap;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
 import com.jhl.mds.services.migration.mysql2mysql.MigrationMapperService;
 import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
@@ -16,7 +17,10 @@ import com.jhl.mds.util.pipeline.Pipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -35,6 +39,7 @@ public class IncrementalMigrationService {
     private RedisInsertService redisInsertService;
     private RedisUpdateService redisUpdateService;
     private RedisDeleteService redisDeleteService;
+    private Map<Integer, MySQLBinLogListener> listenerMap = new HashMap<>();
 
     public IncrementalMigrationService(
             MySQLBinLogPool mySQLBinLogPool,
@@ -83,6 +88,8 @@ public class IncrementalMigrationService {
                 executor.submit(() -> IncrementalMigrationService.this.delete(dto, eventData));
             }
         };
+
+        listenerMap.put(dto.getTaskId(), listener);
 
         mySQLBinLogPool.addListener(dto.getSource(), listener);
     }
@@ -168,5 +175,15 @@ public class IncrementalMigrationService {
         if (!executorServiceMap.containsKey(taskId))
             executorServiceMap.put(taskId, Executors.newFixedThreadPool(sequential ? 1 : 4));
         return executorServiceMap.get(taskId);
+    }
+
+    public synchronized void stop(MySQL2RedisMigrationDTO dto) {
+        mySQLBinLogPool.removeListener(dto.getSource(), listenerMap.get(dto.getTaskId()));
+        listenerMap.remove(dto.getTaskId());
+
+        runningTask.remove(dto.getTaskId());
+
+        executorServiceMap.get(dto.getTaskId()).shutdownNow();
+        executorServiceMap.remove(dto.getTaskId());
     }
 }
