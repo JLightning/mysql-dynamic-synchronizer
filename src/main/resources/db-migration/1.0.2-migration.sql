@@ -10,4 +10,4 @@ CREATE TABLE task_statistics (
   FOREIGN KEY (fk_task_id) REFERENCES task (task_id)
     ON DELETE CASCADE,
   CONSTRAINT task UNIQUE (fk_task_id)
-)
+);
