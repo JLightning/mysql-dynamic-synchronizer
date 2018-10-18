@@ -1,5 +1,6 @@
 package com.jhl.mds.dto.migration;
 
+import com.jhl.mds.consts.MigrationAction;
 import com.jhl.mds.consts.MySQLInsertMode;
 import com.jhl.mds.dao.entities.MySQLServer;
 import com.jhl.mds.dao.entities.Task;
@@ -33,6 +34,7 @@ public class MySQL2MySQLMigrationDTO implements MySQLSourceMigrationDTO {
     private TableInfoDTO target;
     private List<SimpleFieldMappingDTO> mapping;
     private MySQLInsertMode insertMode;
+    private int migrationActionCode;
     private List<String> filters;
     private List<String> targetColumns;
 

@@ -36,6 +36,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
                 ))
+                .migrationActionCode(0b111)
                 .insertMode(MySQLInsertMode.REPLACE)
                 .build();
 
@@ -69,6 +70,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
                 ))
+                .migrationActionCode(0b111)
                 .insertMode(MySQLInsertMode.REPLACE)
                 .build();
 
@@ -101,6 +103,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
                 ))
+                .migrationActionCode(0b111)
                 .insertMode(MySQLInsertMode.REPLACE)
                 .build();
 
