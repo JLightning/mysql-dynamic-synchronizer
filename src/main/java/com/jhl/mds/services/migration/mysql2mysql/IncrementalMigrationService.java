@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -226,8 +227,10 @@ public class IncrementalMigrationService {
 
     // TODO: fix synchronization
     private void updateStatistics(MySQL2MySQLMigrationDTO dto, long insertDelta, long updateDelta, long deleteDelta) {
-        synchronized (IncrementalMigrationService.this) {
+        try {
             taskStatisticsRepository.updateStatistics(dto.getTaskId(), insertDelta, updateDelta, deleteDelta, new Date());
+        } catch (DataIntegrityViolationException e) {
+            log.error(String.format("Task %d doesn't exist, cannot update statistics", dto.getTaskId()));
         }
 
         eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(dto.getTaskId(), true, insertDelta, updateDelta, 0L, true));

@@ -1,5 +1,6 @@
 package com.jhl.mds.services.mysql.binlog;
 
+import com.jhl.mds.dao.repositories.MySQLBinLogPositionRepository;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,10 +15,17 @@ public class MySQLBinLogPool {
     @Value("${mds.incremental.ignoreBinlogPositionFile:false}")
     private boolean ignoreBinlogPositionFile;
     private Map<MySQLServerDTO, MySQLBinLogConnection> connectionMap = new HashMap<>();
+    private MySQLBinLogPositionRepository mySQLBinLogPositionRepository;
+
+    public MySQLBinLogPool(
+            MySQLBinLogPositionRepository mySQLBinLogPositionRepository
+    ) {
+        this.mySQLBinLogPositionRepository = mySQLBinLogPositionRepository;
+    }
 
     public void openNewConnection(MySQLServerDTO serverDTO) {
         if (!connectionMap.containsKey(serverDTO)) {
-            connectionMap.put(serverDTO, new MySQLBinLogConnection(serverDTO, ignoreBinlogPositionFile));
+            connectionMap.put(serverDTO, new MySQLBinLogConnection(mySQLBinLogPositionRepository, serverDTO, ignoreBinlogPositionFile));
         }
     }
 

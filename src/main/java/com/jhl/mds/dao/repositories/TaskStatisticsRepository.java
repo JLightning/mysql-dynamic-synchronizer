@@ -16,7 +16,7 @@ public interface TaskStatisticsRepository extends JpaRepository<TaskStatistics, 
             "   SELECT ?1 AS fk_task_id, (insert_count + ?2) AS insert_count, (update_count + ?3) AS update_count, (delete_count + ?4) AS delete_count, created_at, ?5 AS updated_at, 1 as type " +
             "   FROM task_statistics WHERE fk_task_id = ?1 " +
             "   UNION SELECT ?1, ?2, ?3, ?4, ?5, ?5, 2 " +
-            ") ORDER BY type ASC LIMIT 1", nativeQuery = true)
+            ") AS sub_table ORDER BY sub_table.type ASC LIMIT 1", nativeQuery = true)
     @Transactional
     void updateStatistics(int taskId, long insertDelta, long updateDelta, long deleteDelta, Date date);
 

@@ -1,23 +1,17 @@
 package com.jhl.mds.services.mysql.binlog;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
+import com.jhl.mds.dao.entities.MySQLBinLogPosition;
+import com.jhl.mds.dao.repositories.MySQLBinLogPositionRepository;
 import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.TableInfoDTO;
-import com.jhl.mds.util.Md5;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,23 +20,17 @@ import java.util.Map;
 
 public class MySQLBinLogConnection {
 
-    private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
-    private boolean ignoreBinlogPositionFile;
-
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private final String BINLOG_POSITION_FILENAME;
     private final BinaryLogClient binlogClient;
     private Map<Long, TableInfoDTO> tableMap = new HashMap<>();
     private Map<TableInfoDTO, List<MySQLBinLogListener>> listenerMap = new HashMap<>();
 
-    public MySQLBinLogConnection(MySQLServerDTO server, boolean ignoreBinlogPositionFile) {
-        this.ignoreBinlogPositionFile = ignoreBinlogPositionFile;
-
-        BINLOG_POSITION_FILENAME = getBinlogPositionFilename(server);
-
+    public MySQLBinLogConnection(MySQLBinLogPositionRepository mySQLBinLogPositionRepository, MySQLServerDTO server, boolean ignoreBinlogPositionFile) {
         binlogClient = new BinaryLogClient(server.getHost(), Integer.valueOf(server.getPort()), server.getUsername(), server.getPassword());
         binlogClient.registerEventListener(event -> {
-            writeBinlogPosition(binlogClient.getBinlogFilename(), binlogClient.getBinlogPosition());
+            if (!ignoreBinlogPositionFile)
+                mySQLBinLogPositionRepository.updatePosition(server.getHost(), server.getPort(), binlogClient.getBinlogFilename(), binlogClient.getBinlogPosition());
+
             switch (event.getHeader().getEventType()) {
                 case TABLE_MAP:
                     putTableMap(server, event.getData());
@@ -79,10 +67,12 @@ public class MySQLBinLogConnection {
             }
         });
 
-        BinlogPosition binlogPosition = readBinlogPosition();
-        if (binlogPosition != null) {
-            binlogClient.setBinlogFilename(binlogPosition.getFilename());
-            binlogClient.setBinlogPosition(binlogPosition.getPosition());
+        if (!ignoreBinlogPositionFile) {
+            MySQLBinLogPosition binlogPosition = mySQLBinLogPositionRepository.findByHostAndPort(server.getHost(), server.getPort());
+            if (binlogPosition != null) {
+                binlogClient.setBinlogFilename(binlogPosition.getFilename());
+                binlogClient.setBinlogPosition(binlogPosition.getPosition());
+            }
         }
 
         new Thread(() -> {
@@ -93,10 +83,6 @@ public class MySQLBinLogConnection {
                 e.printStackTrace();
             }
         }).start();
-    }
-
-    private String getBinlogPositionFilename(MySQLServerDTO server) {
-        return "./store/binlog/binlog_" + server.getHost().replaceAll("\\.", "_") + "_" + server.getPort() + "_" + Md5.generate(server.getUsername() + "_" + server.getPassword()) + ".txt";
     }
 
     private void putTableMap(MySQLServerDTO server, TableMapEventData data) {
@@ -115,35 +101,5 @@ public class MySQLBinLogConnection {
         if (list == null) return;
         list.remove(listener);
         listenerMap.put(tableInfoDTO, list);
-    }
-
-    private void writeBinlogPosition(String binlogFilename, long position) {
-        if (ignoreBinlogPositionFile) return;
-        try {
-            FileUtils.writeStringToFile(new File(BINLOG_POSITION_FILENAME), jacksonObjectMapper.writeValueAsString(new BinlogPosition(binlogFilename, position)), "utf-8");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private BinlogPosition readBinlogPosition() {
-        BinlogPosition binlogPosition = null;
-        if (ignoreBinlogPositionFile) return null;
-        try {
-            String value = FileUtils.readFileToString(new File(BINLOG_POSITION_FILENAME), "utf-8");
-            binlogPosition = jacksonObjectMapper.readValue(value, BinlogPosition.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            return binlogPosition;
-        }
-    }
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    private static class BinlogPosition {
-        private String filename;
-        private long position;
     }
 }
