@@ -1,53 +1,32 @@
 package com.jhl.mds.services.migration.mysql2redis;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.RedisKeyType;
 import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.RedisServerDTO;
-import com.jhl.mds.dto.SimpleFieldMappingDTO;
-import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
-import com.jhl.mds.services.redis.RedisConnectionPool;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import redis.clients.jedis.Jedis;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class IncrementalMigrationServiceListTest extends BaseTest {
+public class IncrementalMigrationServiceListTest extends IncremetalMigrationServiceTest {
 
     @Autowired
     private IncrementalMigrationService incrementalMigrationService;
-
-    @Autowired
-    private RedisConnectionPool redisConnectionPool;
 
     @Test
     public void insertTest() throws Exception {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
-
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
-        RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
-        MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
-                .taskId(randomTaskId())
-                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
-                .target(redisServerDTO)
-                .redisKeyType(RedisKeyType.LIST)
-                .mapping(Arrays.asList(
-                        new SimpleFieldMappingDTO("'" + keyPrefix + "'", "key"),
-                        new SimpleFieldMappingDTO("json(_row)", "value")
-                ))
-                .build();
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST).build();
 
         incrementalMigrationService.run(dto);
 
@@ -59,7 +38,7 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
 
         Thread.sleep(3000);
 
-        Jedis jedis = redisConnectionPool.getConnection(redisServerDTO);
+        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
 
         Assert.assertEquals(100L, jedis.llen(keyPrefix).longValue());
 
@@ -72,22 +51,9 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
     public void insertSenquentialTest() throws Exception {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
-
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
-        RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
-        MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
-                .taskId(randomTaskId())
-                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
-                .target(redisServerDTO)
-                .redisKeyType(RedisKeyType.LIST)
-                .sequential(true)
-                .mapping(Arrays.asList(
-                        new SimpleFieldMappingDTO("'" + keyPrefix + "'", "key"),
-                        new SimpleFieldMappingDTO("json(_row)", "value")
-                ))
-                .build();
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST).sequential(true).build();
 
         incrementalMigrationService.run(dto);
 
@@ -99,7 +65,7 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
 
         Thread.sleep(3000);
 
-        Jedis jedis = redisConnectionPool.getConnection(redisServerDTO);
+        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
 
         List<String> values = jedis.lrange(keyPrefix, 0, 100);
 
@@ -130,17 +96,7 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
 
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
-        RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
-        MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
-                .taskId(randomTaskId())
-                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
-                .target(redisServerDTO)
-                .redisKeyType(RedisKeyType.LIST)
-                .mapping(Arrays.asList(
-                        new SimpleFieldMappingDTO("'" + keyPrefix + "'", "key"),
-                        new SimpleFieldMappingDTO("json(_row)", "value")
-                ))
-                .build();
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST).build();
 
         incrementalMigrationService.run(dto);
 
@@ -154,7 +110,7 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
 
         Thread.sleep(3000);
 
-        Jedis jedis = redisConnectionPool.getConnection(redisServerDTO);
+        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
 
         for (String json : jedis.lrange(keyPrefix, 0, 100)) {
             Map<String, Object> m = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
@@ -172,21 +128,9 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
     public void deleteTest() throws Exception {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
-
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
-        RedisServerDTO redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
-        MySQL2RedisMigrationDTO dto = MySQL2RedisMigrationDTO.builder()
-                .taskId(randomTaskId())
-                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
-                .target(redisServerDTO)
-                .redisKeyType(RedisKeyType.LIST)
-                .mapping(Arrays.asList(
-                        new SimpleFieldMappingDTO("'" + keyPrefix + "'", "key"),
-                        new SimpleFieldMappingDTO("json(_row)", "value")
-                ))
-                .build();
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable,"'" + keyPrefix + "'", RedisKeyType.LIST).build();
 
         incrementalMigrationService.run(dto);
 
@@ -200,8 +144,7 @@ public class IncrementalMigrationServiceListTest extends BaseTest {
 
         Thread.sleep(2000);
 
-        Jedis jedis = redisConnectionPool.getConnection(redisServerDTO);
-
+        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
         Assert.assertEquals(0L, jedis.llen(keyPrefix).longValue());
 
         incrementalMigrationService.stop(dto);

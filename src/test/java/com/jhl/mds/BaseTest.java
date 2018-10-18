@@ -2,7 +2,9 @@ package com.jhl.mds;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jhl.mds.dto.MySQLServerDTO;
+import com.jhl.mds.dto.RedisServerDTO;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
+import com.jhl.mds.services.redis.RedisConnectionPool;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.junit.After;
@@ -34,20 +36,26 @@ public abstract class BaseTest {
     protected Random rand = new Random();
     protected ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
+    protected RedisConnectionPool redisConnectionPool;
+    @Getter(value = AccessLevel.PROTECTED)
+    private RedisServerDTO redisServerDTO;
+    @Autowired
     private MySQLConnectionPool mySQLConnectionPool;
     private Connection connection;
     @Getter(value = AccessLevel.PROTECTED)
     private Statement statement;
     @Getter(value = AccessLevel.PROTECTED)
-    private MySQLServerDTO sourceServerDTO;
+    private MySQLServerDTO sourceMySQLServerDTO;
     private List<String> createdTables = new ArrayList<>();
 
     @Before
     public void setup() throws Exception {
-        sourceServerDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
+        sourceMySQLServerDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
-        connection = mySQLConnectionPool.getConnection(sourceServerDTO);
+        connection = mySQLConnectionPool.getConnection(sourceMySQLServerDTO);
         statement = connection.createStatement();
+
+        redisServerDTO = new RedisServerDTO(0, "", "localhost", "6379", "", "");
     }
 
     protected void checkTime(String task, Runnable r) {

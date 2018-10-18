@@ -63,8 +63,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
                 .taskId(randomTaskId())
-                .source(new TableInfoDTO(getSourceServerDTO(), "mds", sourceTable))
-                .target(new TableInfoDTO(getSourceServerDTO(), "mds", targetTable))
+                .source(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", sourceTable))
+                .target(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")
@@ -79,7 +79,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (2)");
         getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = 8");
 
-        Thread.sleep(500);
+        Thread.sleep(2000);
 
         ResultSet result = getStatement().executeQuery("SELECT * FROM mds." + targetTable);
         result.next();
@@ -95,8 +95,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
 
         MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
                 .taskId(randomTaskId())
-                .source(new TableInfoDTO(getSourceServerDTO(), "mds", sourceTable))
-                .target(new TableInfoDTO(getSourceServerDTO(), "mds", targetTable))
+                .source(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", sourceTable))
+                .target(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number * 2", "random_number")

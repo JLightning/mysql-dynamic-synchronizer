@@ -24,8 +24,8 @@ public class StructureMigrationServiceTest extends BaseTest {
         getStatement().execute("DROP TABLE IF EXISTS " + targetTable);
 
         MySQL2MySQLMigrationDTO dto = MySQL2MySQLMigrationDTO.builder()
-                .source(new TableInfoDTO(getSourceServerDTO(), TEST_DATABASE, sourceTable))
-                .target(new TableInfoDTO(getSourceServerDTO(), TEST_DATABASE, targetTable))
+                .source(new TableInfoDTO(getSourceMySQLServerDTO(), TEST_DATABASE, sourceTable))
+                .target(new TableInfoDTO(getSourceMySQLServerDTO(), TEST_DATABASE, targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id", "id"),
                         new SimpleFieldMappingDTO("random_number", "random_number")

@@ -210,7 +210,9 @@ public class IncrementalMigrationService {
                         tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input));
                         next.accept(input);
                     })
-                    .append(migrationMapperService)
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
+                        next.accept(migrationMapperService.map(input, false));
+                    })
                     .append(mySQLDeleteService)
                     .append((context, input, next, errorHandler) -> updateStatistics(dto, 0, 0, 1))
                     .execute(eventData)
