@@ -22,15 +22,15 @@ public class Config implements WebMvcConfigurer {
         return new LayoutDialect();
     }
 
-    @Bean
-    public DataSource dataSource() throws SQLException {
-        DataSource dataSource = DataSourceBuilder.create()
-                .driverClassName("org.sqlite.JDBC")
-                .url(sqliteDatabaseFile)
-                .build();
-
-        return dataSource;
-    }
+//    @Bean
+//    public DataSource dataSource() throws SQLException {
+//        DataSource dataSource = DataSourceBuilder.create()
+//                .driverClassName("org.sqlite.JDBC")
+//                .url(sqliteDatabaseFile)
+//                .build();
+//
+//        return dataSource;
+//    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
