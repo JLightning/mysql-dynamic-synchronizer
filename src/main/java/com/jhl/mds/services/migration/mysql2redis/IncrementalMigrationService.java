@@ -3,8 +3,8 @@ package com.jhl.mds.services.migration.mysql2redis;
 import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
 import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
+import com.jhl.mds.consts.MigrationAction;
 import com.jhl.mds.dto.PairOfMap;
-import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
 import com.jhl.mds.services.migration.mysql2mysql.MigrationMapperService;
 import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
@@ -75,17 +75,23 @@ public class IncrementalMigrationService {
         MySQLBinLogListener listener = new MySQLBinLogListener() {
             @Override
             public void insert(WriteRowsEventData eventData) {
-                executor.submit(() -> IncrementalMigrationService.this.insert(dto, eventData));
+                if (MigrationAction.INSERT.isApplicable(dto.getMigrationActionCode())) {
+                    executor.submit(() -> IncrementalMigrationService.this.insert(dto, eventData));
+                }
             }
 
             @Override
             public void update(UpdateRowsEventData eventData) {
-                executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
+                if (MigrationAction.UPDATE.isApplicable(dto.getMigrationActionCode())) {
+                    executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
+                }
             }
 
             @Override
             public void delete(DeleteRowsEventData eventData) {
-                executor.submit(() -> IncrementalMigrationService.this.delete(dto, eventData));
+                if (MigrationAction.DELETE.isApplicable(dto.getMigrationActionCode())) {
+                    executor.submit(() -> IncrementalMigrationService.this.delete(dto, eventData));
+                }
             }
         };
 

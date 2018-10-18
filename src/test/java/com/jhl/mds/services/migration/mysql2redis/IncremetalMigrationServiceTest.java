@@ -16,6 +16,7 @@ public abstract class IncremetalMigrationServiceTest extends BaseTest {
                 .source(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", sourceTable))
                 .target(getRedisServerDTO())
                 .redisKeyType(keyType)
+                .migrationActionCode(0b111)
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO(keyMapping, "key"),
                         new SimpleFieldMappingDTO("json(_row)", "value")

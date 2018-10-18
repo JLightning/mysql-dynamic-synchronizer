@@ -23,4 +23,8 @@ public enum MigrationType {
         }
         throw new RuntimeException("Not found");
     }
+
+    public boolean isApplicable(MigrationType migrationType) {
+        return (this.code & migrationType.code) == this.code;
+    }
 }
