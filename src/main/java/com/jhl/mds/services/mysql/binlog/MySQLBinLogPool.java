@@ -25,7 +25,7 @@ public class MySQLBinLogPool {
 
     public void openNewConnection(MySQLServerDTO serverDTO) {
         if (!connectionMap.containsKey(serverDTO)) {
-            connectionMap.put(serverDTO, new MySQLBinLogConnection(mySQLBinLogPositionRepository, serverDTO, ignoreBinlogPositionFile));
+            connectionMap.put(serverDTO, new MySQLBinLogConnection(serverDTO, ignoreBinlogPositionFile));
         }
     }
 

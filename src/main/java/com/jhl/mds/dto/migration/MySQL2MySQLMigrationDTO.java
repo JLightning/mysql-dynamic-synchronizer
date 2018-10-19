@@ -83,6 +83,7 @@ public class MySQL2MySQLMigrationDTO implements MySQLSourceMigrationDTO, Filtera
                     .mapping(mappingDTOs)
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
+                    .migrationActionCode(0b111)
                     .insertMode(MySQLInsertMode.valueOf(task.getInsertMode()))
                     .filters(taskFilterRepository.findFilterByTaskId(task.getTaskId()))
                     .build();
@@ -99,6 +100,7 @@ public class MySQL2MySQLMigrationDTO implements MySQLSourceMigrationDTO, Filtera
                     .mapping(taskDTO.getMapping())
                     .source(sourceTableInfoDTO)
                     .target(targetTableInfoDTO)
+                    .migrationActionCode(0b111)
                     .insertMode(taskDTO.getInsertMode())
                     .filters(taskDTO.getFilters())
                     .build();
