@@ -18,7 +18,7 @@ public class MySQLPrimaryKeyService {
         throw new RuntimeException("Cannot find PRIMARY key");
     }
 
-    public Object getPrimaryKeyValue(Map<String, Object> data, List<MySQLFieldDTO> fields) {
+    public synchronized Object getPrimaryKeyValue(Map<String, Object> data, List<MySQLFieldDTO> fields) {
         MySQLFieldDTO primaryField = getPrimaryField(fields);
         return data.get(primaryField.getField());
     }

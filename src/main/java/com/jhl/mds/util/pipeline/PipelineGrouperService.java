@@ -21,7 +21,7 @@ public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, 
         if (input != null) {
             list.add(input);
         }
-        if (list.size() >= chunkSize || beforeTaskFinished) {
+        if ((list.size() >= chunkSize || beforeTaskFinished) && list.size() > 0) {
             next.accept(new ArrayList<>(list));
             list.clear();
         }
@@ -33,7 +33,7 @@ public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, 
         list.clear();
     }
 
-    public int getListSize() {
+    synchronized int getListSize() {
         return list.size();
     }
 }

@@ -12,10 +12,12 @@ public class PairOfMap {
     @Delegate
     private Pair<Map<String, Object>, Map<String, Object>> pair;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean deletePlease;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean insertPlease;
 
     private PairOfMap(Pair<Map<String, Object>, Map<String, Object>> pair) {
@@ -24,5 +26,12 @@ public class PairOfMap {
 
     public static PairOfMap of(Map<String, Object> first, Map<String, Object> second) {
         return new PairOfMap(Pair.of(first, second));
+    }
+
+    public PairOfMap clone() {
+        PairOfMap pom = new PairOfMap(pair);
+        pom.setInsertPlease(insertPlease);
+        pom.setDeletePlease(deletePlease);
+        return pom;
     }
 }

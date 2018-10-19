@@ -121,6 +121,7 @@ public class IncrementalMigrationService {
         MySQLBinLogListener listener = new MySQLBinLogListener() {
             @Override
             public void insert(WriteRowsEventData eventData) {
+                log.info("INSERT");
                 if (MigrationAction.INSERT.isApplicable(dto.getMigrationActionCode())) {
                     executor.submit(() -> IncrementalMigrationService.this.insert(dto, eventData));
                 }
@@ -128,6 +129,7 @@ public class IncrementalMigrationService {
 
             @Override
             public void update(UpdateRowsEventData eventData) {
+                log.info("UPDATE");
                 if (MigrationAction.UPDATE.isApplicable(dto.getMigrationActionCode())) {
                     executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
                 }
@@ -135,6 +137,7 @@ public class IncrementalMigrationService {
 
             @Override
             public void delete(DeleteRowsEventData eventData) {
+                log.info("DELETE");
                 if (MigrationAction.DELETE.isApplicable(dto.getMigrationActionCode())) {
                     executor.submit(() -> IncrementalMigrationService.this.delete(dto, eventData));
                 }
@@ -194,20 +197,23 @@ public class IncrementalMigrationService {
                         next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
-                        try {
-                            customFilterService.filter(dto, input.getSecond());
-                            next.accept(input);
-                        } catch (PipelineCancelException e) {
-                            input.setDeletePlease(true);
-                            next.accept(input);
-                        }
-
+                        boolean needInsert = false, needDelete = false;
                         try {
                             customFilterService.filter(dto, input.getFirst());
                         } catch (PipelineCancelException e) {
-                            input.setInsertPlease(true);
-                            next.accept(input);
+                            needInsert = true;
                         }
+
+                        try {
+                            customFilterService.filter(dto, input.getSecond());
+                        } catch (PipelineCancelException e) {
+                            needDelete = true;
+                        }
+
+                        input.setInsertPlease(needInsert);
+                        input.setDeletePlease(needDelete);
+
+                        next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();

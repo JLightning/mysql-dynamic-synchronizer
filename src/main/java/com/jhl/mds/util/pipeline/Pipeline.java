@@ -125,7 +125,7 @@ public class Pipeline<Context, FirstInput, Input> {
     }
 
     private boolean allGrouperEmpty() {
-        for (PipelineGrouperService item: pipelineGrouperServiceList) {
+        for (PipelineGrouperService item : pipelineGrouperServiceList) {
             if (item.getListSize() > 0) return false;
         }
         return true;
