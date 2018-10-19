@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MySQL2MySQLMigrationDTO implements MySQLSourceMigrationDTO {
+public class MySQL2MySQLMigrationDTO implements MySQLSourceMigrationDTO, FilterableMigrationDTO {
 
     private int taskId;
     private TableInfoDTO source;

@@ -5,22 +5,23 @@ import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.consts.MigrationAction;
 import com.jhl.mds.dto.PairOfMap;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
+import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.migration.mysql2mysql.MigrationMapperService;
 import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
 import com.jhl.mds.services.mysql.binlog.*;
 import com.jhl.mds.services.redis.RedisDeleteService;
 import com.jhl.mds.services.redis.RedisInsertService;
 import com.jhl.mds.services.redis.RedisUpdateService;
+import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
+import com.jhl.mds.util.pipeline.PipelineCancelException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -36,6 +37,7 @@ public class IncrementalMigrationService {
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
     private MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService;
     private MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock;
+    private CustomFilterService customFilterService;
     private RedisInsertService redisInsertService;
     private RedisUpdateService redisUpdateService;
     private RedisDeleteService redisDeleteService;
@@ -48,6 +50,7 @@ public class IncrementalMigrationService {
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
             MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService,
             MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock,
+            CustomFilterService customFilterService,
             RedisInsertService redisInsertService,
             RedisUpdateService redisUpdateService,
             RedisDeleteService redisDeleteService
@@ -58,6 +61,7 @@ public class IncrementalMigrationService {
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
         this.mySQLBinLogDeleteMapperService = mySQLBinLogDeleteMapperService;
         this.mySQLEventPrimaryKeyLock = mySQLEventPrimaryKeyLock;
+        this.customFilterService = customFilterService;
         this.redisInsertService = redisInsertService;
         this.redisUpdateService = redisUpdateService;
         this.redisDeleteService = redisDeleteService;
@@ -112,6 +116,7 @@ public class IncrementalMigrationService {
                         tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input));
                         next.accept(input);
                     })
+                    .append(customFilterService)
                     .append(migrationMapperService)
                     .append(redisInsertService)
                     .execute(eventData)
@@ -137,12 +142,44 @@ public class IncrementalMigrationService {
                         next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
+                        boolean needInsert = false, needDelete = false;
+                        try {
+                            customFilterService.filter(dto, input.getFirst());
+                        } catch (PipelineCancelException e) {
+                            needInsert = true;
+                        }
+
+                        try {
+                            customFilterService.filter(dto, input.getSecond());
+                        } catch (PipelineCancelException e) {
+                            needDelete = true;
+                        }
+
+                        input.setInsertPlease(needInsert);
+                        input.setDeletePlease(needDelete);
+
+                        next.accept(input);
+                    })
+                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();
                         key = migrationMapperService.map(key, false);
                         value = migrationMapperService.map(value, false);
 
-                        next.accept(PairOfMap.of(key, value));
+                        PairOfMap pair = PairOfMap.of(key, value);
+                        pair.setDeletePlease(input.isDeletePlease());
+                        pair.setInsertPlease(input.isInsertPlease());
+                        next.accept(pair);
+                    })
+                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
+                        if (input.isDeletePlease())
+                            redisDeleteService.execute(dto, input.getFirst(), o -> {}, errorHandler);
+                        else next.accept(input);
+                    })
+                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
+                        if (input.isInsertPlease())
+                            redisInsertService.execute(dto, input.getSecond(), o -> {}, errorHandler);
+                        else next.accept(input);
                     })
                     .append(redisUpdateService)
                     .execute(eventData)
@@ -162,6 +199,7 @@ public class IncrementalMigrationService {
 
             Pipeline<MySQL2RedisMigrationDTO, DeleteRowsEventData, DeleteRowsEventData> pipeline = Pipeline.of(dto, DeleteRowsEventData.class);
             pipeline.append(mySQLBinLogDeleteMapperService)
+                    .append(customFilterService)
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
                         tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input));
                         next.accept(input);

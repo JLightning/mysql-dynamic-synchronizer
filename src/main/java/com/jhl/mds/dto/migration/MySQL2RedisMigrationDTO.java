@@ -17,7 +17,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MySQL2RedisMigrationDTO implements MySQLSourceMigrationDTO {
+public class MySQL2RedisMigrationDTO implements MySQLSourceMigrationDTO, FilterableMigrationDTO {
 
     private int taskId;
     private TableInfoDTO source;
