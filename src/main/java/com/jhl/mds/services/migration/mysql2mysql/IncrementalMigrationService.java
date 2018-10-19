@@ -121,7 +121,6 @@ public class IncrementalMigrationService {
         MySQLBinLogListener listener = new MySQLBinLogListener() {
             @Override
             public void insert(WriteRowsEventData eventData) {
-                log.info("INSERT");
                 if (MigrationAction.INSERT.isApplicable(dto.getMigrationActionCode())) {
                     executor.submit(() -> IncrementalMigrationService.this.insert(dto, eventData));
                 }
@@ -129,7 +128,6 @@ public class IncrementalMigrationService {
 
             @Override
             public void update(UpdateRowsEventData eventData) {
-                log.info("UPDATE");
                 if (MigrationAction.UPDATE.isApplicable(dto.getMigrationActionCode())) {
                     executor.submit(() -> IncrementalMigrationService.this.update(dto, eventData));
                 }
@@ -137,7 +135,6 @@ public class IncrementalMigrationService {
 
             @Override
             public void delete(DeleteRowsEventData eventData) {
-                log.info("DELETE");
                 if (MigrationAction.DELETE.isApplicable(dto.getMigrationActionCode())) {
                     executor.submit(() -> IncrementalMigrationService.this.delete(dto, eventData));
                 }

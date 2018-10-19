@@ -68,7 +68,8 @@ public class Pipeline<Context, FirstInput, Input> {
             executorServices[i] = Executors.newFixedThreadPool(4);
         }
         Consumer[] nextList = new Consumer[taskList.size()];
-        nextList[taskList.size() - 1] = System.out::println;
+        nextList[taskList.size() - 1] = o -> {
+        };
         for (int i = taskList.size() - 2; i >= 0; i--) {
             int finalI = i;
 
