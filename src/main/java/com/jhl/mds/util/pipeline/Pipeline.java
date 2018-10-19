@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -18,6 +19,7 @@ import java.util.function.Consumer;
 public class Pipeline<Context, FirstInput, Input> {
 
     private final AtomicBoolean finished = new AtomicBoolean(false);
+    private final int id;
     @NonNull
     private Context context;
     private List<PipeLineTaskRunner> taskList = new ArrayList<>();
@@ -36,6 +38,7 @@ public class Pipeline<Context, FirstInput, Input> {
 
     private Pipeline(Context context) {
         this.context = context;
+        id = new Random().nextInt(10000);
     }
 
     public static <C, I> Pipeline<C, I, I> of(C context, Class<I> firstInputClass) {
@@ -109,7 +112,7 @@ public class Pipeline<Context, FirstInput, Input> {
 
     private void checkInvokeCount() {
         if (invokeCount.get() == 0) {
-            if (pipelineGrouperServiceList.size() == 0) {
+            if (pipelineGrouperServiceList.size() == 0 || allGrouperEmpty()) {
                 synchronized (finished) {
                     finished.set(true);
                     finished.notifyAll();
@@ -119,6 +122,13 @@ public class Pipeline<Context, FirstInput, Input> {
                 pipelineGrouperServiceList.clear();
             }
         }
+    }
+
+    private boolean allGrouperEmpty() {
+        for (PipelineGrouperService item: pipelineGrouperServiceList) {
+            if (item.getListSize() > 0) return false;
+        }
+        return true;
     }
 
     public void waitForFinish() throws InterruptedException {

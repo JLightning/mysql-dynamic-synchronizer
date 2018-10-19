@@ -13,13 +13,16 @@ import com.jhl.mds.dto.IncrementalMigrationProgressDTO;
 import com.jhl.mds.dto.PairOfMap;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.events.IncrementalStatusUpdateEvent;
+import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLDeleteService;
 import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
 import com.jhl.mds.services.mysql.MySQLInsertService;
 import com.jhl.mds.services.mysql.MySQLUpdateService;
 import com.jhl.mds.services.mysql.binlog.*;
+import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
+import com.jhl.mds.util.pipeline.PipelineCancelException;
 import com.jhl.mds.util.pipeline.PipelineGrouperService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +52,7 @@ public class IncrementalMigrationService {
     private MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private MapToStringService mapToStringService;
+    private CustomFilterService customFilterService;
     private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
     private MySQLDeleteService mySQLDeleteService;
@@ -68,6 +72,7 @@ public class IncrementalMigrationService {
             MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
             MapToStringService mapToStringService,
+            CustomFilterService customFilterService,
             MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
             MySQLDeleteService mySQLDeleteService,
@@ -83,6 +88,7 @@ public class IncrementalMigrationService {
         this.mySQLBinLogDeleteMapperService = mySQLBinLogDeleteMapperService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.mapToStringService = mapToStringService;
+        this.customFilterService = customFilterService;
         this.mySQLInsertService = mySQLInsertService;
         this.mySQLUpdateService = mySQLUpdateService;
         this.mySQLDeleteService = mySQLDeleteService;
@@ -159,6 +165,7 @@ public class IncrementalMigrationService {
                         tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input));
                         next.accept(input);
                     })
+                    .append(customFilterService)
                     .append(migrationMapperService)
                     .append(mapToStringService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
@@ -187,12 +194,41 @@ public class IncrementalMigrationService {
                         next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
+                        try {
+                            customFilterService.filter(dto, input.getSecond());
+                            next.accept(input);
+                        } catch (PipelineCancelException e) {
+                            input.setDeletePlease(true);
+                            next.accept(input);
+                        }
+
+                        try {
+                            customFilterService.filter(dto, input.getFirst());
+                        } catch (PipelineCancelException e) {
+                            input.setInsertPlease(true);
+                            next.accept(input);
+                        }
+                    })
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();
-                        key = migrationMapperService.map(key, false);
-                        value = migrationMapperService.map(value, false);
+                        key = migrationMapperService.map(key, input.isInsertPlease());
+                        value = migrationMapperService.map(value, input.isInsertPlease());
 
-                        next.accept(PairOfMap.of(key, value));
+                        PairOfMap pair = PairOfMap.of(key, value);
+                        pair.setDeletePlease(input.isDeletePlease());
+                        pair.setInsertPlease(input.isInsertPlease());
+                        next.accept(pair);
+                    })
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
+                        if (input.isDeletePlease())
+                            mySQLDeleteService.execute(dto, input.getFirst(), o -> updateStatistics(dto, 0, 0, 1), errorHandler);
+                        else next.accept(input);
+                    })
+                    .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
+                        if (input.isInsertPlease())
+                            mySQLInsertService.execute(dto, Collections.singletonList(MySQLStringUtil.valueListString(input.getSecond().values())), o -> updateStatistics(dto, 0, 0, 1), errorHandler);
+                        else next.accept(input);
                     })
                     .append(mySQLUpdateService)
                     .append((context, input, next, errorHandler) -> updateStatistics(dto, 0, 1, 0))

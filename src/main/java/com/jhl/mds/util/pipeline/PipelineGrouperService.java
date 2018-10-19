@@ -32,4 +32,8 @@ public class PipelineGrouperService<I> implements PipeLineTaskRunner<Object, I, 
         next.accept(new ArrayList<>(list));
         list.clear();
     }
+
+    public int getListSize() {
+        return list.size();
+    }
 }

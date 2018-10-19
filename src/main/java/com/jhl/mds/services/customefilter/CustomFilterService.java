@@ -20,13 +20,16 @@ public class CustomFilterService implements PipeLineTaskRunner<MySQL2MySQLMigrat
 
     @Override
     public void execute(MySQL2MySQLMigrationDTO context, Map<String, Object> input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
+        filter(context, input);
+        next.accept(input);
+    }
+
+    public void filter(MySQL2MySQLMigrationDTO context, Map<String, Object> input) throws InterruptedException, java.util.concurrent.ExecutionException {
         List<String> filters = context.getFilters();
         if (filters != null) {
             for (String filter : filters) {
                 if (!customFilterPool.resolve(filter, input).get()) throw new PipelineCancelException("Filter failed");
             }
         }
-
-        next.accept(input);
     }
 }
