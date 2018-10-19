@@ -1,8 +1,8 @@
 package com.jhl.mds.services.mysql;
 
-import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,12 @@ public class MySQLReadService implements PipeLineTaskRunner<MySQL2MySQLMigration
             Map<String, Object> data = new HashMap<>();
             for (int i = 0; i < columns.size(); i++) {
                 String column = columns.get(i);
-                data.put(column, result.getObject(i + 1));
+                MySQLFieldDTO field = fields.get(i);
+                if (field.getType().startsWith("tinyint")) {
+                    data.put(column, result.getObject(i + 1).equals(true) ? 1 : 0);
+                } else {
+                    data.put(column, result.getObject(i + 1));
+                }
             }
 
             next.accept(data);

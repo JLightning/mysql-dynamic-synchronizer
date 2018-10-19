@@ -163,7 +163,7 @@ public class MySQLDescribeService {
 
     public void validateFilter(MySQLServerDTO dto, String database, String table, String filter) throws Exception {
         List<MySQLFieldDTO> fields = getFields(dto, database, table);
-        Map<String, Object> sampleData = fields.stream().map(field -> new Object[]{field, mySQLFieldDefaultValueService.getDefaultValue(field)}).collect(Collectors.toMap(o -> ((MySQLFieldDTO) o[0]).getField(), o -> (String) o[1]));
+        Map<String, Object> sampleData = fields.stream().map(field -> new Object[]{field, mySQLFieldDefaultValueService.getDefaultValue(field)}).collect(Collectors.toMap(o -> ((MySQLFieldDTO) o[0]).getField(), o -> String.valueOf(o[1])));
 
         customFilterPool.resolve(filter, sampleData).get();
     }
