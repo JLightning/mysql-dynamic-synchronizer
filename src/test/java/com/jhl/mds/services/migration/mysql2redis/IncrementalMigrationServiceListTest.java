@@ -13,9 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import redis.clients.jedis.Jedis;
 
 import java.sql.ResultSet;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class IncrementalMigrationServiceListTest extends IncremetalMigrationServiceTest {
@@ -107,18 +105,26 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
             getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (1)");
         }
 
-        getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = 2");
+        getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = id");
 
         Thread.sleep(3000);
 
         Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
 
+        Set<Integer> set = new HashSet<>();
+
         for (String json : jedis.lrange(keyPrefix, 0, 100)) {
-            Map<String, Object> m = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            Map<String, Integer> m = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
             });
 
-            Assert.assertEquals(2, m.get("random_number"));
+            int id = m.get("id");
+            int random_number = m.get("random_number");
+            Assert.assertEquals(random_number, id);
+
+            set.add(random_number);
         }
+
+        Assert.assertEquals(100, set.size());
 
         jedis.flushAll();
 
