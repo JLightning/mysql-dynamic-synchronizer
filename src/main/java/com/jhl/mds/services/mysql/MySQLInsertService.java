@@ -50,7 +50,7 @@ public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrati
 
 //            logger.info("Run query: " + sql);
             log.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
-//            log.info(sql);
+            log.info(sql);
 
             st.execute(sql);
             st.close();
@@ -61,13 +61,6 @@ public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrati
             log.error(String.format("Error when inserting %d rows to %s.%s: %s", input.size(), tableInfo.getDatabase(), tableInfo.getTable(), ExceptionUtils.getStackTrace(e)));
             errorHandler.accept(new WriteServiceException(e, input.size()));
         }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    public static class WriteInfo {
-        private List<String> columns;
-        private String insertDatas;
     }
 
     public class WriteServiceException extends Exception {

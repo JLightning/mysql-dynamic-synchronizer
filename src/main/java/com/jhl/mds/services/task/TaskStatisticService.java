@@ -32,7 +32,7 @@ public class TaskStatisticService {
     public void updateTaskIncrementalStatistic(int taskId, long insertDelta, long updateDelta, long deleteDelta) {
         try {
             taskStatisticsRepository.updateStatistics(taskId, insertDelta, updateDelta, deleteDelta, new Date());
-            eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(taskId, true, insertDelta, updateDelta, 0L, true));
+            eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(taskId, true, insertDelta, updateDelta, deleteDelta, true));
         } catch (DataIntegrityViolationException e) {
             log.error(String.format("Task %d doesn't exist, cannot update statistics", taskId));
         }
