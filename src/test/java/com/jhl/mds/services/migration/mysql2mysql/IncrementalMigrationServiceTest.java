@@ -56,7 +56,8 @@ public class IncrementalMigrationServiceTest extends BaseTest {
                 .target(new TableInfoDTO(serverDTO, "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
-                        new SimpleFieldMappingDTO("random_number", "random_number")
+                        new SimpleFieldMappingDTO("random_number", "random_number"),
+                        new SimpleFieldMappingDTO("random_text", "random_text")
                 ))
                 .migrationActionCode(0b111)
                 .insertMode(MySQLInsertMode.REPLACE);
@@ -75,7 +76,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Thread.sleep(500);
 
         for (int i = 0; i < 100; i++) {
-            getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (2)");
+            getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`, `random_text`) VALUES (2, 'James')");
         }
         getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = 8");
 

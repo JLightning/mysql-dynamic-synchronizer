@@ -1,13 +1,10 @@
 package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.PairOfMap;
-import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
+import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
@@ -20,9 +17,14 @@ import java.util.function.Consumer;
 public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, Long> {
 
     private MySQLConnectionPool mySQLConnectionPool;
+    private MySQLWhereService mySQLWhereService;
 
-    public MySQLUpdateService(MySQLConnectionPool mySQLConnectionPool) {
+    public MySQLUpdateService(
+            MySQLConnectionPool mySQLConnectionPool,
+            MySQLWhereService mySQLWhereService
+    ) {
         this.mySQLConnectionPool = mySQLConnectionPool;
+        this.mySQLWhereService = mySQLWhereService;
     }
 
     @Override
@@ -38,18 +40,10 @@ public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrati
             StringBuilder setPart = new StringBuilder();
             for (Map.Entry<String, Object> e : value.entrySet()) {
                 if (setPart.length() > 0) setPart.append(", ");
-                setPart.append(e.getKey()).append(" = ").append(e.getValue());
+                setPart.append(e.getKey()).append(" = ").append("'").append(e.getValue()).append("'");
             }
 
-            StringBuilder wherePart = new StringBuilder();
-            for (Map.Entry<String, Object> e : key.entrySet()) {
-                if (wherePart.length() > 0) wherePart.append(" AND ");
-                if (e.getValue() != null) {
-                    wherePart.append(e.getKey()).append(" = ").append(e.getValue());
-                } else {
-                    wherePart.append(e.getKey()).append(" IS NULL");
-                }
-            }
+            String wherePart = mySQLWhereService.build(key);
 
             String sql = String.format("UPDATE %s.%s SET %s WHERE %s", tableInfo.getDatabase(), tableInfo.getTable(), setPart, wherePart);
             log.info("Run query: " + sql);
