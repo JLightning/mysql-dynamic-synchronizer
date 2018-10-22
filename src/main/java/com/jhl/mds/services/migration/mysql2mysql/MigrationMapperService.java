@@ -68,12 +68,7 @@ public class MigrationMapperService implements PipeLineTaskRunner<Object, Map<St
         return mappedData;
     }
 
-    public String mapToString(Map<String, Object> data) throws Exception {
-        return MySQLStringUtil.valueListString(map(data, true).values());
-    }
-
     @Override
-    @SuppressWarnings("unchecked")
     public void execute(Object context, Map<String, Object> input, Consumer<Map<String, Object>> next, Consumer<Exception> errorHandler) throws Exception {
         next.accept(map(input, true));
     }
