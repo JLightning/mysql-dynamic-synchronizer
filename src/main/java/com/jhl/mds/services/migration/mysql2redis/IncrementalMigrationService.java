@@ -14,12 +14,16 @@ import com.jhl.mds.services.mysql.binlog.*;
 import com.jhl.mds.services.redis.RedisDeleteService;
 import com.jhl.mds.services.redis.RedisInsertService;
 import com.jhl.mds.services.redis.RedisUpdateService;
+import com.jhl.mds.services.task.TaskStatisticService;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,6 +44,7 @@ public class IncrementalMigrationService {
     private RedisInsertService redisInsertService;
     private RedisUpdateService redisUpdateService;
     private RedisDeleteService redisDeleteService;
+    private TaskStatisticService taskStatisticService;
     private Map<Integer, MySQLBinLogListener> listenerMap = new HashMap<>();
 
     public IncrementalMigrationService(
@@ -53,7 +58,8 @@ public class IncrementalMigrationService {
             CustomFilterService customFilterService,
             RedisInsertService redisInsertService,
             RedisUpdateService redisUpdateService,
-            RedisDeleteService redisDeleteService
+            RedisDeleteService redisDeleteService,
+            TaskStatisticService taskStatisticService
     ) {
         this.mySQLBinLogPool = mySQLBinLogPool;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
@@ -66,6 +72,7 @@ public class IncrementalMigrationService {
         this.redisInsertService = redisInsertService;
         this.redisUpdateService = redisUpdateService;
         this.redisDeleteService = redisDeleteService;
+        this.taskStatisticService = taskStatisticService;
     }
 
     public synchronized void run(MySQL2RedisMigrationDTO dto) {
@@ -120,6 +127,7 @@ public class IncrementalMigrationService {
                     .append(customFilterService)
                     .append(migrationMapperService)
                     .append(redisInsertService)
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -156,15 +164,16 @@ public class IncrementalMigrationService {
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isDeleteNeeded())
-                            redisDeleteService.execute(dto, input.getFirst(), o -> {}, errorHandler);
+                            redisDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1), errorHandler);
                         else next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isInsertNeeded())
-                            redisInsertService.execute(dto, input.getSecond(), o -> {}, errorHandler);
+                            redisInsertService.execute(dto, input.getSecond(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0), errorHandler);
                         else next.accept(input);
                     })
                     .append(redisUpdateService)
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 1, 0))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -189,6 +198,7 @@ public class IncrementalMigrationService {
                     })
                     .append(migrationMapperService)
                     .append(redisDeleteService)
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1))
                     .execute(eventData)
                     .waitForFinish();
 

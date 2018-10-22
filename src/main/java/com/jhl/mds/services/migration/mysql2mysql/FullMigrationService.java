@@ -3,10 +3,10 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.consts.MySQLConstants;
 import com.jhl.mds.dao.repositories.TaskRepository;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
-import com.jhl.mds.events.FullMigrationProgressUpdateEvent;
 import com.jhl.mds.services.customefilter.CustomFilterService;
 import com.jhl.mds.services.mysql.MySQLInsertService;
 import com.jhl.mds.services.mysql.MySQLReadService;
+import com.jhl.mds.services.task.TaskStatisticService;
 import com.jhl.mds.util.pipeline.Pipeline;
 import com.jhl.mds.util.pipeline.PipelineGrouperService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -22,30 +22,29 @@ import java.util.function.Consumer;
 @Service("mysql2mysqlFullMigrationService")
 public class FullMigrationService {
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(1);
-    private ApplicationEventPublisher eventPublisher;
     private MySQLReadService mySQLReadService;
     private CustomFilterService customFilterService;
     private MapToStringService mapToStringService;
     private MySQLInsertService mySQLInsertService;
+    private TaskStatisticService taskStatisticService;
     private TaskRepository taskRepository;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private Set<Integer> runningTask = new HashSet<>();
 
     public FullMigrationService(
-            ApplicationEventPublisher eventPublisher,
             MySQLReadService mySQLReadService,
             CustomFilterService customFilterService,
             MapToStringService mapToStringService,
             MySQLInsertService mySQLInsertService,
+            TaskStatisticService taskStatisticService,
             TaskRepository taskRepository,
             MigrationMapperService.Factory migrationMapperServiceFactory
     ) {
-        this.eventPublisher = eventPublisher;
         this.mySQLReadService = mySQLReadService;
         this.customFilterService = customFilterService;
         this.mapToStringService = mapToStringService;
         this.mySQLInsertService = mySQLInsertService;
+        this.taskStatisticService = taskStatisticService;
         this.taskRepository = taskRepository;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
     }
@@ -55,7 +54,7 @@ public class FullMigrationService {
             throw new RuntimeException("Task has already been running");
         }
         runningTask.add(dto.getTaskId());
-        saveFullMigrationProgress(dto, 0, false);
+        taskStatisticService.updateTaskFullMigrationProgress(dto.getTaskId(), 0);
         new Thread(() -> run(dto)).start();
     }
 
@@ -72,7 +71,7 @@ public class FullMigrationService {
                 synchronized (lastProgress) {
                     long progress = finished.addAndGet(size) * 100 / count;
                     if (progress > lastProgress.get()) {
-                        saveFullMigrationProgress(dto, progress, true);
+                        taskStatisticService.updateTaskFullMigrationProgress(dto.getTaskId(), progress);
                     }
                     lastProgress.set(progress);
                 }
@@ -103,15 +102,6 @@ public class FullMigrationService {
 
 
         runningTask.remove(dto.getTaskId());
-    }
-
-    private void saveFullMigrationProgress(MySQL2MySQLMigrationDTO dto, double progress, boolean async) {
-        eventPublisher.publishEvent(new FullMigrationProgressUpdateEvent(dto, progress, progress != 100));
-        Runnable runnable = () -> {
-            taskRepository.updateFullMigrationProgress(dto.getTaskId(), Math.round(progress));
-        };
-        if (async) executorService.submit(runnable);
-        else runnable.run();
     }
 
     public double getProgress(int taskId) {
