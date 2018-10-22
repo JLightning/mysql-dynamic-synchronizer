@@ -38,14 +38,9 @@ public class IncrementalMigrationServiceStringTest extends IncremetalMigrationSe
 
         Thread.sleep(3000);
 
-        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
-
         Set<String> keys = jedis.keys(keyPrefix + "*");
 
         Assert.assertEquals(100, keys.size());
-
-        jedis.flushAll();
-        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -70,8 +65,6 @@ public class IncrementalMigrationServiceStringTest extends IncremetalMigrationSe
 
         Thread.sleep(3000);
 
-        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
-
         Set<String> keys = jedis.keys(keyPrefix + "*");
 
         Assert.assertEquals(100, keys.size());
@@ -84,9 +77,6 @@ public class IncrementalMigrationServiceStringTest extends IncremetalMigrationSe
             });
             Assert.assertEquals(2, m.get("random_number"));
         }
-
-        jedis.flushAll();
-        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -111,14 +101,10 @@ public class IncrementalMigrationServiceStringTest extends IncremetalMigrationSe
 
         Thread.sleep(2000);
 
-        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
-
         Set<String> keys = jedis.keys(keyPrefix + "*");
 
         Assert.assertEquals(0, keys.size());
 
-        jedis.flushAll();
-        jedis.close();
         incrementalMigrationService.stop(dto);
     }
 }
