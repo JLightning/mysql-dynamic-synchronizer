@@ -1,11 +1,11 @@
 package com.jhl.dds.querybuilder;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class InsertQueryTest {
 
@@ -21,11 +21,11 @@ public class InsertQueryTest {
                     put("id", 2);
                 }},
                 new LinkedHashMap<String, Object>() {{
-                    put("name", "James Test xxx");
+                    put("name", "James Test 2");
                     put("id", 2);
                 }}
         )).build();
 
-        System.out.println("sql = " + sql);
+        Assert.assertEquals("INSERT INTO `test`(`id`, `name`) VALUES ('1', 'James'), ('2', 'James Test'), ('2', 'James Test 2')", sql);
     }
 }
