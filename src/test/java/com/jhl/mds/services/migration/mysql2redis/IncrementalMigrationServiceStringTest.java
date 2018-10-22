@@ -45,6 +45,7 @@ public class IncrementalMigrationServiceStringTest extends IncremetalMigrationSe
         Assert.assertEquals(100, keys.size());
 
         jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -85,6 +86,7 @@ public class IncrementalMigrationServiceStringTest extends IncremetalMigrationSe
         }
 
         jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -115,6 +117,8 @@ public class IncrementalMigrationServiceStringTest extends IncremetalMigrationSe
 
         Assert.assertEquals(0, keys.size());
 
+        jedis.flushAll();
+        jedis.close();
         incrementalMigrationService.stop(dto);
     }
 }

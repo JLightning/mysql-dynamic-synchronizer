@@ -44,6 +44,7 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
         Assert.assertEquals(100L, jedis.llen(keyPrefix).longValue());
 
         jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -85,6 +86,7 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
         }
 
         jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -127,6 +129,7 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
         Assert.assertEquals(100, set.size());
 
         jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -172,6 +175,7 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
         Assert.assertEquals(50, set.size());
 
         jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -217,6 +221,7 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
         Assert.assertEquals(50, set.size());
 
         jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
@@ -243,6 +248,9 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
 
         Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
         Assert.assertEquals(0L, jedis.llen(keyPrefix).longValue());
+
+        jedis.flushAll();
+        jedis.close();
 
         incrementalMigrationService.stop(dto);
     }
