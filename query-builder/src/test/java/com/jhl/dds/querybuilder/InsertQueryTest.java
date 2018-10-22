@@ -11,10 +11,6 @@ public class InsertQueryTest {
 
     @Test
     public void testInsert() {
-        Map<String, Object> obj = new HashMap<String, Object>() {{
-            put("id", 1);
-            put("name", "James");
-        }};
         String sql = new QueryBuilder().insertInto("test").values(Arrays.asList(
                 new LinkedHashMap<String, Object>() {{
                     put("id", 1);

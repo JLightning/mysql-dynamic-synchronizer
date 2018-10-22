@@ -53,7 +53,6 @@ public class IncrementalMigrationService {
     private MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService;
     private MigrationMapperService.Factory migrationMapperServiceFactory;
     private InsertOrDeleteWhenUpdatingService insertOrDeleteWhenUpdatingService;
-    private MapToStringService mapToStringService;
     private CustomFilterService customFilterService;
     private MySQLInsertService mySQLInsertService;
     private MySQLUpdateService mySQLUpdateService;
@@ -75,7 +74,6 @@ public class IncrementalMigrationService {
             MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService,
             MigrationMapperService.Factory migrationMapperServiceFactory,
             InsertOrDeleteWhenUpdatingService insertOrDeleteWhenUpdatingService,
-            MapToStringService mapToStringService,
             CustomFilterService customFilterService,
             MySQLInsertService mySQLInsertService,
             MySQLUpdateService mySQLUpdateService,
@@ -93,7 +91,6 @@ public class IncrementalMigrationService {
         this.mySQLBinLogDeleteMapperService = mySQLBinLogDeleteMapperService;
         this.migrationMapperServiceFactory = migrationMapperServiceFactory;
         this.insertOrDeleteWhenUpdatingService = insertOrDeleteWhenUpdatingService;
-        this.mapToStringService = mapToStringService;
         this.customFilterService = customFilterService;
         this.mySQLInsertService = mySQLInsertService;
         this.mySQLUpdateService = mySQLUpdateService;
@@ -174,7 +171,6 @@ public class IncrementalMigrationService {
                     })
                     .append(customFilterService)
                     .append(migrationMapperService)
-                    .append(mapToStringService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
                     .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0))
@@ -219,7 +215,7 @@ public class IncrementalMigrationService {
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isInsertNeeded())
-                            mySQLInsertService.execute(dto, Collections.singletonList(MySQLStringUtil.valueListString(input.getSecond().values())), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0), errorHandler);
+                            mySQLInsertService.execute(dto, Collections.singletonList(input.getSecond()), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0), errorHandler);
                         else next.accept(input);
                     })
                     .append(mySQLUpdateService)

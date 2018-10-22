@@ -1,5 +1,6 @@
 package com.jhl.mds.services.mysql;
 
+import com.jhl.dds.querybuilder.QueryBuilder;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.util.MySQLStringUtil;
@@ -17,11 +18,12 @@ import org.springframework.stereotype.Service;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @Service
 @Slf4j
-public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, List<String>, Long> {
+public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, List<Map<String,Object>>, Long> {
 
     private MySQLConnectionPool mySQLConnectionPool;
 
@@ -31,26 +33,21 @@ public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrati
     }
 
     @Override
-    public void execute(MySQL2MySQLMigrationDTO context, List<String> input, Consumer<Long> next, Consumer<Exception> errorHandler) {
+    public void execute(MySQL2MySQLMigrationDTO context, List<Map<String,Object>> input, Consumer<Long> next, Consumer<Exception> errorHandler) {
         this.run(context, next, errorHandler, input);
     }
 
-    private void run(MySQL2MySQLMigrationDTO context, Consumer<Long> next, Consumer<Exception> errorHandler, List<String> input) {
+    private void run(MySQL2MySQLMigrationDTO context, Consumer<Long> next, Consumer<Exception> errorHandler, List<Map<String,Object>> input) {
         TableInfoDTO tableInfo = context.getTarget();
-
-        List<String> columns = context.getTargetColumns();
-        StringBuilder insertDataStrBuilder = new StringBuilder();
-
-        for (String writeInfo : input) {
-            if (insertDataStrBuilder.length() != 0) insertDataStrBuilder.append(", ");
-            insertDataStrBuilder.append(writeInfo);
-        }
 
         try {
             Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
             Statement st = conn.createStatement();
 
-            String sql = String.format("%s INTO %s(%s) VALUES %s;", context.getInsertMode().getSyntax(), tableInfo.getDatabase() + "." + tableInfo.getTable(), MySQLStringUtil.columnListToString(columns), insertDataStrBuilder.toString());
+            String sql = new QueryBuilder().insertInto(tableInfo.getDatabase(), tableInfo.getTable())
+                    .values(input)
+                    .build();
+
 //            logger.info("Run query: " + sql);
             log.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
             log.info(sql);

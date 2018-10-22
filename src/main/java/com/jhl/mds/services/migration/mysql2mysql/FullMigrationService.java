@@ -24,7 +24,6 @@ public class FullMigrationService {
 
     private MySQLReadService mySQLReadService;
     private CustomFilterService customFilterService;
-    private MapToStringService mapToStringService;
     private MySQLInsertService mySQLInsertService;
     private TaskStatisticService taskStatisticService;
     private TaskRepository taskRepository;
@@ -34,7 +33,6 @@ public class FullMigrationService {
     public FullMigrationService(
             MySQLReadService mySQLReadService,
             CustomFilterService customFilterService,
-            MapToStringService mapToStringService,
             MySQLInsertService mySQLInsertService,
             TaskStatisticService taskStatisticService,
             TaskRepository taskRepository,
@@ -42,7 +40,6 @@ public class FullMigrationService {
     ) {
         this.mySQLReadService = mySQLReadService;
         this.customFilterService = customFilterService;
-        this.mapToStringService = mapToStringService;
         this.mySQLInsertService = mySQLInsertService;
         this.taskStatisticService = taskStatisticService;
         this.taskRepository = taskRepository;
@@ -89,7 +86,6 @@ public class FullMigrationService {
             pipeline.append(mySQLReadService)
                     .append(customFilterService)
                     .append(mapperService)
-                    .append(mapToStringService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
                     .append((context, input, next, errorHandler) -> finishCallback.accept(input))
