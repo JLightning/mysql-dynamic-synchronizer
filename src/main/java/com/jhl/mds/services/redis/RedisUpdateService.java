@@ -39,12 +39,15 @@ public class RedisUpdateService implements PipeLineTaskRunner<MySQL2RedisMigrati
                 String firstValue = String.valueOf(first.get("value"));
                 String secondValue = String.valueOf(second.get("value"));
 
-                long idx = redisListUtil.findValueInList(context.getTarget(), key, firstValue);
-                if (idx == -1) {
-                    jedis.rpush(key, secondValue);
-                } else {
-                    jedis.lset(key, idx, secondValue);
-                }
+                jedis.lrem(key, 0, firstValue);
+                jedis.rpush(key, secondValue);
+
+//                long idx = redisListUtil.findValueInList(context.getTarget(), key, firstValue);
+//                if (idx == -1) {
+//                    jedis.rpush(key, secondValue);
+//                } else {
+//                    jedis.lset(key, idx, secondValue);
+//                }
                 break;
         }
 

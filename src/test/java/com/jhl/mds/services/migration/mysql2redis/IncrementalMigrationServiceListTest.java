@@ -131,6 +131,7 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
         incrementalMigrationService.stop(dto);
     }
 
+    @Test
     public void updateWithFilterDeleteNeededTest() throws Exception {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
@@ -154,16 +155,66 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
 
         Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
 
-//        Assert.assertEquals(50, jedis.llen(keyPrefix).longValue());
+        Assert.assertEquals(50, jedis.llen(keyPrefix).longValue());
+
+        Set<Integer> set = new HashSet<>();
 
         for (String json : jedis.lrange(keyPrefix, 0, 100)) {
-            Map<String, Object> m = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            Map<String, Integer> m = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
             });
 
-            Assert.assertEquals(0, Integer.parseInt(String.valueOf(m.get("random_number"))) % 2);
+            Integer random_number = m.get("random_number");
+            Assert.assertEquals(0, random_number % 2);
 
-            log.info(m.toString());
+            set.add(random_number);
         }
+
+        Assert.assertEquals(50, set.size());
+
+        jedis.flushAll();
+
+        incrementalMigrationService.stop(dto);
+    }
+
+    @Test
+    public void updateWithFilterInsertNeededTest() throws Exception {
+        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
+
+        String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
+
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST)
+                .filters(Collections.singletonList("random_number % 2 == 0"))
+                .build();
+
+        incrementalMigrationService.run(dto);
+
+        Thread.sleep(500);
+
+        for (int i = 0; i < 100; i++) {
+            getStatement().execute(String.format("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (%d)", 3));
+        }
+
+        getStatement().execute("UPDATE mds." + sourceTable + " SET random_number = id");
+
+        Thread.sleep(3000);
+
+        Jedis jedis = redisConnectionPool.getConnection(getRedisServerDTO());
+
+        Assert.assertEquals(50, jedis.llen(keyPrefix).longValue());
+
+        Set<Integer> set = new HashSet<>();
+
+        for (String json : jedis.lrange(keyPrefix, 0, 100)) {
+            Map<String, Integer> m = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
+
+            Integer random_number = m.get("random_number");
+            Assert.assertEquals(0, random_number % 2);
+
+            set.add(random_number);
+        }
+
+        Assert.assertEquals(50, set.size());
 
         jedis.flushAll();
 
