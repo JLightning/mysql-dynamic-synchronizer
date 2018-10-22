@@ -50,7 +50,7 @@ public class MySQLInsertService implements PipeLineTaskRunner<MySQL2MySQLMigrati
 
 //            logger.info("Run query: " + sql);
             log.info(String.format("Inserted %d rows to %s.%s", input.size(), tableInfo.getDatabase(), tableInfo.getTable()));
-            log.info(sql);
+//            log.info(sql);
 
             st.execute(sql);
             st.close();

@@ -24,7 +24,7 @@ import java.util.Random;
 
 public class FullMigrationServiceTest extends BaseTest {
 
-    private static final int LIMIT = 100000;
+    private static final int LIMIT = 10000;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -98,5 +98,11 @@ public class FullMigrationServiceTest extends BaseTest {
         ResultSet result = st.executeQuery("SELECT COUNT(1) FROM mds." + targetTable);
         result.next();
         Assert.assertEquals(LIMIT / 2, result.getInt(1));
+
+        result = st.executeQuery("SELECT * FROM mds." + targetTable);
+        while (result.next()) {
+            int id = result.getInt(1);
+            Assert.assertEquals(0, id % 2);
+        }
     }
 }
