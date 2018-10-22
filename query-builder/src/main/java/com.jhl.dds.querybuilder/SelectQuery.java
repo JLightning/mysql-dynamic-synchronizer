@@ -14,7 +14,7 @@ public class SelectQuery {
     public String build() {
         String columnsStr = columns == null ? "*" : columnListToString(columns);
 
-        return "SELECT " + columnsStr + " FROM " + queryBuilder.buildTableStr();
+        return "SELECT " + columnsStr + " FROM " + queryBuilder.buildTableStr() + queryBuilder.buildWhere();
     }
 
     public SelectQuery columns(Iterable<String> columns) {

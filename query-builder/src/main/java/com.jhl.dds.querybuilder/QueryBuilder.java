@@ -18,6 +18,16 @@ public class QueryBuilder {
         return selectFrom(null, table);
     }
 
+    public InsertQuery insertInto(String database, String table) {
+        this.table = table;
+        this.database = database;
+        return new InsertQuery(this);
+    }
+
+    public InsertQuery insertInto(String table) {
+        return insertInto(null, table);
+    }
+
     public UpdateQuery update(String database, String table) {
         this.database = database;
         this.table = table;
@@ -43,6 +53,7 @@ public class QueryBuilder {
     }
 
     String buildWhere() {
+        if (where == null) return "";
         StringBuilder wherePart = new StringBuilder();
         for (Map.Entry<String, Object> e : where.entrySet()) {
             if (wherePart.length() > 0) wherePart.append(" AND ");
@@ -57,8 +68,8 @@ public class QueryBuilder {
     }
 
     String buildTableStr() {
-        String databaseStr = database == null ? "" : "`" + database + "`";
+        String databaseStr = database == null ? "" : "`" + database + "`.";
         String tableStr = "`" + table + "`";
-        return databaseStr + "." + tableStr;
+        return databaseStr + tableStr;
     }
 }
