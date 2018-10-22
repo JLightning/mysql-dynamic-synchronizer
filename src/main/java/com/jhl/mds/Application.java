@@ -9,6 +9,8 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.TimeZone;
+
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
@@ -19,6 +21,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class Application {
 
     public static void main(String[] args) {
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
         DatabaseMigrationRunner.start();
         ApplicationContext context = SpringApplication.run(Application.class);
     }

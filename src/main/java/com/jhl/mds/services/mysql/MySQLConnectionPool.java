@@ -2,8 +2,6 @@ package com.jhl.mds.services.mysql;
 
 import com.jhl.mds.dto.MySQLServerDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -24,7 +22,7 @@ public class MySQLConnectionPool {
         if (!connections.containsKey(dto)) {
             List<Connection> conns = new ArrayList<>();
             for (int i = 0; i < MAX_POOL_SIZE; i++) {
-                conns.add(DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort(), dto.getUsername(), dto.getPassword()));
+                conns.add(DriverManager.getConnection("jdbc:mysql://" + dto.getHost() + ":" + dto.getPort()+ "?&serverTimezone=GMT&useSSL=false", dto.getUsername(), dto.getPassword()));
             }
             connections.put(dto, conns);
         }

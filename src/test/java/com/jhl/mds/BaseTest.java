@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.TimeZone;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -50,6 +51,8 @@ public abstract class BaseTest {
 
     @Before
     public void setup() throws Exception {
+        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
+
         sourceMySQLServerDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
 
         connection = mySQLConnectionPool.getConnection(sourceMySQLServerDTO);
