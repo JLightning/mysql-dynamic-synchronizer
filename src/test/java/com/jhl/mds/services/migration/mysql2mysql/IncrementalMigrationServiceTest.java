@@ -27,9 +27,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQLServerDTO serverDTO = new MySQLServerDTO(0, "test", "localhost", "3307", "root", "root");
-
-        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable, serverDTO)
+        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable)
                 .build();
 
         incrementalMigrationService.run(dto);
@@ -49,15 +47,16 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         incrementalMigrationService.stop(dto);
     }
 
-    private MySQL2MySQLMigrationDTO.MySQL2MySQLMigrationDTOBuilder getBaseDTOBuilder(String sourceTable, String targetTable, MySQLServerDTO serverDTO) {
+    private MySQL2MySQLMigrationDTO.MySQL2MySQLMigrationDTOBuilder getBaseDTOBuilder(String sourceTable, String targetTable) {
         return MySQL2MySQLMigrationDTO.builder()
                 .taskId(randomTaskId())
-                .source(new TableInfoDTO(serverDTO, "mds", sourceTable))
-                .target(new TableInfoDTO(serverDTO, "mds", targetTable))
+                .source(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", sourceTable))
+                .target(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", targetTable))
                 .mapping(Arrays.asList(
                         new SimpleFieldMappingDTO("id + 1", "id"),
                         new SimpleFieldMappingDTO("random_number", "random_number"),
-                        new SimpleFieldMappingDTO("random_text", "random_text")
+                        new SimpleFieldMappingDTO("random_text", "random_text"),
+                        new SimpleFieldMappingDTO("created_at", "created_at")
                 ))
                 .migrationActionCode(0b111)
                 .insertMode(MySQLInsertMode.REPLACE);
@@ -68,7 +67,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable, getSourceMySQLServerDTO())
+        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable)
                 .build();
 
         incrementalMigrationService.run(dto);
@@ -95,7 +94,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable, getSourceMySQLServerDTO())
+        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable)
                 .filters(Collections.singletonList("random_number % 2 == 0"))
                 .build();
 
@@ -127,7 +126,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable, getSourceMySQLServerDTO())
+        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable)
                 .filters(Collections.singletonList("random_number % 2 == 0"))
                 .build();
 
@@ -160,6 +159,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
         MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable)
+                .filters(Collections.singletonList("random_number % 2 == 0"))
                 .build();
 
         incrementalMigrationService.run(dto);
@@ -190,7 +190,7 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
         String targetTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 
-        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable, getSourceMySQLServerDTO())
+        MySQL2MySQLMigrationDTO dto = getBaseDTOBuilder(sourceTable, targetTable)
                 .build();
 
         incrementalMigrationService.run(dto);
@@ -208,19 +208,5 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         Assert.assertFalse(result.next());
 
         incrementalMigrationService.stop(dto);
-    }
-
-    private MySQL2MySQLMigrationDTO.MySQL2MySQLMigrationDTOBuilder getBaseDTOBuilder(String sourceTable, String targetTable) {
-        return MySQL2MySQLMigrationDTO.builder()
-                .taskId(randomTaskId())
-                .source(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", sourceTable))
-                .target(new TableInfoDTO(getSourceMySQLServerDTO(), "mds", targetTable))
-                .mapping(Arrays.asList(
-                        new SimpleFieldMappingDTO("id + 1", "id"),
-                        new SimpleFieldMappingDTO("random_number", "random_number")
-                ))
-                .migrationActionCode(0b111)
-                .insertMode(MySQLInsertMode.REPLACE)
-                .filters(Collections.singletonList("random_number % 2 == 0"));
     }
 }
