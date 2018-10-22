@@ -5,19 +5,17 @@ import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
 import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.jhl.mds.consts.MigrationAction;
 import com.jhl.mds.dto.PairOfMap;
-import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
 import com.jhl.mds.services.customefilter.CustomFilterService;
+import com.jhl.mds.services.migration.InsertOrDeleteWhenUpdatingService;
 import com.jhl.mds.services.migration.mysql2mysql.MigrationMapperService;
 import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
 import com.jhl.mds.services.mysql.binlog.*;
 import com.jhl.mds.services.redis.RedisDeleteService;
 import com.jhl.mds.services.redis.RedisInsertService;
 import com.jhl.mds.services.redis.RedisUpdateService;
-import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import com.jhl.mds.util.pipeline.Pipeline;
-import com.jhl.mds.util.pipeline.PipelineCancelException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +35,7 @@ public class IncrementalMigrationService {
     private MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService;
     private MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService;
     private MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock;
+    private InsertOrDeleteWhenUpdatingService insertOrDeleteWhenUpdatingService;
     private CustomFilterService customFilterService;
     private RedisInsertService redisInsertService;
     private RedisUpdateService redisUpdateService;
@@ -50,6 +49,7 @@ public class IncrementalMigrationService {
             MySQLBinLogUpdateMapperService mySQLBinLogUpdateMapperService,
             MySQLBinLogDeleteMapperService mySQLBinLogDeleteMapperService,
             MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock,
+            InsertOrDeleteWhenUpdatingService insertOrDeleteWhenUpdatingService,
             CustomFilterService customFilterService,
             RedisInsertService redisInsertService,
             RedisUpdateService redisUpdateService,
@@ -61,6 +61,7 @@ public class IncrementalMigrationService {
         this.mySQLBinLogUpdateMapperService = mySQLBinLogUpdateMapperService;
         this.mySQLBinLogDeleteMapperService = mySQLBinLogDeleteMapperService;
         this.mySQLEventPrimaryKeyLock = mySQLEventPrimaryKeyLock;
+        this.insertOrDeleteWhenUpdatingService = insertOrDeleteWhenUpdatingService;
         this.customFilterService = customFilterService;
         this.redisInsertService = redisInsertService;
         this.redisUpdateService = redisUpdateService;
@@ -141,25 +142,7 @@ public class IncrementalMigrationService {
                         tmpInsertingPrimaryKeys.add(mySQLEventPrimaryKeyLock.lock(context, input.getFirst()));
                         next.accept(input);
                     })
-                    .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
-                        boolean needInsert = false, needDelete = false;
-                        try {
-                            customFilterService.filter(dto, input.getFirst());
-                        } catch (PipelineCancelException e) {
-                            needInsert = true;
-                        }
-
-                        try {
-                            customFilterService.filter(dto, input.getSecond());
-                        } catch (PipelineCancelException e) {
-                            needDelete = true;
-                        }
-
-                        input.setInsertPlease(needInsert);
-                        input.setDeletePlease(needDelete);
-
-                        next.accept(input);
-                    })
+                    .append(insertOrDeleteWhenUpdatingService)
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         Map<String, Object> key = input.getFirst();
                         Map<String, Object> value = input.getSecond();
@@ -167,17 +150,17 @@ public class IncrementalMigrationService {
                         value = migrationMapperService.map(value, false);
 
                         PairOfMap pair = PairOfMap.of(key, value);
-                        pair.setDeletePlease(input.isDeletePlease());
-                        pair.setInsertPlease(input.isInsertPlease());
+                        pair.setDeleteNeeded(input.isDeleteNeeded());
+                        pair.setInsertNeeded(input.isInsertNeeded());
                         next.accept(pair);
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
-                        if (input.isDeletePlease())
+                        if (input.isDeleteNeeded())
                             redisDeleteService.execute(dto, input.getFirst(), o -> {}, errorHandler);
                         else next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
-                        if (input.isInsertPlease())
+                        if (input.isInsertNeeded())
                             redisInsertService.execute(dto, input.getSecond(), o -> {}, errorHandler);
                         else next.accept(input);
                     })

@@ -14,11 +14,11 @@ public class PairOfMap {
 
     @Getter
     @Setter
-    private boolean deletePlease;
+    private boolean deleteNeeded;
 
     @Getter
     @Setter
-    private boolean insertPlease;
+    private boolean insertNeeded;
 
     private PairOfMap(Pair<Map<String, Object>, Map<String, Object>> pair) {
         this.pair = pair;
@@ -30,8 +30,8 @@ public class PairOfMap {
 
     public PairOfMap clone() {
         PairOfMap pom = new PairOfMap(pair);
-        pom.setInsertPlease(insertPlease);
-        pom.setDeletePlease(deletePlease);
+        pom.setInsertNeeded(insertNeeded);
+        pom.setDeleteNeeded(deleteNeeded);
         return pom;
     }
 }

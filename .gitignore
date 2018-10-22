@@ -38,3 +38,4 @@ mds.db
 db_migration.txt
 store/*
 mysql-dynamic-synchronizer.iml
+src/main/java/Test.java
