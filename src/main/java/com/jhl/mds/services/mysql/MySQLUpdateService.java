@@ -1,5 +1,6 @@
 package com.jhl.mds.services.mysql;
 
+import com.jhl.dds.querybuilder.QueryBuilder;
 import com.jhl.mds.dto.PairOfMap;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
@@ -17,14 +18,9 @@ import java.util.function.Consumer;
 public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, Long> {
 
     private MySQLConnectionPool mySQLConnectionPool;
-    private MySQLWhereService mySQLWhereService;
 
-    public MySQLUpdateService(
-            MySQLConnectionPool mySQLConnectionPool,
-            MySQLWhereService mySQLWhereService
-    ) {
+    public MySQLUpdateService(MySQLConnectionPool mySQLConnectionPool) {
         this.mySQLConnectionPool = mySQLConnectionPool;
-        this.mySQLWhereService = mySQLWhereService;
     }
 
     @Override
@@ -37,15 +33,11 @@ public class MySQLUpdateService implements PipeLineTaskRunner<MySQL2MySQLMigrati
             Map<String, Object> key = input.getFirst();
             Map<String, Object> value = input.getSecond();
 
-            StringBuilder setPart = new StringBuilder();
-            for (Map.Entry<String, Object> e : value.entrySet()) {
-                if (setPart.length() > 0) setPart.append(", ");
-                setPart.append(e.getKey()).append(" = ").append("'").append(e.getValue()).append("'");
-            }
+            String sql  = new QueryBuilder().update(tableInfo.getDatabase(), tableInfo.getTable())
+                    .set(value)
+                    .where(key)
+                    .build();
 
-            String wherePart = mySQLWhereService.build(key);
-
-            String sql = String.format("UPDATE %s.%s SET %s WHERE %s", tableInfo.getDatabase(), tableInfo.getTable(), setPart, wherePart);
             log.info("Run query: " + sql);
 
             st.execute(sql);

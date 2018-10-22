@@ -1,5 +1,6 @@
 package com.jhl.mds.services.mysql;
 
+import com.jhl.dds.querybuilder.QueryBuilder;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
@@ -16,14 +17,9 @@ import java.util.function.Consumer;
 public class MySQLDeleteService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Map<String, Object>, Long> {
 
     private MySQLConnectionPool mySQLConnectionPool;
-    private MySQLWhereService mySQLWhereService;
 
-    public MySQLDeleteService(
-            MySQLConnectionPool mySQLConnectionPool,
-            MySQLWhereService mySQLWhereService
-    ) {
+    public MySQLDeleteService(MySQLConnectionPool mySQLConnectionPool) {
         this.mySQLConnectionPool = mySQLConnectionPool;
-        this.mySQLWhereService = mySQLWhereService;
     }
 
     @Override
@@ -33,9 +29,10 @@ public class MySQLDeleteService implements PipeLineTaskRunner<MySQL2MySQLMigrati
         Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
         Statement st = conn.createStatement();
 
-        String wherePart = mySQLWhereService.build(input);
+        String sql = new QueryBuilder().deleteFrom(tableInfo.getDatabase(), tableInfo.getTable())
+                .where(input)
+                .build();
 
-        String sql = String.format("DELETE FROM %s.%s WHERE %s", tableInfo.getDatabase(), tableInfo.getTable(), wherePart);
         log.info("Run query: " + sql);
 
         st.execute(sql);

@@ -1,9 +1,9 @@
 package com.jhl.mds.services.mysql;
 
+import com.jhl.dds.querybuilder.QueryBuilder;
 import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
-import com.jhl.mds.util.MySQLStringUtil;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,10 @@ public class MySQLReadService implements PipeLineTaskRunner<MySQL2MySQLMigration
         Connection conn = mySQLConnectionPool.getConnection(tableInfo.getServer());
         Statement st = conn.createStatement();
 
-        String sql = String.format("SELECT %s FROM %s;", MySQLStringUtil.columnListToString(columns), tableInfo.getDatabase() + "." + tableInfo.getTable());
+        String sql = new QueryBuilder()
+                .selectFrom(tableInfo.getDatabase(), tableInfo.getTable())
+                .columns(columns)
+                .build();
         ResultSet result = st.executeQuery(sql);
 
         while (result.next()) {
