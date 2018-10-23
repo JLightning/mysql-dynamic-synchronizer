@@ -3,7 +3,6 @@ package com.jhl.mds.services.migration.mysql2mysql;
 import com.jhl.mds.BaseTest;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.MySQLInsertMode;
-import com.jhl.mds.dto.MySQLServerDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
@@ -13,8 +12,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.ResultSet;
-import java.util.Arrays;
-import java.util.Collections;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.*;
 
 @Slf4j
 public class IncrementalMigrationServiceTest extends BaseTest {
@@ -44,7 +44,38 @@ public class IncrementalMigrationServiceTest extends BaseTest {
         result.next();
         Assert.assertEquals(100, result.getInt(1));
 
+        List<Map<String, Object>> sourceResult = readAndConvertToListOfMap("SELECT * FROM mds." + sourceTable);
+        List<Map<String, Object>> targetResult = readAndConvertToListOfMap("SELECT * FROM mds." + targetTable);
+
+        Assert.assertEquals(sourceResult.size(), targetResult.size());
+
+        for (int i = 0;i<sourceResult.size();i++) {
+            Map<String, Object> sourceRow = sourceResult.get(i);
+            Map<String, Object> targetRow = targetResult.get(i);
+
+            Assert.assertEquals(sourceRow.get("random_number"), targetRow.get("random_number"));
+            Assert.assertEquals(sourceRow.get("random_text"), targetRow.get("random_text"));
+            Assert.assertEquals(sourceRow.get("created_at"), targetRow.get("created_at"));
+        }
+
         incrementalMigrationService.stop(dto);
+    }
+
+    public List<Map<String, Object>> readAndConvertToListOfMap(String sql) throws SQLException {
+        ResultSet resultSet = getStatement().executeQuery(sql);
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        while (resultSet.next()) {
+            ResultSetMetaData metaData = resultSet.getMetaData();
+            Map<String, Object> row = new HashMap<>();
+            for (int i = 1; i <= metaData.getColumnCount(); i++) {
+                row.put(metaData.getColumnName(i), resultSet.getObject(i));
+            }
+
+            result.add(row);
+        }
+
+        return result;
     }
 
     private MySQL2MySQLMigrationDTO.MySQL2MySQLMigrationDTOBuilder getBaseDTOBuilder(String sourceTable, String targetTable) {
