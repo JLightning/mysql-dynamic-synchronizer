@@ -3,16 +3,13 @@ package com.jhl.mds.services.migration.mysql2redis;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.jhl.mds.TableTemplate;
 import com.jhl.mds.consts.RedisKeyType;
-import com.jhl.mds.dto.MySQLServerDTO;
-import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
+import com.jhl.mds.dto.SortDTO;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import redis.clients.jedis.Jedis;
 
-import java.sql.ResultSet;
 import java.util.*;
 
 @Slf4j
@@ -27,7 +24,9 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
 
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
-        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST).build();
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST)
+                .sortBy(new SortDTO("id", SortDTO.Direction.DESC))
+                .build();
 
         incrementalMigrationService.run(dto);
 
@@ -40,6 +39,18 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
         Thread.sleep(3000);
 
         Assert.assertEquals(100L, jedis.llen(keyPrefix).longValue());
+
+        List<String> values = jedis.lrange(keyPrefix, 0, -1);
+        int lastId = Integer.MAX_VALUE;
+        for (String valueJson : values) {
+            Map<String, Object> value = objectMapper.readValue(valueJson, new TypeReference<Map<String, Object>>() {
+            });
+
+            Integer id = Integer.valueOf(String.valueOf(value.get("id")));
+            Assert.assertTrue(id < lastId);
+
+            lastId = id;
+        }
 
         incrementalMigrationService.stop(dto);
     }
@@ -207,7 +218,7 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
 
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
-        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable,"'" + keyPrefix + "'", RedisKeyType.LIST).build();
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST).build();
 
         incrementalMigrationService.run(dto);
 
