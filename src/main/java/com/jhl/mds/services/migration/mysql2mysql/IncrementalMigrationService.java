@@ -33,6 +33,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -163,6 +165,8 @@ public class IncrementalMigrationService {
 
             Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
 
+            Instant startTime = Instant.now();
+
             Pipeline<MySQL2MySQLMigrationDTO, WriteRowsEventData, WriteRowsEventData> pipeline = Pipeline.of(dto, WriteRowsEventData.class);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
@@ -173,7 +177,7 @@ public class IncrementalMigrationService {
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, Duration.between(startTime, Instant.now()).toMillis()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -189,6 +193,8 @@ public class IncrementalMigrationService {
             dto.setTargetColumns(migrationMapperService.getColumns());
 
             Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
+
+            Instant startTime = Instant.now();
 
             Pipeline<MySQL2MySQLMigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
             pipeline.append(mySQLBinLogUpdateMapperService)
@@ -210,16 +216,16 @@ public class IncrementalMigrationService {
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isDeleteNeeded())
-                            mySQLDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1), errorHandler);
+                            mySQLDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, Duration.between(startTime, Instant.now()).toMillis()), errorHandler);
                         else next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isInsertNeeded())
-                            mySQLInsertService.execute(dto, Collections.singletonList(input.getSecond()), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0), errorHandler);
+                            mySQLInsertService.execute(dto, Collections.singletonList(input.getSecond()), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, Duration.between(startTime, Instant.now()).toMillis()), errorHandler);
                         else next.accept(input);
                     })
                     .append(mySQLUpdateService)
-                    .append((context, input, next, errorHandler) ->taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 1, 0))
+                    .append((context, input, next, errorHandler) ->taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 1, 0, Duration.between(startTime, Instant.now()).toMillis()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -236,6 +242,8 @@ public class IncrementalMigrationService {
 
             Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
 
+            Instant startTime = Instant.now();
+
             Pipeline<MySQL2MySQLMigrationDTO, DeleteRowsEventData, DeleteRowsEventData> pipeline = Pipeline.of(dto, DeleteRowsEventData.class);
             pipeline.append(mySQLBinLogDeleteMapperService)
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
@@ -246,7 +254,7 @@ public class IncrementalMigrationService {
                         next.accept(migrationMapperService.map(input, false));
                     })
                     .append(mySQLDeleteService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, Duration.between(startTime, Instant.now()).toMillis()))
                     .execute(eventData)
                     .waitForFinish();
 
