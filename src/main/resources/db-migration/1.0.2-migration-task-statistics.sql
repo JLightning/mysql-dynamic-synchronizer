@@ -6,6 +6,8 @@ CREATE TABLE task_statistics (
   update_count       INTEGER,
   delete_count       INTEGER,
   delay_ms           DOUBLE(10, 5)       DEFAULT 0,
+  max_delay_ms       DOUBLE(10, 5)       DEFAULT 0,
+  min_delay_ms       DOUBLE(10, 5)       DEFAULT 0,
   operation_count    INTEGER             GENERATED ALWAYS AS (insert_count + update_count + delete_count),
   created_at         TIMESTAMP           DEFAULT CURRENT_TIMESTAMP,
   updated_at         TIMESTAMP           DEFAULT CURRENT_TIMESTAMP
