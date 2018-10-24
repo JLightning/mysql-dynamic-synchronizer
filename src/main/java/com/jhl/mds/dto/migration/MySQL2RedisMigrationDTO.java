@@ -25,6 +25,5 @@ public class MySQL2RedisMigrationDTO implements MySQLSourceMigrationDTO, Filtera
     private List<String> filters;
     private RedisKeyType redisKeyType;
     private int migrationActionCode;
-    private boolean sequential;
     private SortDTO sortBy;
 }

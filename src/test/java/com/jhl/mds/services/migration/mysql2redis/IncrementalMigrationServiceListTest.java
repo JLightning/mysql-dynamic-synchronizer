@@ -56,43 +56,6 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
     }
 
     @Test
-    public void insertSenquentialTest() throws Exception {
-        String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
-
-        String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
-
-        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST).sequential(true).build();
-
-        incrementalMigrationService.run(dto);
-
-        Thread.sleep(500);
-
-        for (int i = 0; i < 100; i++) {
-            getStatement().execute("INSERT INTO mds." + sourceTable + "(`random_number`) VALUES (1)");
-        }
-
-        Thread.sleep(3000);
-
-        List<String> values = jedis.lrange(keyPrefix, 0, 100);
-
-        Assert.assertEquals(100, values.size());
-
-        Map<String, Object> lastValue = null;
-        for (String valueJson : values) {
-            Map<String, Object> value = objectMapper.readValue(valueJson, new TypeReference<Map<String, Object>>() {
-            });
-
-            log.info("value = " + value);
-
-            Assert.assertTrue(lastValue == null || (int) value.get("id") > (int) lastValue.get("id"));
-
-            lastValue = value;
-        }
-
-        incrementalMigrationService.stop(dto);
-    }
-
-    @Test
     public void updateTest() throws Exception {
         String sourceTable = prepareTable(TableTemplate.TEMPLATE_SIMPLE);
 

@@ -82,7 +82,7 @@ public class IncrementalMigrationService {
         }
         runningTask.add(dto.getTaskId());
 
-        ExecutorService executor = getExecutorServiceForTaskId(dto.getTaskId(), dto.isSequential());
+        ExecutorService executor = getExecutorServiceForTaskId(dto.getTaskId());
 
         MySQLBinLogListener listener = new MySQLBinLogListener() {
             @Override
@@ -208,9 +208,9 @@ public class IncrementalMigrationService {
         }
     }
 
-    private synchronized ExecutorService getExecutorServiceForTaskId(int taskId, boolean sequential) {
+    private synchronized ExecutorService getExecutorServiceForTaskId(int taskId) {
         if (!executorServiceMap.containsKey(taskId))
-            executorServiceMap.put(taskId, Executors.newFixedThreadPool(sequential ? 1 : 4));
+            executorServiceMap.put(taskId, Executors.newFixedThreadPool(4));
         return executorServiceMap.get(taskId);
     }
 
