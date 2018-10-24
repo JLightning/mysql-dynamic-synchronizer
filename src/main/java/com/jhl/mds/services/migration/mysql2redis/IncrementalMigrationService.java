@@ -120,8 +120,6 @@ public class IncrementalMigrationService {
 
             Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
 
-            Instant startTime = Instant.now();
-
             Pipeline<MySQL2RedisMigrationDTO, WriteRowsEventData, WriteRowsEventData> pipeline = Pipeline.of(dto, WriteRowsEventData.class);
             pipeline.append(mySQLBinLogInsertMapperService)
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, Map<String, Object>, Map<String, Object>>) (context, input, next, errorHandler) -> {
@@ -131,7 +129,7 @@ public class IncrementalMigrationService {
                     .append(customFilterService)
                     .append(migrationMapperService)
                     .append(redisInsertService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, Duration.between(startTime, Instant.now()).toMillis()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -147,8 +145,6 @@ public class IncrementalMigrationService {
         Pipeline<MySQL2RedisMigrationDTO, UpdateRowsEventData, UpdateRowsEventData> pipeline = Pipeline.of(dto, UpdateRowsEventData.class);
 
         Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
-
-        Instant startTime = Instant.now();
 
         try {
             pipeline.append(mySQLBinLogUpdateMapperService)
@@ -170,16 +166,16 @@ public class IncrementalMigrationService {
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isDeleteNeeded())
-                            redisDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, Duration.between(startTime, Instant.now()).toMillis()), errorHandler);
+                            redisDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, pipeline.getElapsedMs()), errorHandler);
                         else next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isInsertNeeded())
-                            redisInsertService.execute(dto, input.getSecond(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, Duration.between(startTime, Instant.now()).toMillis()), errorHandler);
+                            redisInsertService.execute(dto, input.getSecond(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, pipeline.getElapsedMs()), errorHandler);
                         else next.accept(input);
                     })
                     .append(redisUpdateService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 1, 0, Duration.between(startTime, Instant.now()).toMillis()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 1, 0, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -195,8 +191,6 @@ public class IncrementalMigrationService {
 
             Set<Object> tmpInsertingPrimaryKeys = new HashSet<>();
 
-            Instant startTime = Instant.now();
-
             Pipeline<MySQL2RedisMigrationDTO, DeleteRowsEventData, DeleteRowsEventData> pipeline = Pipeline.of(dto, DeleteRowsEventData.class);
             pipeline.append(mySQLBinLogDeleteMapperService)
                     .append(customFilterService)
@@ -206,7 +200,7 @@ public class IncrementalMigrationService {
                     })
                     .append(migrationMapperService)
                     .append(redisDeleteService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, Duration.between(startTime, Instant.now()).toMillis()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 

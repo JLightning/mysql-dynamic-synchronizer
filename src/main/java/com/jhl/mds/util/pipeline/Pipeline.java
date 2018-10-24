@@ -143,5 +143,9 @@ public class Pipeline<Context, FirstInput, Input> {
         }
         log.info("Pipeline for: " + context + " finished after: " + Duration.between(startTime, Instant.now()));
     }
+
+    public double getElapsedMs() {
+        return Duration.between(startTime, Instant.now()).toMillis();
+    }
 }
 
