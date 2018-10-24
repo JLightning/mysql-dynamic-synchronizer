@@ -6,12 +6,12 @@ import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 
 public interface MySQLBinLogListener {
 
-    default void insert(WriteRowsEventData eventData) {
+    default void onInsert(WriteRowsEventData eventData) {
     }
 
-    default void update(UpdateRowsEventData eventData) {
+    default void onUpdate(UpdateRowsEventData eventData) {
     }
 
-    default void delete(DeleteRowsEventData eventData) {
+    default void onDelete(DeleteRowsEventData eventData) {
     }
 }

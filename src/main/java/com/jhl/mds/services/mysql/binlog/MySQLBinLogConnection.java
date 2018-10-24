@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +52,7 @@ public class MySQLBinLogConnection {
                     if (listenerMap.containsKey(tableInfo)) {
                         List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
                         for (MySQLBinLogListener listener : listeners) {
-                            listener.insert(writeRowsEventData);
+                            listener.onInsert(writeRowsEventData);
                         }
                     }
                     break;
@@ -63,7 +62,7 @@ public class MySQLBinLogConnection {
                     if (listenerMap.containsKey(tableInfo)) {
                         List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
                         for (MySQLBinLogListener listener : listeners) {
-                            listener.update(updateRowsEventData);
+                            listener.onUpdate(updateRowsEventData);
                         }
                     }
                     break;
@@ -73,7 +72,7 @@ public class MySQLBinLogConnection {
                     if (listenerMap.containsKey(tableInfo)) {
                         List<MySQLBinLogListener> listeners = listenerMap.get(tableInfo);
                         for (MySQLBinLogListener listener : listeners) {
-                            listener.delete(deleteRowsEventData);
+                            listener.onDelete(deleteRowsEventData);
                         }
                     }
             }
