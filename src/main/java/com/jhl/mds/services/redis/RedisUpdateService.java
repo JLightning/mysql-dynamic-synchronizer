@@ -2,10 +2,12 @@ package com.jhl.mds.services.redis;
 
 import com.jhl.mds.dto.PairOfMap;
 import com.jhl.mds.dto.migration.MySQL2RedisMigrationDTO;
+import com.jhl.mds.services.mysql.MySQLEventPrimaryKeyLock;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
 import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -13,13 +15,16 @@ import java.util.function.Consumer;
 public class RedisUpdateService implements PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, Boolean> {
 
     private RedisConnectionPool redisConnectionPool;
+    private MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock;
     private RedisListUtil redisListUtil;
 
     public RedisUpdateService(
             RedisConnectionPool redisConnectionPool,
+            MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock,
             RedisListUtil redisListUtil
     ) {
         this.redisConnectionPool = redisConnectionPool;
+        this.mySQLEventPrimaryKeyLock = mySQLEventPrimaryKeyLock;
         this.redisListUtil = redisListUtil;
     }
 
@@ -40,14 +45,17 @@ public class RedisUpdateService implements PipeLineTaskRunner<MySQL2RedisMigrati
                 String secondValue = String.valueOf(second.get("value"));
 
                 jedis.lrem(key, 0, firstValue);
-                jedis.rpush(key, secondValue);
+                if (context.getSortBy() == null) {
+                    jedis.rpush(key, secondValue);
+                } else {
+                    Object lockKey = mySQLEventPrimaryKeyLock.lock(context, key);
+                    try {
+                        redisListUtil.insertSorted(jedis, context.getSortBy(), key, secondValue);
+                    } finally {
+                        mySQLEventPrimaryKeyLock.unlock(context, Collections.singletonList(lockKey));
+                    }
 
-//                long idx = redisListUtil.findValueInList(context.getTarget(), key, firstValue);
-//                if (idx == -1) {
-//                    jedis.rpush(key, secondValue);
-//                } else {
-//                    jedis.lset(key, idx, secondValue);
-//                }
+                }
                 break;
         }
 

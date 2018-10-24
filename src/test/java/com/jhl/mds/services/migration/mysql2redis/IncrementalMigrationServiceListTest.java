@@ -98,7 +98,9 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
 
         String keyPrefix = "key_name_" + rand.nextInt(70000) + "_";
 
-        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST).build();
+        MySQL2RedisMigrationDTO dto = getMigrationDTOBuilder(sourceTable, "'" + keyPrefix + "'", RedisKeyType.LIST)
+                .sortBy(new SortDTO("random_number", SortDTO.Direction.DESC))
+                .build();
 
         incrementalMigrationService.run(dto);
 
@@ -114,15 +116,19 @@ public class IncrementalMigrationServiceListTest extends IncremetalMigrationServ
 
         Set<Integer> set = new HashSet<>();
 
+        int lastRandomNumber = Integer.MAX_VALUE;
         for (String json : jedis.lrange(keyPrefix, 0, 100)) {
             Map<String, Integer> m = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
             });
 
             int id = m.get("id");
-            int random_number = m.get("random_number");
-            Assert.assertEquals(random_number, id);
+            int randomNumber = m.get("random_number");
+            Assert.assertEquals(randomNumber, id);
 
-            set.add(random_number);
+            set.add(randomNumber);
+
+            Assert.assertTrue(randomNumber < lastRandomNumber);
+            lastRandomNumber = randomNumber;
         }
 
         Assert.assertEquals(100, set.size());

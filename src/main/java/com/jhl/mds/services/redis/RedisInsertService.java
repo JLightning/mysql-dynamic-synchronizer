@@ -20,13 +20,16 @@ public class RedisInsertService implements PipeLineTaskRunner<MySQL2RedisMigrati
 
     private RedisConnectionPool redisConnectionPool;
     private MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock;
+    private RedisListUtil redisListUtil;
 
     public RedisInsertService(
             RedisConnectionPool redisConnectionPool,
-            MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock
+            MySQLEventPrimaryKeyLock mySQLEventPrimaryKeyLock,
+            RedisListUtil redisListUtil
     ) {
         this.redisConnectionPool = redisConnectionPool;
         this.mySQLEventPrimaryKeyLock = mySQLEventPrimaryKeyLock;
+        this.redisListUtil = redisListUtil;
     }
 
     @Override
@@ -45,21 +48,7 @@ public class RedisInsertService implements PipeLineTaskRunner<MySQL2RedisMigrati
                 } else {
                     Object lockKey = mySQLEventPrimaryKeyLock.lock(context, key);
                     try {
-                        Long len = jedis.llen(key);
-                        if (len == null || len == 0) {
-                            jedis.rpush(key, value);
-                        } else {
-                            Object insertSortKey = getSortKey(value, context.getSortBy());
-                            int idx = binarySearch(jedis, context.getSortBy(), key, len.intValue(), insertSortKey);
-                            if (idx < 0) {
-                                jedis.lpush(key, value);
-                            } else if (idx >= len) {
-                                jedis.rpush(key, value);
-                            } else {
-                                String insertAfter = jedis.lindex(key, idx);
-                                jedis.linsert(key, BinaryClient.LIST_POSITION.AFTER, insertAfter, value);
-                            }
-                        }
+                        redisListUtil.insertSorted(jedis, context.getSortBy(), key, value);
                     } finally {
                         mySQLEventPrimaryKeyLock.unlock(context, Collections.singletonList(lockKey));
                     }
@@ -71,38 +60,5 @@ public class RedisInsertService implements PipeLineTaskRunner<MySQL2RedisMigrati
         jedis.close();
 
         next.accept(true);
-    }
-
-    private int binarySearch(Jedis jedis, SortDTO sortBy, String key, int len, Object searchFor) throws IOException {
-        int l = 0, r = len - 1;
-        while (r >= l) {
-            int mid = l + (r - l) / 2;
-            Object midSortKey = getSortKey(jedis.lindex(key, mid), sortBy);
-            if (compare(midSortKey, searchFor) == 0) {
-                return mid;
-            }
-
-            if ((sortBy.getDirection() == SortDTO.Direction.DESC) ^ (compare(midSortKey, searchFor) > 0)) {
-                r = mid - 1;
-            } else {
-                l = mid + 1;
-            }
-        }
-
-        return r;
-    }
-
-    private int compare(Object a, Object b) {
-        if (a instanceof Comparable) {
-            return ((Comparable) a).compareTo(b);
-        }
-        throw new RuntimeException("cannot compare");
-    }
-
-    private Object getSortKey(String value, SortDTO sortBy) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> data = objectMapper.readValue(value, new TypeReference<Map<String, Object>>() {
-        });
-        return data.get(sortBy.getKey());
     }
 }
