@@ -1,16 +1,21 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
-import com.jhl.mds.dto.*;
+import com.jhl.dds.querybuilder.QueryBuilder;
+import com.jhl.mds.dto.MySQLFieldDTO;
+import com.jhl.mds.dto.MySQLIndexDTO;
+import com.jhl.mds.dto.SimpleFieldMappingDTO;
+import com.jhl.mds.dto.TableInfoDTO;
 import com.jhl.mds.dto.migration.MySQL2MySQLMigrationDTO;
 import com.jhl.mds.services.mysql.MySQLConnectionPool;
 import com.jhl.mds.services.mysql.MySQLDescribeService;
+import com.jhl.mds.util.Regex;
 import com.jhl.mds.util.pipeline.PipeLineTaskRunner;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +24,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class StructureMigrationService implements PipeLineTaskRunner<MySQL2MySQLMigrationDTO, Object, Void> {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private MySQLConnectionPool mySQLConnectionPool;
     private MySQLDescribeService mySQLDescribeService;
 
@@ -33,45 +38,50 @@ public class StructureMigrationService implements PipeLineTaskRunner<MySQL2MySQL
         this.mySQLDescribeService = mySQLDescribeService;
     }
 
-    //    CREATE TABLE `task` (
-//  `task_id` int(11) NOT NULL AUTO_INCREMENT,
-//  `task_name` varchar(1024) NOT NULL,
-//  `task_code` varchar(128) NOT NULL,
-//  `fk_source_database` int(11) NOT NULL,
-//  `source_table` varchar(1024) NOT NULL,
-//  `fk_target_database` int(11) NOT NULL,
-//  `target_table` int(11) NOT NULL,
-//  `created_at` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-//  `updated_at` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
-//   PRIMARY KEY (`task_id`)
-//) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1
+//    CREATE TABLE `table_3498` (
+//            `id` int(11) NOT NULL AUTO_INCREMENT,
+//  `random_number` int(11) NOT NULL,
+//  `random_text` varchar(255) DEFAULT NULL,
+//  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+//            `created_at_tmp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+//    PRIMARY KEY (`id`)
+//) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
     // TODO: support more indexes
     @Override
     public void execute(MySQL2MySQLMigrationDTO context, Object input, Consumer<Void> next, Consumer<Exception> errorHandler) throws Exception {
+        TableInfoDTO sourceTableInfo = context.getSource();
         TableInfoDTO targetTableInfo = context.getTarget();
         Connection targetConn = mySQLConnectionPool.getConnection(targetTableInfo.getServer());
         Statement st = targetConn.createStatement();
 
-        TableInfoDTO sourceTableInfo = context.getSource();
-        List<MySQLFieldDTO> fields = mySQLDescribeService.getFields(sourceTableInfo.getServer(), sourceTableInfo.getDatabase(), sourceTableInfo.getTable());
-        List<MySQLIndexDTO> indexes = mySQLDescribeService.getIndexes(sourceTableInfo.getServer(), sourceTableInfo.getDatabase(), sourceTableInfo.getTable());
-
-        Map<String, String> fieldSourceToTargetMapping = context.getMapping().stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getSourceField, SimpleFieldMappingDTO::getTargetField));
+        ResultSet resultSet = st.executeQuery(new QueryBuilder().showCreateTable(sourceTableInfo.getDatabase(), sourceTableInfo.getTable()).build());
+        if (!resultSet.next()) throw new RuntimeException("Cannot Show Create Table");
 
         List<String> createFieldStrs = new ArrayList<>();
-        for (MySQLFieldDTO fieldDTO : fields) {
-            if (fieldSourceToTargetMapping.containsKey(fieldDTO.getField())) {
-                createFieldStrs.add(fieldToCreateTableString(fieldDTO, fieldSourceToTargetMapping));
-            }
+
+        String createTableSql = resultSet.getString(2);
+        for (SimpleFieldMappingDTO mapping : context.getMapping()) {
+            String sourceField = mapping.getSourceField();
+            List<String> matches = Regex.findAllStringMatches(createTableSql, String.format("`%s`.*(?!DEFAULT|NULL).*,", sourceField));
+            if (matches.size() == 0)
+                throw new RuntimeException(String.format("Field %s not found in source table", sourceField));
+
+            createFieldStrs.add(matches.get(0).replaceAll(",$", ""));
         }
 
+        List<String> engineStrs = Regex.findAllStringMatches(createTableSql, "\\) ENGINE=.*");
+        if (engineStrs.size() == 0) throw new RuntimeException("Cannot find ENGINE for new table");
+        String engineStr = engineStrs.get(0);
+
+        List<MySQLIndexDTO> indexes = mySQLDescribeService.getIndexes(sourceTableInfo.getServer(), sourceTableInfo.getDatabase(), sourceTableInfo.getTable());
+        Map<String, String> fieldSourceToTargetMapping = context.getMapping().stream().collect(Collectors.toMap(SimpleFieldMappingDTO::getSourceField, SimpleFieldMappingDTO::getTargetField));
         addIndexesToTable(indexes, fieldSourceToTargetMapping, createFieldStrs);
 
-        String sql = String.format("CREATE TABLE `%s`.`%s`(%s) ENGINE=InnoDB DEFAULT CHARSET=latin1",
-                targetTableInfo.getDatabase(), targetTableInfo.getTable(), Strings.join(createFieldStrs, ','));
+        String sql = String.format("CREATE TABLE `%s`.`%s`(%s%s",
+                targetTableInfo.getDatabase(), targetTableInfo.getTable(), Strings.join(createFieldStrs, ','), engineStr);
 
-        logger.info("Run query: " + sql);
+        log.info("Run query: " + sql);
 
         st.execute(sql);
     }
@@ -92,11 +102,5 @@ public class StructureMigrationService implements PipeLineTaskRunner<MySQL2MySQL
             return String.format("UNIQUE `%s` (`%s` %s)", indexDTO.getKeyName(), mappedColumn, indexDTO.getCollation().equals("A") ? "ASC" : "DESC");
         }
         return String.format("INDEX `%s` (`%s` %s)", indexDTO.getKeyName(), mappedColumn, indexDTO.getCollation().equals("A") ? "ASC" : "DESC");
-    }
-
-    private String fieldToCreateTableString(MySQLFieldDTO fieldDTO, Map<String, String> mapping) {
-        String defaultStr = fieldDTO.getDefaultValue() != null ? "DEFAULT " + fieldDTO.getDefaultValue() : "";
-        String commentStr = fieldDTO.getComment() != null ? "COMMENT '" + fieldDTO.getComment() + "'" : "";
-        return String.format("`%s` %s %s %s %s %s", mapping.get(fieldDTO.getField()), fieldDTO.getType(), fieldDTO.isNullable() ? "" : "NOT NULL", defaultStr, fieldDTO.getExtra(), commentStr);
     }
 }

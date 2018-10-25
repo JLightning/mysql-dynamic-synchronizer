@@ -48,6 +48,12 @@ public class QueryBuilder {
         return deleteFrom(null, table);
     }
 
+    public PrefixQuery showCreateTable(String database, String table) {
+        this.database = database;
+        this.table = table;
+        return new PrefixQuery(this, "SHOW CREATE TABLE");
+    }
+
     void where(Map<String, Object> where) {
         this.where = where;
     }
