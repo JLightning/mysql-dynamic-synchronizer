@@ -29,13 +29,24 @@ public class TaskStatisticService {
         this.taskStatisticsRepository = taskStatisticsRepository;
     }
 
-    public void updateTaskIncrementalStatistic(int taskId, long insertDelta, long updateDelta, long deleteDelta, double delayMs) {
+    public void incTaskInsert(int taskId, long insertDelta, double delayMs) {
+        updateTaskIncrementalStatistic(taskId, insertDelta, 0, 0, delayMs);
+    }
+
+    public void incTaskUpdate(int taskId, long updateDelta, double delayMs) {
+        updateTaskIncrementalStatistic(taskId, 0, updateDelta, 0, delayMs);
+    }
+
+    public void incTaskDelete(int taskId, long deleteDelta, double delayMs) {
+        updateTaskIncrementalStatistic(taskId, 0, 0, deleteDelta, delayMs);
+    }
+
+    private void updateTaskIncrementalStatistic(int taskId, long insertDelta, long updateDelta, long deleteDelta, double delayMs) {
         try {
             taskStatisticsRepository.updateStatistics(taskId, insertDelta, updateDelta, deleteDelta, new Date(), delayMs);
             eventPublisher.publishEvent(new IncrementalStatusUpdateEvent(taskId, true, insertDelta, updateDelta, deleteDelta, true));
         } catch (DataIntegrityViolationException e) {
             log.error(String.format("Task %d doesn't exist, cannot update statistics", taskId));
-            throw e;
         }
     }
 

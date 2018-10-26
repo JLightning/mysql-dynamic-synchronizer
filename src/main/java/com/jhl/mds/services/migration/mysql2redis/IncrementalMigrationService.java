@@ -20,8 +20,6 @@ import com.jhl.mds.util.pipeline.Pipeline;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -129,7 +127,7 @@ public class IncrementalMigrationService {
                     .append(customFilterService)
                     .append(migrationMapperService)
                     .append(redisInsertService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, pipeline.getElapsedMs()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.incTaskInsert(dto.getTaskId(), 1, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -166,16 +164,16 @@ public class IncrementalMigrationService {
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isDeleteNeeded())
-                            redisDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, pipeline.getElapsedMs()), errorHandler);
+                            redisDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.incTaskDelete(dto.getTaskId(), 1, pipeline.getElapsedMs()), errorHandler);
                         else next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2RedisMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isInsertNeeded())
-                            redisInsertService.execute(dto, input.getSecond(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, pipeline.getElapsedMs()), errorHandler);
+                            redisInsertService.execute(dto, input.getSecond(), o -> taskStatisticService.incTaskInsert(dto.getTaskId(), 1, pipeline.getElapsedMs()), errorHandler);
                         else next.accept(input);
                     })
                     .append(redisUpdateService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 1, 0, pipeline.getElapsedMs()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.incTaskUpdate(dto.getTaskId(), 1, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -200,7 +198,7 @@ public class IncrementalMigrationService {
                     })
                     .append(migrationMapperService)
                     .append(redisDeleteService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, pipeline.getElapsedMs()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.incTaskDelete(dto.getTaskId(), 1, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 

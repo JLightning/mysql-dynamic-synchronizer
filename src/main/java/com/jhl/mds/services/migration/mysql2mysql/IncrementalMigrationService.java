@@ -31,8 +31,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -173,7 +171,7 @@ public class IncrementalMigrationService {
                     .append(migrationMapperService)
                     .append(new PipelineGrouperService<>(MySQLConstants.MYSQL_INSERT_CHUNK_SIZE))
                     .append(mySQLInsertService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, pipeline.getElapsedMs()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.incTaskInsert(dto.getTaskId(), 1, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -210,16 +208,16 @@ public class IncrementalMigrationService {
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isDeleteNeeded())
-                            mySQLDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, pipeline.getElapsedMs()), errorHandler);
+                            mySQLDeleteService.execute(dto, input.getFirst(), o -> taskStatisticService.incTaskDelete(dto.getTaskId(), 1, pipeline.getElapsedMs()), errorHandler);
                         else next.accept(input);
                     })
                     .append((PipeLineTaskRunner<MySQL2MySQLMigrationDTO, PairOfMap, PairOfMap>) (context, input, next, errorHandler) -> {
                         if (input.isInsertNeeded())
-                            mySQLInsertService.execute(dto, Collections.singletonList(input.getSecond()), o -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 1, 0, 0, pipeline.getElapsedMs()), errorHandler);
+                            mySQLInsertService.execute(dto, Collections.singletonList(input.getSecond()), o -> taskStatisticService.incTaskInsert(dto.getTaskId(), 1, pipeline.getElapsedMs()), errorHandler);
                         else next.accept(input);
                     })
                     .append(mySQLUpdateService)
-                    .append((context, input, next, errorHandler) ->taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 1, 0, pipeline.getElapsedMs()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.incTaskUpdate(dto.getTaskId(), 1, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 
@@ -246,7 +244,7 @@ public class IncrementalMigrationService {
                         next.accept(migrationMapperService.map(input, false));
                     })
                     .append(mySQLDeleteService)
-                    .append((context, input, next, errorHandler) -> taskStatisticService.updateTaskIncrementalStatistic(dto.getTaskId(), 0, 0, 1, pipeline.getElapsedMs()))
+                    .append((context, input, next, errorHandler) -> taskStatisticService.incTaskDelete(dto.getTaskId(), 1, pipeline.getElapsedMs()))
                     .execute(eventData)
                     .waitForFinish();
 
