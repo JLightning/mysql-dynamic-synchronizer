@@ -1,7 +1,6 @@
 package com.jhl.mds.services.migration.mysql2mysql;
 
 import com.jhl.dds.querybuilder.QueryBuilder;
-import com.jhl.mds.dto.MySQLFieldDTO;
 import com.jhl.mds.dto.MySQLIndexDTO;
 import com.jhl.mds.dto.SimpleFieldMappingDTO;
 import com.jhl.mds.dto.TableInfoDTO;
@@ -63,11 +62,14 @@ public class StructureMigrationService implements PipeLineTaskRunner<MySQL2MySQL
         String createTableSql = resultSet.getString(2);
         for (SimpleFieldMappingDTO mapping : context.getMapping()) {
             String sourceField = mapping.getSourceField();
+            String targetField = mapping.getTargetField();
             List<String> matches = Regex.findAllStringMatches(createTableSql, String.format("`%s`.*(?!DEFAULT|NULL).*,", sourceField));
             if (matches.size() == 0)
                 throw new RuntimeException(String.format("Field %s not found in source table", sourceField));
 
-            createFieldStrs.add(matches.get(0).replaceAll(",$", ""));
+            String match = matches.get(0);
+            match = match.replaceAll(String.format("^`%s`", sourceField), String.format("`%s`", targetField));
+            createFieldStrs.add(match.replaceAll(",$", ""));
         }
 
         List<String> engineStrs = Regex.findAllStringMatches(createTableSql, "\\) ENGINE=.*");
