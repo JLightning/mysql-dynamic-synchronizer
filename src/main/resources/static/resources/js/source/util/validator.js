@@ -3,7 +3,7 @@
 export default class Validator {
 
     static isNull(input: any) {
-        return input === null || input === undefined || typeof input === 'undefined';
+        return typeof input === 'undefined' || input === null || input === undefined;
     }
 
     static isEmptyString(input: ?string) {

@@ -5,6 +5,7 @@ import mySQLApiClient from "../api-client/mysql-api-client";
 import {observer} from 'mobx-react';
 import {autorun, observable} from "mobx";
 import {Table} from "../dto/task-dto";
+import Validator from "../util/validator";
 
 @observer
 export default class TableSelector extends React.Component<Table> {
@@ -36,7 +37,7 @@ export default class TableSelector extends React.Component<Table> {
     }
 
     serverSelected(serverId) {
-        if (typeof serverId === 'undefined' || serverId === null || serverId === 0) return;
+        if (Validator.isNull(serverId)) return;
 
         mySQLApiClient.getDatabasesForServer(serverId).done(data => {
             this.databases = data;
@@ -44,7 +45,7 @@ export default class TableSelector extends React.Component<Table> {
     }
 
     databaseSelected(database) {
-        if (typeof database === 'undefined' || database === null || database === '') return;
+        if (Validator.isNull(database)) return;
 
         mySQLApiClient.getTablesForServerAndDatabase(this.props.table.serverId, database).done(data => {
             this.tables = data;

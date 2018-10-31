@@ -1,141 +1,110 @@
 import React from 'react';
+import TableSelector from '../../../common/table-selector';
+import mySQLApiClient from '../../../api-client/mysql-api-client';
 import taskApiClient from "../../../api-client/task-api-client";
-import mySQLApiClient from "../../../api-client/mysql-api-client";
 import Table from "../../../common/table";
-import TableSelector from "../../../common/table-selector";
 import Select, {SelectOption} from "../../../common/select";
+import {autorun, computed, observable} from 'mobx';
+import {observer} from 'mobx-react';
+import TagEditor from "../../../common/tag-editor";
+import PropTypes from 'prop-types';
+import {TaskDTO} from "../../../dto/task-dto";
+import {Table as TableDTO} from "../../../dto/table";
+import Validator from "../../../util/validator";
+import {SimpleFieldMappingDTO} from "../../../dto/simple-field-mapping-dto";
+import {MySQLFieldWithMappingDTO} from "../../../dto/my-sqlfield-with-mapping-dto";
+import {TaskType} from "../../../dto/task-type";
 import RedisServerSelector from "../../../common/redis-server-selector";
+import {RedisKeyTypeDTO} from "../../../dto/redis-key-type-dto";
 
+@observer
 export default class TaskCreate extends React.Component {
+
+    @observable task: TaskDTO = new TaskDTO(0, '', [], new TableDTO(), new RedisKeyTypeDTO(), '', '', '', []);
+
+    @observable fields: MySQLFieldWithMappingDTO[] = [];
+    @observable taskTypes = [];
+    @observable insertModes = [];
+    autorunDisposers = [];
 
     constructor(props) {
         super(props);
-        this.state = {
-            taskName: '',
-            fields: [],
-            table: {},
-            filters: [],
-            taskTypes: [],
-            taskType: '',
-            insertModes: [],
-            insertMode: ''
-        };
-        if (typeof taskDTO !== 'undefined') {
-            this.taskDTO = taskDTO;
-            this.state.taskName = taskDTO.taskName;
-            this.state.table.source = taskDTO.source;
-            this.state.table.target = taskDTO.target;
-            this.state.taskType = taskDTO.taskType;
-            this.state.insertMode = taskDTO.insertMode;
-            this.state.filters = taskDTO.filters;
-
-            this.getMapping();
+        if (!Validator.isNull(props.match.params.taskId)) {
+            taskApiClient.detail(props.match.params.taskId).done((data: TaskDTO) => this.task = data);
         }
+
+        this.autorunDisposers.push(autorun(() => this.getMapping()));
     }
 
     componentDidMount() {
-        taskApiClient.getTaskTypes().done(taskTypes => this.setState({taskTypes}));
-        mySQLApiClient.getInsertModes().done(insertModes => this.setState({insertModes}));
+        taskApiClient.getTaskTypes().done(taskTypes => this.taskTypes = taskTypes);
+        mySQLApiClient.getInsertModes().done(insertModes => this.insertModes = insertModes);
     }
 
-    getReadyToSubmit() {
-        const state = this.state;
-        return state.fields.length > 0 && state.taskName !== '' && state.taskType !== '' && state.insertMode !== '';
+    componentWillUnmount() {
+        this.autorunDisposers.forEach(disposer => disposer());
     }
 
-    tableSelected(params, isSource) {
-        const sub = isSource ? 'sourceField' : 'targetField';
-        const sub2 = isSource ? 'source' : 'target';
-
-        const table = this.state.table;
-        table[sub2] = params;
-        this.setState({table: table});
-
-        if (this.state.table.source != null && this.state.table.target != null) {
-            this.getMapping();
-        } else {
-            mySQLApiClient.getFieldForServerDatabaseAndTable(params.serverId, params.database, params.table).done(data => {
-                const fields = this.state.fields;
-                data.forEach((field, i) => {
-                    if (fields.length > i) {
-                        fields[i][sub] = field.field;
-                    } else {
-                        const _o = {};
-                        _o[sub] = field.field;
-                        fields.push(_o);
-                    }
-                });
-
-                this.setState({fields: fields});
-            });
-        }
+    @computed get readyToSubmit() {
+        console.log('compute readyToSubmit');
+        return this.fields.length > 0 && this.task.taskName !== '' && this.task.insertMode !== '' && this.task.migrationType !== '';
     }
 
     getMapping() {
-        const sourceParam = this.state.table.source;
-        const targetParam = this.state.table.target;
+        let source = this.task.source;
+        let target = this.task.target;
 
-        const mapping = typeof this.taskDTO !== 'undefined' ? this.taskDTO.mapping : null;
-        mySQLApiClient.getMappingFor2TableFlat(sourceParam.serverId, sourceParam.database, sourceParam.table, targetParam.serverId, targetParam.database, targetParam.table, mapping)
-            .done(fields => this.setState({fields}));
+        let emptySourceTable = Validator.isEmptyString(source.serverId) || Validator.isEmptyString(source.database) || Validator.isEmptyString(source.table);
+        let emptyTargetTable = Validator.isEmptyString(target.serverId) || Validator.isEmptyString(target.keyType);
+
+        let table = source;
+        let sub = 'sourceField';
+        if (!emptySourceTable && !emptyTargetTable) {
+            mySQLApiClient.getMappingFor2TableFlat(source.serverId, source.database, source.table, target.serverId, target.database, target.table, this.task.mapping)
+                .done(fields => this.fields = fields);
+
+            return;
+        } else if (emptySourceTable) {
+            table = target;
+            sub = 'targetField';
+        }
+        if (emptySourceTable && emptyTargetTable) {
+            return;
+        }
+
+        switch (target.keyType) {
+            case 'string':
+            case 'list':
+                this.fields = [new MySQLFieldWithMappingDTO('', 'key', false), new MySQLFieldWithMappingDTO('', 'value', false)];
+                break;
+        }
     }
 
     handleMappableChange(e, idx) {
-        const fields = this.state.fields;
+        const fields = this.fields;
         fields[idx].mappable = e.target.checked;
-        this.setState({fields: fields});
+        this.fields = fields;
     }
 
     submit() {
-        const state = this.state;
-        const mapping = state.fields.filter(field => field.mappable).map(field => {
-            return {sourceField: field.sourceField, targetField: field.targetField}
+        const mapping = this.fields.filter(field => field.mappable).map(field => new SimpleFieldMappingDTO(field.sourceField, field.targetField));
+
+        const postTask = this.task;
+        postTask.mapping = mapping;
+        postTask.taskType = TaskType.MYSQL_TO_MYSQL;
+
+        taskApiClient.create(postTask).done(data => {
+            location.href = DOMAIN + '/task/detail/' + data.taskId;
         });
-        const postParams = {
-            taskName: state.taskName,
-            mapping: mapping,
-            source: state.table.source,
-            target: state.table.target,
-            taskType: state.taskType,
-            insertMode: state.insertMode,
-            filters: this.state.filters
-        };
-
-        if (typeof taskDTO !== 'undefined') {
-            postParams.taskId = taskDTO.taskId;
-        }
-
-        taskApiClient.create(postParams).done(data => {
-            location.href = DOMAIN + '/task/detail/?taskId=' + data.taskId;
-        });
-    }
-
-    swapField(dragField, dropField) {
-        let fields = this.state.fields;
-        const dragFieldIdx = fields.indexOf(dragField);
-        const dropFieldIdx = fields.indexOf(dropField);
-
-        if (dragFieldIdx === dropFieldIdx) return;
-
-        const tmp = fields[dragFieldIdx].sourceField;
-        fields[dragFieldIdx].sourceField = fields[dropFieldIdx].sourceField;
-        fields[dropFieldIdx].sourceField = tmp;
-
-        fields[dropFieldIdx].mappable = true;
-        fields[dragFieldIdx].mappable = false;
-
-        this.setState({fields: fields});
     }
 
     editField(idx, fieldName) {
-        let fields = this.state.fields;
+        let fields = this.fields;
         fields[idx].sourceField = fieldName;
-        this.setState({fields: fields});
+        this.fields = fields;
     }
 
     render() {
-        const readyToSubmit = this.getReadyToSubmit();
-        const state = this.state;
         return (
             <div className="container mt-3">
                 <h1>Task Information</h1>
@@ -144,8 +113,8 @@ export default class TaskCreate extends React.Component {
                     <div className="form-group">
                         <label htmlFor="name">Name</label>
                         <input type="text" className="form-control" id="name" name="name" placeholder="Enter Task Name"
-                               defaultValue={this.state.taskName}
-                               onChange={e => this.setState({taskName: e.target.value})}/>
+                               defaultValue={this.task.taskName}
+                               onChange={e => this.task.taskName = e.target.value}/>
                     </div>
 
                     <div className="row">
@@ -153,37 +122,49 @@ export default class TaskCreate extends React.Component {
                             <div className="form-group">
                                 <label htmlFor="name">Task Type</label>
                                 <Select className="fullWidth" btnTitle="Select Task Type"
-                                        options={this.state.taskTypes.map((type, idx) => new SelectOption(idx, type))}
-                                        onItemClick={o => this.setState({taskType: o.value})}
-                                        value={this.state.taskTypes.indexOf(this.state.taskType)}/>
+                                        options={this.taskTypes.map((type, idx) => new SelectOption(idx, type))}
+                                        onItemClick={o => this.task.migrationType = o.value}
+                                        value={this.taskTypes.indexOf(this.task.migrationType)}/>
+                            </div>
+                        </div>
+                        <div className="col">
+                            <div className="form-group">
+                                <label htmlFor="name">Insert Mode</label>
+                                <Select className="fullWidth" btnTitle="Select Insert Mode"
+                                        options={this.insertModes.map((mode, idx) => new SelectOption(idx, mode))}
+                                        onItemClick={o => this.task.insertMode = o.value}
+                                        value={this.insertModes.indexOf(this.task.insertMode)}/>
                             </div>
                         </div>
                     </div>
 
                     <div className="row">
                         <div className="col">
-                            <TableSelector table={this.state.table.source} title='Source'
-                                           onSelected={o => this.tableSelected(o, true)}/>
+                            <TableSelector table={this.task.source} title='Source'/>
                         </div>
                         <div className="col">
-                            <RedisServerSelector title='Target' onSelected={console.log}/>
+                            <RedisServerSelector table={this.task.target} title='Target'/>
                         </div>
                     </div>
 
                     <h4 className="mt-3">Mapping</h4>
                     {
-                        this.state.fields.length > 0 ?
+                        this.fields.length > 0 ?
                             <Table th={['Source Fields', 'Sync?', 'Target Fields']} className="mt-3">
                                 <FieldRowList
-                                    fields={this.state.fields}
+                                    fields={this.fields}
                                     handleMappableChange={(e, idx) => this.handleMappableChange(e, idx)}
-                                    swapField={this.swapField.bind(this)}
                                     editField={this.editField.bind(this)}/>
                             </Table> : ''
                     }
 
+                    <h4 className="mt-3">Filter</h4>
+                    <TagEditor items={this.task.filters}
+                               validator={(value, cb) => mySQLApiClient.validateFilter(this.task.source.serverId, this.task.source.database, this.task.source.table, value)
+                                   .done(data => cb(data))}/>
+
                     <button type="button" className="btn btn-primary float-right mt-3"
-                            disabled={!readyToSubmit}
+                            disabled={!this.readyToSubmit}
                             onClick={() => this.submit()}>
                         Submit
                     </button>
@@ -193,15 +174,46 @@ export default class TaskCreate extends React.Component {
     }
 }
 
+@observer
 class FieldRowList extends React.Component {
 
+    capturedField = null;
+    editMode = {};
+    autorunDisposer = [];
+
+    constructor(props) {
+        super(props);
+
+        this.autorunDisposer.push(autorun(() => props.fields.forEach((field, idx) => this.editMode[idx] = observable.box(false))));
+    }
+
+    componentWillUnmount() {
+        this.autorunDisposer.forEach(disposer => disposer());
+    }
+
     captureDrapStartField(field) {
-        this.setState({capturedField: field});
+        this.capturedField = field;
     }
 
     onDrop(field) {
-        if (this.state.capturedField !== null) {
-            this.props.swapField(this.state.capturedField, field);
+        if (this.capturedField !== null) {
+            let fields = this.props.fields;
+            const dragFieldIdx = fields.indexOf(this.capturedField);
+            const dropFieldIdx = fields.indexOf(field);
+
+            if (this.editMode[dropFieldIdx].get() === true) {
+                showError('Cannot drop on an editing field');
+                return;
+            }
+
+            if (dragFieldIdx === dropFieldIdx) return;
+
+            const tmp = fields[dragFieldIdx].sourceField;
+            fields[dragFieldIdx].sourceField = fields[dropFieldIdx].sourceField;
+            fields[dropFieldIdx].sourceField = tmp;
+
+            fields[dropFieldIdx].mappable = true;
+            fields[dragFieldIdx].mappable = false;
         }
     }
 
@@ -211,45 +223,44 @@ class FieldRowList extends React.Component {
             idx={idx}
             field={field}
             {...this.props}
+            isInEditMode={this.editMode[idx]}
             onDrop={this.onDrop.bind(this)}
             captureDrapStartField={this.captureDrapStartField.bind(this)}
         />);
     }
 }
 
+@observer
 class FieldRow extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {dropTargetClass: '', custom: false};
-    }
+    @observable dropTargetClass = '';
 
     onDragOver(e) {
-        this.setState({dropTargetClass: 'bg-primary text-white'});
+        this.dropTargetClass = 'bg-primary text-white';
         e.preventDefault();
         e.stopPropagation();
     }
 
     onDragLeave(e) {
-        this.setState({dropTargetClass: ''});
+        this.dropTargetClass = '';
     }
 
     onDrop(e) {
-        this.setState({dropTargetClass: ''});
+        this.dropTargetClass = '';
     }
 
     getSourceText() {
         const field = this.props.field;
-        if (this.state.custom)
+        if (!Validator.isNull(this.props.isInEditMode) && this.props.isInEditMode.get())
             return (
                 <div>
                     <input type="text" value={field.sourceField}
                            onChange={e => this.props.editField(this.props.idx, e.target.value)}/>
                     <i className="fa fa-check-square-o ml-2" aria-hidden="true"
-                       onClick={() => this.setState({custom: false})}/>
+                       onClick={() => this.props.isInEditMode.set(false)}/>
                 </div>
             );
-        return <div onClick={() => this.setState({custom: true})}
+        return <div onClick={() => this.props.isInEditMode.set(true)}
                     style={{minHeight: '1.5rem'}}>{field.sourceField}</div>;
     }
 
@@ -259,10 +270,14 @@ class FieldRow extends React.Component {
         return (
             <tr>
                 {
-                    <td className={this.state.dropTargetClass + ' pointer'}
+                    <td className={this.dropTargetClass + ' pointer'}
                         draggable="true"
-                        onDragStart={() => {
-                            this.setState({dropTargetClass: 'bg-success text-white'});
+                        onDragStart={e => {
+                            if (this.props.isInEditMode.get()) {
+                                e.preventDefault();
+                                return;
+                            }
+                            this.dropTargetClass = 'bg-success text-white';
                             this.props.captureDrapStartField(field);
                         }}
                         onDrop={() => {
@@ -287,3 +302,9 @@ class FieldRow extends React.Component {
         );
     }
 }
+
+FieldRow.propTypes = {
+    isInEditMode: PropTypes.object,
+    captureDrapStartField: PropTypes.func,
+    onDrop: PropTypes.func
+};

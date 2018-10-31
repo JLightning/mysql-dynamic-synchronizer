@@ -4,6 +4,7 @@ import Layout from "./layout";
 import {BrowserRouter, Route} from "react-router-dom";
 import TaskCreateChooser from "./pages/task/task-create-chooser";
 import TaskCreateMysql2Mysql from "./pages/task/mysql2mysql/task-create";
+import TaskCreateMysal2Redis from "./pages/task/mysql2redis/task-create";
 import TaskList from "./pages/task/task-list";
 import TaskDetail from "./pages/task/mysql2mysql/task-detail";
 import TableStructureSync from "./table-structure-sync";
@@ -23,6 +24,9 @@ class App extends React.Component {
                         <Route exact path="/task/create" component={TaskCreateChooser}/>
                         <Route path="/task/create/mysql-to-mysql" component={TaskCreateMysql2Mysql}/>
                         <Route path="/task/edit/mysql-to-mysql/:taskId" component={TaskCreateMysql2Mysql}/>
+
+                        <Route path="/task/create/mysql-to-redis" component={TaskCreateMysal2Redis}/>
+
                         <Route path="/task/detail/:taskId" component={TaskDetail}/>
 
                         <Route path="/server/mysql/list" component={MysqlServerList}/>
